@@ -16,7 +16,9 @@
     "status": "状態",
     "noStore": "未設定",
     "saved": "保存しました",
-    "empty": "ユーザーがいません。"
+    "empty": "ユーザーがいません。",
+    "fullName": "氏名（集計用）",
+    "noFullName": "未登録"
   },
   "sync": {
     "tab": "スプレッドシート",

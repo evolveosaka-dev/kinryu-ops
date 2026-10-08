@@ -158,5 +158,14 @@
     "failed": "{{n}} file không tải lên được",
     "retry": "Gửi lại",
     "discard": "Bỏ"
+  },
+  "fullName": {
+    "title": "Đăng ký họ tên",
+    "body": "Dùng để tổng hợp kết quả theo tuần và tháng. Hãy nhập họ tên đầy đủ giống trên thẻ cư trú hoặc hộ chiếu.",
+    "label": "Họ tên đầy đủ",
+    "hint": "Ví dụ: NGUYEN VAN AN / 山田 太郎",
+    "submit": "Đăng ký",
+    "note": "Muốn sửa họ tên sau khi đăng ký, hãy liên hệ quản lý.",
+    "tooShort": "Hãy nhập ít nhất 2 ký tự."
   }
 }

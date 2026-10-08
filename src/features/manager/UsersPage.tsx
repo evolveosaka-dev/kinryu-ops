@@ -12,7 +12,7 @@ import { supabase } from '../../lib/supabase'
 import type { Profile } from '../../lib/types'
 import { ManagerTabs } from './ManagerTabs'
 
-type Patch = Partial<Pick<Profile, 'role' | 'can_patrol' | 'status' | 'home_store_id'>>
+type Patch = Partial<Pick<Profile, 'role' | 'can_patrol' | 'status' | 'home_store_id' | 'full_name'>>
 
 const ROLES: Role[] = ['staff', 'manager', 'admin']
 const STATUSES: ProfileStatus[] = ['pending', 'active', 'inactive']
@@ -31,6 +31,16 @@ function UserRow({ user, onSave, isSelf }: { user: Profile; onSave: (p: Patch) =
         <p className="font-bold">{user.display_name || '（名前なし）'}</p>
         <p className="text-xs text-slate-500">{user.email}</p>
       </div>
+      <label className="text-xs font-bold text-slate-600">
+        {t('users.fullName')}
+        <input
+          className={selectClass}
+          value={v.full_name ?? ''}
+          placeholder={t('users.noFullName')}
+          maxLength={100}
+          onChange={(e) => setDraft({ ...draft, full_name: e.target.value })}
+        />
+      </label>
       <div className="grid grid-cols-2 gap-2">
         <label className="text-xs font-bold text-slate-600">
           {t('users.status')}
@@ -76,8 +86,9 @@ function UserRow({ user, onSave, isSelf }: { user: Profile; onSave: (p: Patch) =
         {dirty && (
           <Button
             className="flex-1"
+            disabled={draft.full_name !== undefined && (draft.full_name ?? '').trim().length < 2}
             onClick={() => {
-              onSave(draft)
+              onSave(draft.full_name !== undefined ? { ...draft, full_name: (draft.full_name ?? '').trim() } : draft)
               setDraft({})
             }}
           >

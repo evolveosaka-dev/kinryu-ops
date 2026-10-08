@@ -8,7 +8,7 @@ import { HistoryPage } from '../features/history/HistoryPage'
 import { SyncPage } from '../features/manager/SyncPage'
 import { UsersPage } from '../features/manager/UsersPage'
 import { PatrolFormPage } from '../features/patrol/PatrolFormPage'
-import { InactivePage, PendingPage, PrivacyPage } from '../features/profile/GatePages'
+import { FullNamePage, InactivePage, PendingPage, PrivacyPage } from '../features/profile/GatePages'
 import { ProfilePage } from '../features/profile/ProfilePage'
 import { errorMessage } from '../lib/format'
 import { isConfigured, supabase } from '../lib/supabase'
@@ -38,6 +38,7 @@ function Gate() {
     )
   }
   if (profile.status === 'inactive') return <InactivePage />
+  if (!profile.full_name) return <FullNamePage />
   if (profile.status === 'pending') return <PendingPage />
   if (!profile.privacy_accepted_at) return <PrivacyPage />
 

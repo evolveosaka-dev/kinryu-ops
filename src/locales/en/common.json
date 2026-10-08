@@ -158,5 +158,14 @@
     "failed": "{{n}} file(s) could not be uploaded",
     "retry": "Send again",
     "discard": "Cancel"
+  },
+  "fullName": {
+    "title": "Register your full name",
+    "body": "Used for weekly and monthly reports. Enter your full name exactly as on your residence card or passport.",
+    "label": "Full name",
+    "hint": "e.g. 山田 太郎 / NGUYEN VAN AN",
+    "submit": "Register",
+    "note": "To correct your full name later, please contact a manager.",
+    "tooShort": "Please enter at least 2 characters."
   }
 }

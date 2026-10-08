@@ -65,7 +65,7 @@ serve(async (req) => {
 
   const [stores, profiles, chorei, patrols, attachments] = await Promise.all([
     admin.from('stores').select('id, name_ja'),
-    admin.from('profiles').select('id, display_name'),
+    admin.from('profiles').select('id, display_name, full_name'),
     admin.from('chorei_records').select('*').order('business_date', { ascending: false }).order('shift'),
     admin.from('patrol_checks').select('*').neq('status', 'draft').order('business_date', { ascending: false }).order('started_at', { ascending: false }),
     admin.from('attachments').select('*').eq('status', 'uploaded').order('created_at', { ascending: false }),
@@ -73,7 +73,9 @@ serve(async (req) => {
   for (const r of [stores, profiles, chorei, patrols, attachments]) if (r.error) throw new HttpError(500, r.error.message)
 
   const storeName = new Map(stores.data!.map((s) => [s.id, s.name_ja]))
-  const person = new Map(profiles.data!.map((p) => [p.id, p.display_name || '(名前なし)']))
+  // 氏名 for aggregation; the short display name is kept in its own column
+  const person = new Map(profiles.data!.map((p) => [p.id, p.full_name || `${p.display_name || '?'}（氏名未登録）`]))
+  const shortName = new Map(profiles.data!.map((p) => [p.id, p.display_name || '']))
   const attachCount = new Map<string, number>()
   for (const a of attachments.data!) {
     const key = a.chorei_id ?? a.patrol_id
@@ -84,12 +86,13 @@ serve(async (req) => {
 
   const sheets: Record<string, Cell[][]> = {
     朝礼記録: [
-      ['日付', '店舗', 'シフト', '誘導者', '参加者', '在庫', '目標杯数', '注意点', '未実施の手順', '理由', '送信日時', '状態', '無効の理由', '添付数', 'ID'],
+      ['日付', '店舗', 'シフト', '誘導者（氏名）', '誘導者（表示名）', '参加者', '在庫', '目標杯数', '注意点', '未実施の手順', '理由', '送信日時', '状態', '無効の理由', '添付数', 'ID'],
       ...chorei.data!.map((c) => [
         c.business_date,
         storeName.get(c.store_id) ?? '',
         SHIFT[c.shift] ?? c.shift,
         person.get(c.leader_id) ?? '',
+        shortName.get(c.leader_id) ?? '',
         [...(c.participants as string[]).map((id) => person.get(id) ?? '?'), ...(c.participants_extra as string[])].join('、'),
         c.stock_none ? 'なし' : (c.stock_text ?? ''),
         c.target_bowls,
@@ -104,13 +107,14 @@ serve(async (req) => {
       ]),
     ],
     巡回チェック: [
-      ['日付', '店舗', 'シフト', '種類', '巡回者', '開始', '終了', '分', '①笑顔', '②声出し', '③身だしなみ', '④清潔', '⑤提供品質', '合計', '満点', '判定', '対象スタッフ', '良かった点', '改善点・指導内容', '備考', '時間確認', '状態', '添付数', 'ID'],
+      ['日付', '店舗', 'シフト', '種類', '巡回者（氏名）', '巡回者（表示名）', '開始', '終了', '分', '①笑顔', '②声出し', '③身だしなみ', '④清潔', '⑤提供品質', '合計', '満点', '判定', '対象スタッフ', '良かった点', '改善点・指導内容', '備考', '時間確認', '状態', '添付数', 'ID'],
       ...patrols.data!.map((p) => [
         p.business_date,
         storeName.get(p.store_id) ?? '',
         SHIFT[p.shift] ?? p.shift,
         p.patrol_type === 'early' ? '早出巡回' : '勤務後巡回',
         person.get(p.patroller_id) ?? '',
+        shortName.get(p.patroller_id) ?? '',
         jst(p.started_at),
         jst(p.ended_at),
         p.duration_min,
@@ -133,7 +137,7 @@ serve(async (req) => {
       ]),
     ],
     添付ファイル: [
-      ['日付', '店舗', 'シフト', '記録', '投稿者', '種類', 'ファイル名', 'サイズ(MB)', '秒', 'Driveリンク', '登録日時', '記録ID'],
+      ['日付', '店舗', 'シフト', '記録', '投稿者（氏名）', '種類', 'ファイル名', 'サイズ(MB)', '秒', 'Driveリンク', '登録日時', '記録ID'],
       ...attachments.data!.map((a) => {
         const parent = a.chorei_id ? choreiById.get(a.chorei_id) : patrolById.get(a.patrol_id)
         return [

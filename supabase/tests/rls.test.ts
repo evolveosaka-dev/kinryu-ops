@@ -219,3 +219,27 @@ describe('attachments', () => {
     expect(await t.as(staffM, 'select key from public.app_kv')).toHaveLength(0)
   })
 })
+
+describe('full name (氏名)', () => {
+  it('email sign-up stores the entered full name; Google name is not used', async () => {
+    const a = await t.createUser('a@example.com', { entered_full_name: '  Nguyen   Van  An ' })
+    const g = await t.createUser('g@example.com', { full_name: 'Google Name' })
+    const rows = await t.admin<{ id: string; full_name: string | null }>('select id, full_name from public.profiles where id in ($1, $2)', [a, g])
+    expect(rows.find((r) => r.id === a)?.full_name).toBe('Nguyen Van An')
+    expect(rows.find((r) => r.id === g)?.full_name).toBeNull()
+  })
+  it('staff set it once (normalised), cannot change it later; managers can', async () => {
+    await t.as(staffM, 'update public.profiles set full_name = $1 where id = auth.uid()', [' 山田　 太郎 ']) // full-width space
+    const [r] = await t.admin<{ full_name: string }>('select full_name from public.profiles where id = $1', [staffM])
+    expect(r!.full_name).toBe('山田 太郎')
+    await expect(t.as(staffM, `update public.profiles set full_name = '別名' where id = auth.uid()`)).rejects.toThrow(/only managers/)
+    await t.as(manager, `update public.profiles set full_name = '山田 太一' where id = $1`, [staffM])
+  })
+  it('rejects a 1-character name', async () => {
+    await expect(t.as(staffS, `update public.profiles set full_name = 'A' where id = auth.uid()`)).rejects.toThrow(/profiles_full_name_length/)
+  })
+  it('directory returns full names to active users', async () => {
+    const rows = await t.as<{ full_name: string | null }>(staffS, 'select full_name from public.staff_directory()')
+    expect(rows.map((r) => r.full_name)).toContain('山田 太一')
+  })
+})

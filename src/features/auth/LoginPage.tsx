@@ -13,6 +13,7 @@ export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
+  const [fullName, setFullName] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
@@ -39,7 +40,7 @@ export function LoginPage() {
         const { error: e } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: appBaseUrl(), data: { display_name: displayName.trim(), locale: currentLocale() } },
+          options: { emailRedirectTo: appBaseUrl(), data: { display_name: displayName.trim(), entered_full_name: fullName.trim(), locale: currentLocale() } },
         })
         if (e) setError(e.message)
         else setInfo(t('auth.checkEmail'))
@@ -77,6 +78,18 @@ export function LoginPage() {
         )}
 
         <form onSubmit={submit} className="flex flex-col gap-3">
+          {mode === 'signup' && (
+            <TextInput
+              label={t('fullName.label')}
+              hint={t('fullName.hint')}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+              minLength={2}
+              maxLength={100}
+              autoComplete="name"
+            />
+          )}
           {mode === 'signup' && (
             <TextInput
               label={t('auth.displayName')}

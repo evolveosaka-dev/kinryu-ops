@@ -13,6 +13,8 @@ export interface Store {
 export interface Profile {
   id: string
   display_name: string
+  /** 氏名 — used for weekly / monthly aggregation */
+  full_name: string | null
   email: string | null
   role: Role
   can_patrol: boolean
@@ -26,6 +28,7 @@ export interface Profile {
 export interface StaffEntry {
   id: string
   display_name: string
+  full_name: string | null
   home_store_id: string | null
   can_patrol: boolean
 }

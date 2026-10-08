@@ -74,6 +74,49 @@ export function PendingPage() {
   )
 }
 
+/** Full name (氏名) is required before anything else; it is used for weekly / monthly reports. */
+export function FullNamePage() {
+  const { t } = useTranslation()
+  const me = useMe()
+  const { refreshProfile } = useAuth()
+  const [name, setName] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const normalized = name.trim().replace(/\s+/g, ' ')
+
+  const save = async () => {
+    if (normalized.length < 2) return setError(t('fullName.tooShort'))
+    setBusy(true)
+    const { error: e } = await supabase.from('profiles').update({ full_name: normalized }).eq('id', me.id)
+    setBusy(false)
+    if (e) return setError(e.message)
+    void refreshProfile()
+  }
+
+  return (
+    <GateShell>
+      <Card className="flex flex-col gap-4">
+        <h2 className="text-lg font-bold">🪪 {t('fullName.title')}</h2>
+        <p>{t('fullName.body')}</p>
+        <TextInput
+          label={t('fullName.label')}
+          hint={t('fullName.hint')}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          autoComplete="name"
+          maxLength={100}
+          required
+        />
+        <p className="text-sm text-slate-600">{t('fullName.note')}</p>
+        {error && <ErrorBox message={error} />}
+        <Button onClick={save} disabled={busy || normalized.length < 2}>
+          {t('fullName.submit')}
+        </Button>
+      </Card>
+    </GateShell>
+  )
+}
+
 export function InactivePage() {
   const { t } = useTranslation()
   return (

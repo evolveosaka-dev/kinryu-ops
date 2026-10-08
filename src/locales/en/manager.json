@@ -16,7 +16,9 @@
     "status": "Status",
     "noStore": "Not set",
     "saved": "Saved",
-    "empty": "No users."
+    "empty": "No users.",
+    "fullName": "Full name (for reports)",
+    "noFullName": "Not registered"
   },
   "sync": {
     "tab": "Spreadsheet",

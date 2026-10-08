@@ -39,6 +39,10 @@ export function ProfilePage() {
         <LanguageSelect onChange={(locale) => update({ locale })} />
       </Card>
       <Card className="flex flex-col gap-1 text-sm text-slate-700">
+        <p>
+          {t('fullName.label')}：<b>{me.full_name}</b>
+        </p>
+        <p className="text-xs text-slate-500">{t('fullName.note')}</p>
         <p>{t('auth.email')}：{me.email}</p>
         <p>
           {t('pending.homeStore')}：{storeName(stores.data?.find((s) => s.id === me.home_store_id), currentLocale())}
