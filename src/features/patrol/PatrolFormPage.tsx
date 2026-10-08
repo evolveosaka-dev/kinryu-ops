@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
+import { StaffPicker } from '../../components/StaffPicker'
 import { Button, Card, ErrorBox, Segmented, Spinner, StickyActions, TextArea, TextInput } from '../../components/ui'
 import {
   durationMinutes,
@@ -52,6 +53,7 @@ function newForm(stores: Store[], homeStoreId: string | null): PatrolFormState {
     endedAt: null,
     scores: {},
     staffOnShift: '全員',
+    staffNames: [],
     goodPoints: '',
     improvements: '',
     remarks: '',
@@ -131,7 +133,8 @@ function PatrolForm({ stores }: { stores: Store[] }) {
         score_grooming: scores!.grooming,
         score_clean: scores!.clean,
         score_quality: scores!.quality,
-        staff_on_shift: f.staffOnShift.trim() || '全員',
+        staff_names: (f.staffNames ?? []).filter(Boolean),
+        staff_on_shift: (f.staffNames ?? []).filter(Boolean).join('、') || '全員',
         good_points: f.goodPoints.trim(),
         improvements: f.improvements.trim(),
         remarks: f.remarks.trim() || null,
@@ -222,7 +225,13 @@ function PatrolForm({ stores }: { stores: Store[] }) {
       ))}
 
       <Card className="flex flex-col gap-3">
-        <TextInput label={t('staffOnShift')} value={form.staffOnShift} onChange={(e) => update({ staffOnShift: e.target.value })} />
+        <StaffPicker
+          label={t('staffOnShift')}
+          hint={t('staffOnShiftHint')}
+          value={form.staffNames ?? []}
+          onChange={(staffNames) => update({ staffNames })}
+          storeId={form.storeId}
+        />
         <TextArea
           label={`${t('goodPoints.label')} *`}
           placeholder={t('goodPoints.placeholder')}

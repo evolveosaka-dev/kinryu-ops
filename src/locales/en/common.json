@@ -167,5 +167,13 @@
     "submit": "Register",
     "note": "To correct your full name later, please contact a manager.",
     "tooShort": "Please enter at least 2 characters."
+  },
+  "picker": {
+    "select": "Choose person {{n}}",
+    "person": "Person {{n}}",
+    "add": "Add a person",
+    "remove": "Remove",
+    "noStore": "No store",
+    "empty": "The staff list is empty. Please contact a manager."
   }
 }

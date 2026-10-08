@@ -19,11 +19,7 @@
   },
   "participants": {
     "label": "Participants",
-    "showAll": "Show staff of the other store",
-    "extra": "Participant names (one per box)",
-    "addPerson": "Add a person",
-    "namePlaceholder": "Name of person {{n}}",
-    "removePerson": "Remove"
+    "hint": "Choose each person who joined the meeting (you do not need to add yourself)."
   },
   "stock": {
     "label": "Stock (items to order)",

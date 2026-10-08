@@ -6,6 +6,7 @@ import { UpdatePasswordPage } from '../features/auth/UpdatePasswordPage'
 import { ChoreiFormPage } from '../features/chorei/ChoreiFormPage'
 import { GenkoPage } from '../features/genko/GenkoPage'
 import { HistoryPage } from '../features/history/HistoryPage'
+import { RosterPage } from '../features/manager/RosterPage'
 import { SyncPage } from '../features/manager/SyncPage'
 import { UsersPage } from '../features/manager/UsersPage'
 import { PatrolFormPage } from '../features/patrol/PatrolFormPage'
@@ -57,6 +58,7 @@ function Gate() {
         <Route path="profile" element={<ProfilePage />} />
         {isManager && <Route path="manager/users" element={<UsersPage />} />}
         {isManager && <Route path="manager/sync" element={<SyncPage />} />}
+        {isManager && <Route path="manager/roster" element={<RosterPage />} />}
         {isManager && <Route path="manager" element={<Navigate to="/manager/users" replace />} />}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

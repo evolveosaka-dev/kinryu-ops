@@ -19,11 +19,7 @@
   },
   "participants": {
     "label": "参加者",
-    "showAll": "ほかの店舗の人も表示",
-    "extra": "参加者の名前（1人ずつ入力）",
-    "addPerson": "1人追加",
-    "namePlaceholder": "{{n}}人目の名前",
-    "removePerson": "削除"
+    "hint": "一緒に朝礼をした人を1人ずつ選んでください（自分は入れなくてよい）。"
   },
   "stock": {
     "label": "在庫（仕入れが必要なもの）",

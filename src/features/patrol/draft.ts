@@ -12,6 +12,8 @@ export interface PatrolFormState {
   endedAt: string | null
   scores: Partial<Record<PatrolItem, Score | null>>
   staffOnShift: string
+  /** chosen from the roster; empty = 全員 */
+  staffNames?: string[]
   goodPoints: string
   improvements: string
   remarks: string

@@ -167,5 +167,13 @@
     "submit": "Đăng ký",
     "note": "Muốn sửa họ tên sau khi đăng ký, hãy liên hệ quản lý.",
     "tooShort": "Hãy nhập ít nhất 2 ký tự."
+  },
+  "picker": {
+    "select": "Chọn người thứ {{n}}",
+    "person": "Người thứ {{n}}",
+    "add": "Thêm 1 người",
+    "remove": "Xóa",
+    "noStore": "Chưa có cửa hàng",
+    "empty": "Chưa có danh sách nhân viên. Hãy liên hệ quản lý."
   }
 }

@@ -31,5 +31,14 @@
     "running": "Syncing…",
     "done": "Synced ({{c}} meetings, {{p}} patrols, {{a}} attachments)",
     "failed": "Sync failed"
+  },
+  "roster": {
+    "tab": "Roster",
+    "title": "Staff roster",
+    "body": "Names offered in the meeting participants and patrol staff pickers. Use the same name as in the shift table. Set people who left to \"inactive\" (their records stay).",
+    "name": "Name (as in the shift table)",
+    "add": "Add",
+    "deactivate": "Deactivate",
+    "activate": "Reactivate"
   }
 }

@@ -243,3 +243,25 @@ describe('full name (氏名)', () => {
     expect(rows.map((r) => r.full_name)).toContain('山田 太一')
   })
 })
+
+describe('staff roster', () => {
+  it('managers maintain it, active staff read it, pending users and staff cannot write', async () => {
+    await t.as(manager, `insert into public.staff_roster (name, home_store_id) values ('テスト', $1), ('サンプル', null)`, [midosuji])
+    expect((await t.as(staffS, 'select name from public.staff_roster')).length).toBe(2)
+    await expect(t.as(staffS, `insert into public.staff_roster (name) values ('勝手')`)).rejects.toThrow(/row-level security/)
+    const fresh = await t.createUser('pending2@example.com')
+    expect(await t.as(fresh, 'select name from public.staff_roster')).toHaveLength(0)
+    await expect(t.as(manager, `insert into public.staff_roster (name) values ('テスト')`)).rejects.toThrow(/duplicate key/)
+  })
+  it('patrol checks store the list of staff names', async () => {
+    const [row] = await t.as<{ staff_names: string[] }>(
+      patroller,
+      `insert into public.patrol_checks (store_id, business_date, shift, patrol_type, started_at, ended_at,
+        score_smile, score_voice, score_grooming, score_clean, good_points, improvements, staff_names, staff_on_shift)
+       values ($1, (now() at time zone 'Asia/Tokyo')::date, 'middle', 'after_shift', now() - interval '12 minutes', now(),
+        4, 4, 4, 4, 'a', 'b', '{テスト,サンプル}', 'テスト、サンプル') returning staff_names`,
+      [midosuji],
+    )
+    expect(row!.staff_names).toEqual(['テスト', 'サンプル'])
+  })
+})

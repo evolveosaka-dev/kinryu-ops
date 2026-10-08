@@ -33,6 +33,13 @@ export interface StaffEntry {
   can_patrol: boolean
 }
 
+export interface RosterEntry {
+  id: string
+  name: string
+  home_store_id: string | null
+  active: boolean
+}
+
 export interface TargetBowls {
   store_id: string
   month: string
@@ -106,6 +113,7 @@ export interface PatrolCheck {
   duration_min: number | null
   needs_time_review: boolean
   staff_on_shift: string
+  staff_names: string[]
   good_points: string | null
   improvements: string | null
   remarks: string | null

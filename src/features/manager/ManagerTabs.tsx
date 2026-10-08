@@ -6,10 +6,11 @@ export function ManagerTabs() {
   const { t } = useTranslation('manager')
   const tabs = [
     { to: '/manager/users', label: `👥 ${t('users.title')}` },
+    { to: '/manager/roster', label: `📋 ${t('roster.tab')}` },
     { to: '/manager/sync', label: `📊 ${t('sync.tab')}` },
   ]
   return (
-    <nav className="grid grid-cols-2 gap-2">
+    <nav className="grid grid-cols-3 gap-2">
       {tabs.map((tab) => (
         <NavLink
           key={tab.to}

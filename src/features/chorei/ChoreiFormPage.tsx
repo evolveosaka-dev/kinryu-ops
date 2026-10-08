@@ -4,14 +4,14 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
+import { StaffPicker } from '../../components/StaffPicker'
 import { Button, Card, Checkbox, ErrorBox, Segmented, Spinner, StickyActions, TextArea, TextInput } from '../../components/ui'
-import { cx } from '../../lib/cx'
 import { CAUTION_PICKS } from '../../domain/phrases'
 import { currentSlot, dayType, formatTokyoTime, MEETING_TIME, monthOf } from '../../domain/time'
 import { ALL_STEPS_DONE, CHOREI_STEPS, SHIFTS, type Shift, type StepsDone } from '../../domain/types'
 import { currentLocale } from '../../i18n'
 import { errorMessage, isNetworkError, storeName } from '../../lib/format'
-import { unwrap, useHolidays, useStaffDirectory, useStores, useTargets } from '../../lib/queries'
+import { unwrap, useHolidays, useStores, useTargets } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import type { ChoreiSlot } from '../../lib/types'
 import { AttachmentPicker } from '../attachments/AttachmentPicker'
@@ -31,15 +31,12 @@ export function ChoreiFormPage() {
   const stores = useStores()
   const holidays = useHolidays()
   const targets = useTargets()
-  const staff = useStaffDirectory()
 
   const initial = useMemo(() => currentSlot(new Date()), [])
   const [storeId, setStoreId] = useState(me.home_store_id ?? '')
   const [businessDate, setBusinessDate] = useState(initial.businessDate)
   const [shift, setShift] = useState<Shift>(initial.shift)
-  const [participants, setParticipants] = useState<string[]>([])
-  const [showAllStaff, setShowAllStaff] = useState(false)
-  const [extraNames, setExtraNames] = useState<string[]>([''])
+  const [participantNames, setParticipantNames] = useState<string[]>([])
   const [stockNone, setStockNone] = useState(false)
   const [stockText, setStockText] = useState('')
   const [targetOverride, setTargetOverride] = useState<string | null>(null)
@@ -67,7 +64,6 @@ export function ChoreiFormPage() {
   )?.bowls
   const targetValue = targetOverride ?? (suggestedTarget !== undefined ? String(suggestedTarget) : '')
 
-  const staffList = (staff.data ?? []).filter((s) => s.id !== me.id && (showAllStaff || s.home_store_id === effectiveStore))
 
   const submit = useMutation({
     mutationFn: async () => {
@@ -75,8 +71,8 @@ export function ChoreiFormPage() {
         store_id: effectiveStore,
         business_date: businessDate,
         shift,
-        participants,
-        participants_extra: extraNames.map((n) => n.trim()).filter(Boolean),
+        participants: [],
+        participants_extra: participantNames.filter(Boolean),
         stock_none: stockNone,
         stock_text: stockNone ? null : stockText.trim() || null,
         target_bowls: targetValue === '' ? null : Number(targetValue),
@@ -185,65 +181,14 @@ export function ChoreiFormPage() {
       ) : (
         <>
           <Card className="flex flex-col gap-2">
-            <h2 className="text-sm font-bold text-slate-700">{t('participants.label')}</h2>
-            <div className="flex flex-wrap gap-2">
-              {staffList.map((s) => {
-                const on = participants.includes(s.id)
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => setParticipants((p) => (on ? p.filter((x) => x !== s.id) : [...p, s.id]))}
-                    className={cx(
-                      'min-h-11 rounded-full border px-4 text-sm font-bold',
-                      on ? 'border-brand bg-brand text-white' : 'border-slate-300 bg-white',
-                    )}
-                  >
-                    {on ? '✓ ' : ''}
-                    {s.display_name}
-                  </button>
-                )
-              })}
-            </div>
-            <Checkbox checked={showAllStaff} onChange={setShowAllStaff}>
-              {t('participants.showAll')}
-            </Checkbox>
-            <fieldset className="flex flex-col gap-2">
-              <legend className="mb-1 text-sm font-bold text-slate-700">{t('participants.extra')}</legend>
-              {extraNames.map((name, i) => (
-                <div key={i} className="flex gap-2">
-                  <input
-                    className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-base focus:border-brand focus:outline-none"
-                    value={name}
-                    list="staff-names"
-                    placeholder={t('participants.namePlaceholder', { n: i + 1 })}
-                    aria-label={t('participants.namePlaceholder', { n: i + 1 })}
-                    onChange={(e) => setExtraNames((list) => list.map((x, j) => (j === i ? e.target.value : x)))}
-                  />
-                  <button
-                    type="button"
-                    aria-label={t('participants.removePerson')}
-                    onClick={() => setExtraNames((list) => (list.length === 1 ? [''] : list.filter((_, j) => j !== i)))}
-                    className="min-h-11 min-w-11 rounded-xl border border-slate-300 bg-white text-slate-600"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-              <datalist id="staff-names">
-                {(staff.data ?? []).map((s) => (
-                  <option key={s.id} value={s.full_name ?? s.display_name} />
-                ))}
-              </datalist>
-              <button
-                type="button"
-                onClick={() => setExtraNames((list) => [...list, ''])}
-                className="min-h-11 rounded-xl border border-dashed border-brand font-bold text-brand"
-              >
-                ＋ {t('participants.addPerson')}
-              </button>
-            </fieldset>
+            <StaffPicker
+              label={t('participants.label')}
+              hint={t('participants.hint')}
+              value={participantNames}
+              onChange={setParticipantNames}
+              storeId={effectiveStore}
+              exclude={[me.display_name]}
+            />
           </Card>
 
           <Card className="flex flex-col gap-3">

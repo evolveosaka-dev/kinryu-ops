@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from './supabase'
-import type { StaffEntry, Store, TargetBowls } from './types'
+import type { RosterEntry, StaffEntry, Store, TargetBowls } from './types'
 
 /** Throw the PostgREST error so react-query / callers see it. */
 export function unwrap<T>(res: { data: T | null; error: { message: string } | null }): T {
@@ -33,6 +33,16 @@ export function useTargets() {
     queryKey: ['target_bowls'],
     staleTime: 60 * 60 * 1000,
     queryFn: async () => unwrap<TargetBowls[]>(await supabase.from('target_bowls').select('*')),
+  })
+}
+
+/** Active staff names from the shift table (for the per-person pickers). */
+export function useRoster() {
+  return useQuery({
+    queryKey: ['staff_roster', 'active'],
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () =>
+      unwrap<RosterEntry[]>(await supabase.from('staff_roster').select('id, name, home_store_id, active').eq('active', true).order('name')),
   })
 }
 

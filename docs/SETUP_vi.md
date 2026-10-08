@@ -72,3 +72,17 @@ Thứ tự: **1 Supabase → 2 Google OAuth → 3 Resend → 4 GitHub**. Mất k
 cp .env.example .env.local   # điền URL và anon key
 npm run dev                   # http://localhost:5173
 ```
+
+## 6. Danh sách nhân viên (スタッフ名簿)
+
+Tên trong ô chọn "参加者" (朝礼) và "対象スタッフ" (巡回) lấy từ bảng `staff_roster`.
+Tên nhân viên **không** lưu trong repo này.
+
+- Thêm / dừng từng người: app → **管理 → 📋 名簿**.
+- Nạp lại từ file ca tháng mới (`.xlsm`, sheet 早番/中番/遅番) — chạy trên máy:
+  ```powershell
+  node scripts/roster-from-shift.mjs "金龍2026年11月シフト.xlsm" > roster.sql
+  npx supabase db query --linked -f roster.sql
+  del roster.sql
+  ```
+  Người đã có giữ nguyên; người mới được thêm; cửa hàng chính tính theo số ca ①/⑤ nhiều hơn.

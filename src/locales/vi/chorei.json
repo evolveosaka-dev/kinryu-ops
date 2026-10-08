@@ -19,11 +19,7 @@
   },
   "participants": {
     "label": "Người tham gia",
-    "showAll": "Hiện cả nhân viên cửa hàng kia",
-    "extra": "Tên người tham gia (mỗi ô một người)",
-    "addPerson": "Thêm 1 người",
-    "namePlaceholder": "Tên người thứ {{n}}",
-    "removePerson": "Xóa"
+    "hint": "Chọn từng người đã tham gia họp ca (không cần chọn chính mình)."
   },
   "stock": {
     "label": "Hàng tồn (cần nhập thêm)",
