@@ -7,17 +7,15 @@
   },
   "target": "Store and shift to check",
   "time": {
-    "label": "Time (used for pay)",
+    "label": "Time",
     "start": "Start",
-    "end": "End",
     "started": "Start {{time}}",
-    "ended": "End {{time}}",
     "elapsed": "{{min}} min",
     "over": "Over 15 minutes",
     "needStart": "Tap \"Start\" when you arrive at the store.",
-    "needEnd": "Tap \"End\" when you finish watching.",
     "resumed": "Your unfinished patrol was restored.",
-    "discard": "Cancel this patrol"
+    "discard": "Cancel this patrol",
+    "endOnSubmit": "The end time is recorded when you press \"Send\"."
   },
   "items": {
     "smile": {

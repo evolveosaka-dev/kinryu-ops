@@ -7,17 +7,15 @@
   },
   "target": "Cửa hàng và ca cần kiểm tra",
   "time": {
-    "label": "Thời gian (dùng để tính lương)",
+    "label": "Thời gian",
     "start": "Bắt đầu",
-    "end": "Kết thúc",
     "started": "Bắt đầu {{time}}",
-    "ended": "Kết thúc {{time}}",
     "elapsed": "{{min}} phút",
     "over": "Đã quá 15 phút",
     "needStart": "Đến cửa hàng thì bấm \"Bắt đầu\".",
-    "needEnd": "Xem xong thì bấm \"Kết thúc\".",
     "resumed": "Đã khôi phục lượt tuần tra chưa xong.",
-    "discard": "Hủy lượt tuần tra này"
+    "discard": "Hủy lượt tuần tra này",
+    "endOnSubmit": "Thời điểm bấm \"Gửi\" sẽ là giờ kết thúc."
   },
   "items": {
     "smile": {

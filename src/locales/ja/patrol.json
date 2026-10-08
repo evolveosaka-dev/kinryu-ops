@@ -7,17 +7,15 @@
   },
   "target": "巡回する店舗・シフト",
   "time": {
-    "label": "時間（給与の計算に使います）",
+    "label": "時間",
     "start": "開始",
-    "end": "終了",
     "started": "開始 {{time}}",
-    "ended": "終了 {{time}}",
     "elapsed": "{{min}} 分",
     "over": "15分を超えています",
     "needStart": "店に着いたら「開始」を押してください。",
-    "needEnd": "見終わったら「終了」を押してください。",
     "resumed": "途中の巡回を再開しました。",
-    "discard": "この巡回をやめる"
+    "discard": "この巡回をやめる",
+    "endOnSubmit": "「送信する」を押した時刻が終了時刻になります。"
   },
   "items": {
     "smile": {

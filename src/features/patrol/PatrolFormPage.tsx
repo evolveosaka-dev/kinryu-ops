@@ -118,7 +118,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
   })
 
   const submit = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (endedAt: string) => {
       const f = form
       const scores = completeScores(f.scores)
       const payload = {
@@ -127,7 +127,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
         shift: f.shift,
         patrol_type: f.patrolType,
         started_at: f.startedAt,
-        ended_at: f.endedAt,
+        ended_at: endedAt,
         score_smile: scores!.smile,
         score_voice: scores!.voice,
         score_grooming: scores!.grooming,
@@ -165,9 +165,8 @@ function PatrolForm({ stores }: { stores: Store[] }) {
   const scores = completeScores(form.scores)
   const result = scores ? judgePatrol(scores) : null
   const started = form.startedAt ? new Date(form.startedAt) : null
-  const ended = form.endedAt ? new Date(form.endedAt) : null
-  const minutes = started ? durationMinutes(started, ended ?? now) : 0
-  const ready = Boolean(started && ended && scores && form.goodPoints.trim() && form.improvements.trim())
+  const minutes = started ? durationMinutes(started, form.endedAt ? new Date(form.endedAt) : now) : 0
+  const ready = Boolean(started && scores && form.goodPoints.trim() && form.improvements.trim())
 
   return (
     <div className="flex flex-col gap-4">
@@ -201,14 +200,9 @@ function PatrolForm({ stores }: { stores: Store[] }) {
 
       <Card className="flex flex-col gap-3">
         <h2 className="text-sm font-bold text-slate-700">⏱️ {t('time.label')}</h2>
-        <div className="grid grid-cols-2 gap-2">
-          <Button onClick={() => start.mutate()} disabled={Boolean(started) || start.isPending}>
-            {started ? t('time.started', { time: formatTokyoTime(started) }) : `▶ ${t('time.start')}`}
-          </Button>
-          <Button onClick={() => update({ endedAt: new Date().toISOString() })} disabled={!started || Boolean(ended)}>
-            {ended ? t('time.ended', { time: formatTokyoTime(ended) }) : `■ ${t('time.end')}`}
-          </Button>
-        </div>
+        <Button onClick={() => start.mutate()} disabled={Boolean(started) || start.isPending}>
+          {started ? t('time.started', { time: formatTokyoTime(started) }) : `▶ ${t('time.start')}`}
+        </Button>
         {started && (
           <p className={minutes > PATROL_WARN_MINUTES ? 'font-bold text-red-700' : 'text-slate-700'}>
             {t('time.elapsed', { min: minutes })}
@@ -216,7 +210,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
           </p>
         )}
         {!started && <p className="text-sm text-slate-600">{t('time.needStart')}</p>}
-        {started && !ended && <p className="text-sm text-slate-600">{t('time.needEnd')}</p>}
+        {started && <p className="text-sm text-slate-600">{t('time.endOnSubmit')}</p>}
       </Card>
 
       <p className="text-sm text-slate-600">💡 {t('lowerHint')}</p>
@@ -267,13 +261,18 @@ function PatrolForm({ stores }: { stores: Store[] }) {
           showMissing && <ErrorBox message={t('needScores')} />
         )}
         {result?.max === 20 && <p className="mb-1 text-xs text-slate-600">{t('fourItems')}</p>}
+        {showMissing && !started && <ErrorBox message={t('time.needStart')} />}
         {error && <ErrorBox message={error} />}
         <Button
           className="w-full"
           disabled={submit.isPending}
           onClick={() => {
             setShowMissing(true)
-            if (ready) submit.mutate()
+            if (!ready) return
+            // End time = first press of 送信する; kept for retries so a lost signal does not add paid minutes.
+            const endedAt = form.endedAt ?? new Date().toISOString()
+            update({ endedAt })
+            submit.mutate(endedAt)
           }}
         >
           {submit.isPending ? t('common:action.loading') : t('common:action.submit')}
