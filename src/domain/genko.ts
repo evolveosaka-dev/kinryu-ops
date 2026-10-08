@@ -41,9 +41,9 @@ export const GENKO_STEPS: GenkoStep[] = [
     seconds: 30,
     leader: [{ ja: '{経営理念|けいえいりねん}、{唱和|しょうわ}します。', romaji: 'Keiei rinen, shōwa shimasu.', key: 'lines.philosophyStart' }],
     all: [
-      { ja: '{一|ひとつ}、お{客様|きゃくさま}{第一|だいいち}！', romaji: 'Hitotsu, okyakusama daiichi!', key: 'lines.philosophy1' },
-      { ja: '{一|ひとつ}、{笑顔|えがお}で{元気|げんき}に！', romaji: 'Hitotsu, egao de genki ni!', key: 'lines.philosophy2' },
-      { ja: '{一|ひとつ}、お{客様|きゃくさま}に{最高|さいこう}の{思|おも}い{出|で}を！', romaji: 'Hitotsu, okyakusama ni saikō no omoide o!', key: 'lines.philosophy3' },
+      { ja: '① お{客様|きゃくさま}{第一|だいいち}！', romaji: 'Okyakusama daiichi!', key: 'lines.philosophy1' },
+      { ja: '② {笑顔|えがお}で{元気|げんき}に！', romaji: 'Egao de genki ni!', key: 'lines.philosophy2' },
+      { ja: '③ お{客様|きゃくさま}に{最高|さいこう}の{思|おも}い{出|で}を！', romaji: 'Okyakusama ni saikō no omoide o!', key: 'lines.philosophy3' },
     ],
   },
   {

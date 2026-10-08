@@ -8,9 +8,9 @@ export interface Phrase {
 }
 
 export const PHILOSOPHY: Phrase[] = [
-  { ja: '一、お客様第一！', romaji: 'Hitotsu, okyakusama daiichi!', key: 'phrase.philosophy1' },
-  { ja: '一、笑顔で元気に！', romaji: 'Hitotsu, egao de genki ni!', key: 'phrase.philosophy2' },
-  { ja: '一、お客様に最高の思い出を！', romaji: 'Hitotsu, okyakusama ni saikō no omoide o!', key: 'phrase.philosophy3' },
+  { ja: '① お客様第一！', romaji: 'Okyakusama daiichi!', key: 'phrase.philosophy1' },
+  { ja: '② 笑顔で元気に！', romaji: 'Egao de genki ni!', key: 'phrase.philosophy2' },
+  { ja: '③ お客様に最高の思い出を！', romaji: 'Okyakusama ni saikō no omoide o!', key: 'phrase.philosophy3' },
 ]
 
 export const SERVICE_PHRASES: Phrase[] = [
