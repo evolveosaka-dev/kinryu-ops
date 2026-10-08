@@ -1,0 +1,76 @@
+{
+  "title": "Phiếu tuần tra",
+  "type": { "label": "Loại tuần tra", "after_shift": "Sau ca làm", "early": "Tuần tra sớm (từ 6:30)" },
+  "target": "Cửa hàng và ca cần kiểm tra",
+  "time": {
+    "label": "Thời gian (dùng để tính lương)",
+    "start": "Bắt đầu",
+    "end": "Kết thúc",
+    "started": "Bắt đầu {{time}}",
+    "ended": "Kết thúc {{time}}",
+    "elapsed": "{{min}} phút",
+    "over": "Đã quá 15 phút",
+    "needStart": "Đến cửa hàng thì bấm \"Bắt đầu\".",
+    "needEnd": "Xem xong thì bấm \"Kết thúc\".",
+    "resumed": "Đã khôi phục lượt tuần tra chưa xong.",
+    "discard": "Hủy lượt tuần tra này"
+  },
+  "items": {
+    "smile": {
+      "name": "① Nụ cười",
+      "5": "Nhìn mắt khách và cười ở cả 3 lúc: khách vào, mang món ra, khách về",
+      "4": "2 trong 3 lúc",
+      "3": "1 trong 3 lúc",
+      "2": "Không biểu cảm nhưng lịch sự",
+      "1": "Mặt khó chịu, không nhìn khách, vừa phục vụ vừa nói chuyện riêng"
+    },
+    "voice": {
+      "name": "② Lời chào",
+      "5": "Mọi người nói \"Irasshai\" trong 3 giây khi khách vào và \"Ōkini\" khi khách về; nghe được từ ngoài cửa",
+      "4": "Có chào cả khi vào và khi về, nhưng chỉ 1 người",
+      "3": "Chỉ chào lúc vào hoặc chỉ lúc về",
+      "2": "Nói nhỏ, khách không nghe thấy",
+      "1": "Không chào"
+    },
+    "grooming": {
+      "name": "③ Trang phục",
+      "desc": "Đồng phục sạch / đội khăn trùm đầu / tóc không lòi ra / móng tay ngắn / không đeo trang sức",
+      "5": "Đủ cả 5 điểm",
+      "4": "Thiếu 1 điểm",
+      "3": "Thiếu 2 điểm",
+      "2": "Thiếu 3 điểm",
+      "1": "Thiếu từ 4 điểm trở lên"
+    },
+    "clean": {
+      "name": "④ Vệ sinh",
+      "desc": "Quầy / bàn (gia vị, đũa, giấy ăn) / sàn / máy bán vé & lối vào / thùng rác",
+      "5": "Cả 5 chỗ đều sạch",
+      "4": "1 chỗ bẩn",
+      "3": "2 chỗ bẩn",
+      "2": "3 chỗ bẩn",
+      "1": "Từ 4 chỗ bẩn trở lên, hoặc có mùi khó chịu"
+    },
+    "quality": {
+      "name": "⑤ Chất lượng món (kiểm tra bất ngờ)",
+      "desc": "Mì giống ảnh mẫu / súp đến vạch / topping đặt như mẫu / miệng bát sạch",
+      "5": "Đạt cả 4 điểm",
+      "4": "Thiếu 1 điểm",
+      "3": "Thiếu 2 điểm",
+      "2": "Thiếu 3 điểm",
+      "1": "Khác hẳn mẫu, có dị vật, nguội…",
+      "none": "－ Không kiểm tra được (không có món ra)"
+    }
+  },
+  "lowerHint": "Nếu phân vân giữa hai mức điểm, chọn mức thấp hơn và ghi lý do.",
+  "staffOnShift": "Nhân viên được kiểm tra",
+  "goodPoints": { "label": "Điểm tốt", "placeholder": "Ví dụ: chào to, rõ (ghi cả tên)" },
+  "improvements": { "label": "Cần cải thiện / nội dung hướng dẫn", "placeholder": "Ví dụ: súp thấp hơn vạch mẫu" },
+  "remarks": { "label": "Ghi chú", "placeholder": "Ví dụ: không có khách" },
+  "total": "Tổng {{total}} / {{max}} điểm",
+  "fourItems": "Không có ⑤: chấm 4 mục, thang 20 điểm",
+  "needScores": "Hãy chấm điểm tất cả các mục.",
+  "editable": "Có thể sửa trong 24 giờ sau khi gửi.",
+  "historyEmpty": "Chưa có phiếu tuần tra nào.",
+  "minutes": "{{min}} phút",
+  "timeReview": "Cần kiểm tra lại thời gian"
+}

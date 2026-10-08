@@ -1,0 +1,52 @@
+{
+  "title": "Shift-start meeting",
+  "meeting": "Meeting {{time}}",
+  "leader": "Leader",
+  "existing": {
+    "title": "This meeting is already recorded",
+    "by": "Sent by {{name}} at {{time}}",
+    "addNote": "Add a note",
+    "notePlaceholder": "Anything to add",
+    "noteAdded": "Note added"
+  },
+  "previous": {
+    "title": "Handover from the previous shift",
+    "none": "No record from the previous shift.",
+    "stock": "Stock",
+    "target": "Target",
+    "caution": "Point to be careful about",
+    "notes": "Notes"
+  },
+  "participants": {
+    "label": "Participants",
+    "showAll": "Show staff of the other store",
+    "extra": "People not in the list (names)",
+    "extraHint": "Separate with commas"
+  },
+  "stock": { "label": "Stock (items to order)", "none": "Nothing needed", "placeholder": "e.g. green onion, paper napkins" },
+  "target": { "label": "Target bowls", "hint": "{{dayType}} guide: {{bowls}} bowls", "weekday": "Weekday", "weekend_holiday": "Weekend/holiday", "unit": "bowls" },
+  "caution": { "label": "Point to be careful about", "placeholder": "What to be careful about this shift", "picks": "Choose an example" },
+  "steps": {
+    "label": "Steps done in the meeting",
+    "greeting": "1. Opening greeting",
+    "philosophy": "2. Company philosophy",
+    "phrases": "3. Service phrases",
+    "handover": "4. Handover",
+    "grooming": "5. Grooming check",
+    "closing": "6. Closing greeting",
+    "skipReason": "Reason it was not done",
+    "skipReasonPlaceholder": "e.g. many customers"
+  },
+  "duplicate": "Someone already sent the meeting record for this shift.",
+  "historyEmpty": "No meeting records yet.",
+  "pick": {
+    "0": "Everyone says \"Irasshai\" within 3 seconds.",
+    "1": "When customers leave, everyone says \"Ōkini\".",
+    "2": "Look customers in the eye and talk with a smile.",
+    "3": "Also say \"Thank you\" to overseas customers.",
+    "4": "Fill the soup up to the line in the sample.",
+    "5": "Clean the rim of the bowl before serving.",
+    "6": "Refill chopsticks and paper napkins before it gets busy.",
+    "7": "The floor is wet, so be careful."
+  }
+}

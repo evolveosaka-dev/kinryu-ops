@@ -1,0 +1,31 @@
+# dependencies / build
+node_modules/
+dist/
+dev-dist/
+coverage/
+*.local
+.env
+.env.*
+!.env.example
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/
+
+# Source materials & internal docs — NEVER commit (public repo)
+*.xlsm
+*.xlsx
+*.xls
+*.docx
+*.pdf
+MAIN*/
+KE_HOACH_DU_AN.md
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+
+# Internal spec (staff names, business data) — kept local only
+CLAUDE.md

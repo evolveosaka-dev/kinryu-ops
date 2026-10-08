@@ -1,0 +1,162 @@
+{
+  "app": {
+    "title": "金龍 朝礼・巡回",
+    "company": "有限会社アベブ・エボルブ"
+  },
+  "nav": {
+    "home": "ホーム",
+    "chorei": "朝礼",
+    "patrol": "巡回",
+    "history": "履歴",
+    "manager": "管理",
+    "profile": "設定"
+  },
+  "action": {
+    "submit": "送信する",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "back": "戻る",
+    "retry": "もう一度",
+    "signOut": "ログアウト",
+    "loading": "読み込み中…",
+    "refresh": "更新",
+    "close": "閉じる"
+  },
+  "shift": {
+    "early": "早番",
+    "middle": "中番",
+    "late": "遅番"
+  },
+  "shiftTime": {
+    "early": "7:00–17:00",
+    "middle": "17:00–23:00",
+    "late": "23:00–7:00"
+  },
+  "field": {
+    "date": "日付",
+    "store": "店舗",
+    "shift": "シフト",
+    "name": "名前"
+  },
+  "lang": {
+    "label": "言語",
+    "ja": "日本語",
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "si": "සිංහල",
+    "ne": "नेपाली"
+  },
+  "auth": {
+    "title": "ログイン",
+    "google": "Google で続ける",
+    "or": "または",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "passwordHint": "8文字以上",
+    "login": "ログイン",
+    "signup": "新規登録",
+    "signupTitle": "新規登録",
+    "displayName": "名前（シフト表と同じ書き方）",
+    "displayNameHint": "例：タナカ",
+    "haveAccount": "アカウントがある人はこちら",
+    "noAccount": "はじめての人はこちら",
+    "forgot": "パスワードを忘れた",
+    "resetTitle": "パスワードの再設定",
+    "sendReset": "再設定メールを送る",
+    "resetSent": "メールを送りました。メールのリンクを開いてください。",
+    "checkEmail": "確認メールを送りました。メールのリンクを開いてから、ログインしてください。",
+    "newPassword": "新しいパスワード",
+    "updatePassword": "パスワードを変更",
+    "passwordUpdated": "パスワードを変更しました。",
+    "invalid": "メールアドレスまたはパスワードが違います。"
+  },
+  "pending": {
+    "title": "承認を待っています",
+    "body": "管理者が確認したら使えるようになります。名前と店舗を入れておいてください。",
+    "homeStore": "主に働く店舗",
+    "saved": "保存しました"
+  },
+  "inactive": {
+    "title": "このアカウントは使えません",
+    "body": "管理者に連絡してください。"
+  },
+  "privacy": {
+    "title": "個人情報について",
+    "body1": "このアプリの記録（朝礼記録・巡回チェック）は、接客の改善と、巡回時間の給与計算のために使います。",
+    "body2": "記録を見られるのは、会社の管理者だけです。お客様の情報は入力しません。写真・動画は会社の Google ドライブに保存します。お客様の顔は撮りません。",
+    "body3": "記録は会社の中だけで使い、削除しません。",
+    "accept": "わかりました"
+  },
+  "home": {
+    "hello": "{{name}} さん、おつかれさまです",
+    "now": "いまのシフト",
+    "choreiButton": "朝礼を記録する",
+    "patrolButton": "巡回チェック",
+    "historyButton": "自分の履歴",
+    "managerButton": "管理画面",
+    "philosophy": "経営理念",
+    "phrases": "接客用語",
+    "installHint": "スマホの「ホーム画面に追加」をすると、アプリのように使えます。"
+  },
+  "phrase": {
+    "philosophy1": "お客様第一",
+    "philosophy2": "笑顔で元気に",
+    "philosophy3": "お客様に最高の思い出を",
+    "irasshai": "いらっしゃいませ",
+    "omatase": "お待たせしました",
+    "ookini": "ありがとうございます（大阪弁）"
+  },
+  "judgement": {
+    "good": "良好",
+    "improve": "要改善",
+    "coaching": "即日指導"
+  },
+  "status": {
+    "valid": "有効",
+    "void": "無効",
+    "draft": "下書き"
+  },
+  "toast": {
+    "sent": "送信しました",
+    "saved": "保存しました"
+  },
+  "error": {
+    "generic": "エラーが起きました。もう一度ためしてください。",
+    "network": "通信できません。電波のよい場所でもう一度ためしてください。",
+    "required": "入力してください",
+    "notConfigured": "サーバーの設定がまだです（VITE_SUPABASE_URL）。"
+  },
+  "history": {
+    "title": "自分の履歴",
+    "chorei": "朝礼",
+    "patrol": "巡回",
+    "empty": "まだ記録がありません。"
+  },
+  "profile": {
+    "title": "設定",
+    "saved": "保存しました",
+    "role": "権限",
+    "patroller": "巡回メンバー"
+  },
+  "attach": {
+    "title": "写真・動画",
+    "addPhoto": "写真",
+    "addVideo": "動画",
+    "rule": "お客様の顔は撮らないでください。",
+    "limit": "写真は5枚まで、動画は1本（60秒・100MBまで）。送信のあと、自動でアップロードします。",
+    "tooLong": "動画は60秒までです。",
+    "tooLarge": "ファイルが大きすぎます（動画は100MBまで）。",
+    "unsupported": "このファイルは使えません。",
+    "tooMany": "これ以上追加できません。",
+    "remove": "削除",
+    "processing": "準備中…",
+    "count": "添付 {{n}}件"
+  },
+  "upload": {
+    "uploading": "アップロード中 {{n}}件（{{pct}}%）",
+    "waiting": "送信待ち {{n}}件（電波がよくなると送信します）",
+    "failed": "アップロードできなかったファイル {{n}}件",
+    "retry": "もう一度送る",
+    "discard": "やめる"
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "title": "Patrol check",
+  "type": { "label": "Patrol type", "after_shift": "After my shift", "early": "Early patrol (from 6:30)" },
+  "target": "Store and shift to check",
+  "time": {
+    "label": "Time (used for pay)",
+    "start": "Start",
+    "end": "End",
+    "started": "Start {{time}}",
+    "ended": "End {{time}}",
+    "elapsed": "{{min}} min",
+    "over": "Over 15 minutes",
+    "needStart": "Tap \"Start\" when you arrive at the store.",
+    "needEnd": "Tap \"End\" when you finish watching.",
+    "resumed": "Your unfinished patrol was restored.",
+    "discard": "Cancel this patrol"
+  },
+  "items": {
+    "smile": {
+      "name": "① Smile",
+      "5": "Eye contact and a smile in all 3 scenes: entry, serving, leaving",
+      "4": "2 of 3 scenes",
+      "3": "1 of 3 scenes",
+      "2": "No expression, but polite",
+      "1": "Unfriendly face, no eye contact, or private chatting"
+    },
+    "voice": {
+      "name": "② Greeting voice",
+      "5": "Everyone says \"Irasshai\" within 3 s of entry and \"Ōkini\" on leaving; audible outside",
+      "4": "Both greetings, but only by 1 person",
+      "3": "Only on entry or only on leaving",
+      "2": "Too quiet to reach customers",
+      "1": "No greeting"
+    },
+    "grooming": {
+      "name": "③ Grooming",
+      "desc": "Clean uniform / head towel worn / hair covered / short nails / no accessories",
+      "5": "All 5 points OK",
+      "4": "1 point missing",
+      "3": "2 points missing",
+      "2": "3 points missing",
+      "1": "4 or more missing"
+    },
+    "clean": {
+      "name": "④ Cleanliness",
+      "desc": "Counter / tables (condiments, chopsticks, napkins) / floor / ticket machine & entrance / bins",
+      "5": "All 5 places clean",
+      "4": "1 place dirty",
+      "3": "2 places dirty",
+      "2": "3 places dirty",
+      "1": "4 or more dirty, or a bad smell"
+    },
+    "quality": {
+      "name": "⑤ Serving quality (surprise check)",
+      "desc": "Noodles as in the sample photo / soup up to the line / toppings placed as in the sample / bowl rim clean",
+      "5": "All 4 points OK",
+      "4": "1 point missing",
+      "3": "2 points missing",
+      "2": "3 points missing",
+      "1": "Very different from the sample, foreign object, lukewarm, etc.",
+      "none": "－ Not checked (nothing served)"
+    }
+  },
+  "lowerHint": "If unsure between two scores, choose the lower one and write why.",
+  "staffOnShift": "Staff checked",
+  "goodPoints": { "label": "Good points", "placeholder": "e.g. loud, clear greeting (write names too)" },
+  "improvements": { "label": "To improve / advice given", "placeholder": "e.g. soup was below the line" },
+  "remarks": { "label": "Remarks", "placeholder": "e.g. no customers" },
+  "total": "Total {{total}} / {{max}}",
+  "fourItems": "No ⑤: judged on 4 items, 20 points",
+  "needScores": "Please score every item.",
+  "editable": "You can edit for 24 hours after sending.",
+  "historyEmpty": "No patrol records yet.",
+  "minutes": "{{min}} min",
+  "timeReview": "Time needs review"
+}

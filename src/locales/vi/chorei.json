@@ -1,0 +1,52 @@
+{
+  "title": "Biên bản họp đầu ca",
+  "meeting": "Họp lúc {{time}}",
+  "leader": "Người dẫn",
+  "existing": {
+    "title": "Buổi họp này đã được ghi",
+    "by": "{{name}} đã gửi lúc {{time}}",
+    "addNote": "Thêm ghi chú",
+    "notePlaceholder": "Điều muốn bổ sung",
+    "noteAdded": "Đã thêm ghi chú"
+  },
+  "previous": {
+    "title": "Bàn giao từ ca trước",
+    "none": "Không có biên bản của ca trước.",
+    "stock": "Hàng tồn",
+    "target": "Mục tiêu",
+    "caution": "Điểm cần chú ý",
+    "notes": "Ghi chú"
+  },
+  "participants": {
+    "label": "Người tham gia",
+    "showAll": "Hiện cả nhân viên cửa hàng kia",
+    "extra": "Người không có trong danh sách (tên)",
+    "extraHint": "Cách nhau bằng dấu phẩy"
+  },
+  "stock": { "label": "Hàng tồn (cần nhập thêm)", "none": "Không cần", "placeholder": "Ví dụ: hành lá, giấy ăn" },
+  "target": { "label": "Mục tiêu số bát", "hint": "Mức tham khảo {{dayType}}: {{bowls}} bát", "weekday": "ngày thường", "weekend_holiday": "cuối tuần/ngày lễ", "unit": "bát" },
+  "caution": { "label": "Điểm cần chú ý", "placeholder": "Điều cần chú ý trong ca này", "picks": "Chọn từ ví dụ" },
+  "steps": {
+    "label": "Các bước đã làm trong buổi họp",
+    "greeting": "1. Chào mở đầu",
+    "philosophy": "2. Triết lý kinh doanh",
+    "phrases": "3. Câu chào khách",
+    "handover": "4. Bàn giao",
+    "grooming": "5. Kiểm tra trang phục",
+    "closing": "6. Chào kết thúc",
+    "skipReason": "Lý do không làm được",
+    "skipReasonPlaceholder": "Ví dụ: đông khách"
+  },
+  "duplicate": "Đã có người gửi biên bản họp cho ca này.",
+  "historyEmpty": "Chưa có biên bản họp nào.",
+  "pick": {
+    "0": "Mọi người cùng nói \"Irasshai\" trong vòng 3 giây.",
+    "1": "Khi khách về, mọi người cùng nói \"Ōkini\".",
+    "2": "Nhìn vào mắt khách và nói chuyện với nụ cười.",
+    "3": "Với khách nước ngoài, nói thêm \"Thank you\".",
+    "4": "Đổ súp đến đúng vạch như bát mẫu.",
+    "5": "Lau sạch miệng bát trước khi mang ra.",
+    "6": "Bổ sung đũa và giấy ăn trước giờ đông khách.",
+    "7": "Sàn đang ướt, hãy cẩn thận."
+  }
+}

@@ -1,0 +1,15 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-brand: #b91c1c;
+  --color-brand-dark: #7f1d1d;
+}
+
+html {
+  font-family: 'Noto Sans JP', 'Noto Sans Sinhala', 'Noto Sans Devanagari', system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  background: #f8fafc;
+  color: #0f172a;
+}

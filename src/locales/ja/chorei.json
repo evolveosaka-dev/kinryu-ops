@@ -1,0 +1,66 @@
+{
+  "title": "朝礼記録",
+  "meeting": "朝礼 {{time}}",
+  "leader": "誘導者",
+  "existing": {
+    "title": "この朝礼は記録ずみです",
+    "by": "{{name}} さんが {{time}} に送信",
+    "addNote": "メモを追加",
+    "notePlaceholder": "追加で伝えること",
+    "noteAdded": "メモを追加しました"
+  },
+  "previous": {
+    "title": "前のシフトからの引継ぎ",
+    "none": "前のシフトの記録はありません。",
+    "stock": "在庫",
+    "target": "目標",
+    "caution": "注意点",
+    "notes": "メモ"
+  },
+  "participants": {
+    "label": "参加者",
+    "showAll": "ほかの店舗の人も表示",
+    "extra": "リストにない人（名前）",
+    "extraHint": "「、」で区切る"
+  },
+  "stock": {
+    "label": "在庫（仕入れが必要なもの）",
+    "none": "なし",
+    "placeholder": "例：ネギ、紙ナプキン"
+  },
+  "target": {
+    "label": "目標杯数",
+    "hint": "{{dayType}}の目安：{{bowls}}杯",
+    "weekday": "平日",
+    "weekend_holiday": "土日祝",
+    "unit": "杯"
+  },
+  "caution": {
+    "label": "注意点",
+    "placeholder": "このシフトで気をつけること",
+    "picks": "例から選ぶ"
+  },
+  "steps": {
+    "label": "朝礼でやったこと",
+    "greeting": "1. はじめの挨拶",
+    "philosophy": "2. 経営理念",
+    "phrases": "3. 接客用語",
+    "handover": "4. 引継ぎ",
+    "grooming": "5. 身だしなみ",
+    "closing": "6. 締めの挨拶",
+    "skipReason": "できなかった理由",
+    "skipReasonPlaceholder": "例：お客様が多かった"
+  },
+  "duplicate": "このシフトの朝礼は、ほかの人がもう送信しました。",
+  "historyEmpty": "まだ朝礼の記録がありません。",
+  "pick": {
+    "0": "いらっしゃいは3秒以内に、全員で言いましょう。",
+    "1": "お客様が帰るとき、全員で『おおきに』を言いましょう。",
+    "2": "お客様の目を見て、笑顔で話しましょう。",
+    "3": "海外のお客様には『Thank you』も言いましょう。",
+    "4": "スープの量を見本の線までそろえましょう。",
+    "5": "丼の縁をきれいにしてから出しましょう。",
+    "6": "混む前に、箸と紙ナプキンを補充しましょう。",
+    "7": "床がぬれているので、気をつけましょう。"
+  }
+}

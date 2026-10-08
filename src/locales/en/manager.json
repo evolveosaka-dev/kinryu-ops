@@ -1,0 +1,33 @@
+{
+  "title": "Admin",
+  "users": {
+    "title": "Users",
+    "pending": "Waiting for approval",
+    "active": "Active",
+    "inactive": "Inactive",
+    "approve": "Approve",
+    "role": {
+      "staff": "Staff",
+      "manager": "Manager",
+      "admin": "System admin"
+    },
+    "canPatrol": "Patrol member",
+    "homeStore": "Store",
+    "status": "Status",
+    "noStore": "Not set",
+    "saved": "Saved",
+    "empty": "No users."
+  },
+  "sync": {
+    "tab": "Spreadsheet",
+    "title": "Google Sheets",
+    "last": "Last sync: {{time}}",
+    "never": "Not synced yet.",
+    "daily": "Syncs automatically every morning at 7:30 (meetings, patrols, attachments).",
+    "open": "Open spreadsheet",
+    "run": "Sync now",
+    "running": "Syncing…",
+    "done": "Synced ({{c}} meetings, {{p}} patrols, {{a}} attachments)",
+    "failed": "Sync failed"
+  }
+}

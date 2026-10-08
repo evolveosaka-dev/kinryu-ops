@@ -1,0 +1,32 @@
+// Phrases staff actually say. They always stay in Japanese (CLAUDE.md §8);
+// the translation key points into the `common` namespace.
+
+export interface Phrase {
+  ja: string
+  romaji: string
+  key: string
+}
+
+export const PHILOSOPHY: Phrase[] = [
+  { ja: '一、お客様第一！', romaji: 'Hitotsu, okyakusama daiichi!', key: 'phrase.philosophy1' },
+  { ja: '一、笑顔で元気に！', romaji: 'Hitotsu, egao de genki ni!', key: 'phrase.philosophy2' },
+  { ja: '一、お客様に最高の思い出を！', romaji: 'Hitotsu, okyakusama ni saikō no omoide o!', key: 'phrase.philosophy3' },
+]
+
+export const SERVICE_PHRASES: Phrase[] = [
+  { ja: 'いらっしゃい！', romaji: 'Irasshai!', key: 'phrase.irasshai' },
+  { ja: 'お待たせしました！', romaji: 'Omatase shimashita!', key: 'phrase.omatase' },
+  { ja: 'おおきに！', romaji: 'Ōkini!', key: 'phrase.ookini' },
+]
+
+/** 注意点 quick-picks (same list as the 朝礼原稿). Stored in Japanese. */
+export const CAUTION_PICKS: Phrase[] = [
+  { ja: 'いらっしゃいは3秒以内に、全員で言いましょう。', romaji: 'Irasshai wa san-byō inai ni, zen-in de iimashō.', key: 'pick.0' },
+  { ja: 'お客様が帰るとき、全員で『おおきに』を言いましょう。', romaji: "Okyakusama ga kaeru toki, zen-in de 'ōkini' o iimashō.", key: 'pick.1' },
+  { ja: 'お客様の目を見て、笑顔で話しましょう。', romaji: 'Okyakusama no me o mite, egao de hanashimashō.', key: 'pick.2' },
+  { ja: '海外のお客様には『Thank you』も言いましょう。', romaji: "Kaigai no okyakusama ni wa 'Thank you' mo iimashō.", key: 'pick.3' },
+  { ja: 'スープの量を見本の線までそろえましょう。', romaji: 'Sūpu no ryō o mihon no sen made soroemashō.', key: 'pick.4' },
+  { ja: '丼の縁をきれいにしてから出しましょう。', romaji: 'Donburi no fuchi o kirei ni shite kara dashimashō.', key: 'pick.5' },
+  { ja: '混む前に、箸と紙ナプキンを補充しましょう。', romaji: 'Komu mae ni, hashi to kami napukin o hojū shimashō.', key: 'pick.6' },
+  { ja: '床がぬれているので、気をつけましょう。', romaji: 'Yuka ga nurete iru node, ki o tsukemashō.', key: 'pick.7' },
+]

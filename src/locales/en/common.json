@@ -1,0 +1,162 @@
+{
+  "app": {
+    "title": "Kinryu Meeting & Patrol",
+    "company": "Avecvous Evolve Ltd."
+  },
+  "nav": {
+    "home": "Home",
+    "chorei": "Meeting",
+    "patrol": "Patrol",
+    "history": "History",
+    "manager": "Admin",
+    "profile": "Settings"
+  },
+  "action": {
+    "submit": "Send",
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "retry": "Try again",
+    "signOut": "Log out",
+    "loading": "Loading…",
+    "refresh": "Refresh",
+    "close": "Close"
+  },
+  "shift": {
+    "early": "Morning shift",
+    "middle": "Evening shift",
+    "late": "Night shift"
+  },
+  "shiftTime": {
+    "early": "7:00–17:00",
+    "middle": "17:00–23:00",
+    "late": "23:00–7:00"
+  },
+  "field": {
+    "date": "Date",
+    "store": "Store",
+    "shift": "Shift",
+    "name": "Name"
+  },
+  "lang": {
+    "label": "Language",
+    "ja": "日本語",
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "si": "සිංහල",
+    "ne": "नेपाली"
+  },
+  "auth": {
+    "title": "Log in",
+    "google": "Continue with Google",
+    "or": "or",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "8 characters or more",
+    "login": "Log in",
+    "signup": "Sign up",
+    "signupTitle": "Sign up",
+    "displayName": "Name (as written in the shift table)",
+    "displayNameHint": "e.g. タナカ",
+    "haveAccount": "I already have an account",
+    "noAccount": "First time? Sign up",
+    "forgot": "Forgot password",
+    "resetTitle": "Reset password",
+    "sendReset": "Send reset email",
+    "resetSent": "Email sent. Please open the link in the email.",
+    "checkEmail": "We sent a confirmation email. Open the link in it, then log in.",
+    "newPassword": "New password",
+    "updatePassword": "Change password",
+    "passwordUpdated": "Your password was changed.",
+    "invalid": "Wrong email or password."
+  },
+  "pending": {
+    "title": "Waiting for approval",
+    "body": "You can use the app after a manager approves you. Please enter your name and store.",
+    "homeStore": "Main store",
+    "saved": "Saved"
+  },
+  "inactive": {
+    "title": "This account cannot be used",
+    "body": "Please contact a manager."
+  },
+  "privacy": {
+    "title": "About your personal data",
+    "body1": "Records in this app (meeting records and patrol checks) are used to improve customer service and to pay patrol time.",
+    "body2": "Only company managers can see the records. Do not enter customer information. Photos and videos are saved in the company’s Google Drive. Do not film customers’ faces.",
+    "body3": "Records are used only inside the company and are not deleted.",
+    "accept": "I understand"
+  },
+  "home": {
+    "hello": "Hello, {{name}}",
+    "now": "Current shift",
+    "choreiButton": "Record the meeting",
+    "patrolButton": "Patrol check",
+    "historyButton": "My history",
+    "managerButton": "Admin",
+    "philosophy": "Company philosophy",
+    "phrases": "Service phrases",
+    "installHint": "Use \"Add to Home Screen\" on your phone to open this like an app."
+  },
+  "phrase": {
+    "philosophy1": "Customers come first",
+    "philosophy2": "Smile and be energetic",
+    "philosophy3": "Give customers the best memories",
+    "irasshai": "Welcome!",
+    "omatase": "Thank you for waiting!",
+    "ookini": "Thank you! (Osaka dialect)"
+  },
+  "judgement": {
+    "good": "Good",
+    "improve": "Needs improvement",
+    "coaching": "Same-day coaching"
+  },
+  "status": {
+    "valid": "Valid",
+    "void": "Void",
+    "draft": "Draft"
+  },
+  "toast": {
+    "sent": "Sent",
+    "saved": "Saved"
+  },
+  "error": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "No connection. Please try again where the signal is good.",
+    "required": "Required",
+    "notConfigured": "Server is not configured yet (VITE_SUPABASE_URL)."
+  },
+  "history": {
+    "title": "My history",
+    "chorei": "Meeting",
+    "patrol": "Patrol",
+    "empty": "No records yet."
+  },
+  "profile": {
+    "title": "Settings",
+    "saved": "Saved",
+    "role": "Role",
+    "patroller": "Patrol member"
+  },
+  "attach": {
+    "title": "Photos & video",
+    "addPhoto": "Photo",
+    "addVideo": "Video",
+    "rule": "Do not film customers’ faces.",
+    "limit": "Up to 5 photos and 1 video (60 s, 100 MB). They upload automatically after you send.",
+    "tooLong": "Videos can be up to 60 seconds.",
+    "tooLarge": "File too large (videos up to 100 MB).",
+    "unsupported": "This file cannot be used.",
+    "tooMany": "You cannot add more.",
+    "remove": "Remove",
+    "processing": "Preparing…",
+    "count": "{{n}} attachment(s)"
+  },
+  "upload": {
+    "uploading": "Uploading {{n}} file(s) ({{pct}}%)",
+    "waiting": "{{n}} file(s) waiting (will send when the signal is good)",
+    "failed": "{{n}} file(s) could not be uploaded",
+    "retry": "Send again",
+    "discard": "Cancel"
+  }
+}

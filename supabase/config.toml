@@ -1,0 +1,12 @@
+project_id = "kinryu-ops"
+
+[auth]
+site_url = "http://localhost:5173/"
+additional_redirect_urls = ["http://localhost:5173/"]
+
+# Both functions validate the caller themselves (user token or cron secret).
+[functions.drive-upload]
+verify_jwt = false
+
+[functions.sync-sheets]
+verify_jwt = false

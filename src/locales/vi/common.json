@@ -1,0 +1,162 @@
+{
+  "app": {
+    "title": "Kinryu Họp ca & Tuần tra",
+    "company": "Avecvous Evolve Ltd."
+  },
+  "nav": {
+    "home": "Trang chủ",
+    "chorei": "Họp ca",
+    "patrol": "Tuần tra",
+    "history": "Lịch sử",
+    "manager": "Quản lý",
+    "profile": "Cài đặt"
+  },
+  "action": {
+    "submit": "Gửi",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "back": "Quay lại",
+    "retry": "Thử lại",
+    "signOut": "Đăng xuất",
+    "loading": "Đang tải…",
+    "refresh": "Làm mới",
+    "close": "Đóng"
+  },
+  "shift": {
+    "early": "Ca sáng",
+    "middle": "Ca chiều tối",
+    "late": "Ca đêm"
+  },
+  "shiftTime": {
+    "early": "7:00–17:00",
+    "middle": "17:00–23:00",
+    "late": "23:00–7:00"
+  },
+  "field": {
+    "date": "Ngày",
+    "store": "Cửa hàng",
+    "shift": "Ca",
+    "name": "Tên"
+  },
+  "lang": {
+    "label": "Ngôn ngữ",
+    "ja": "日本語",
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "si": "සිංහල",
+    "ne": "नेपाली"
+  },
+  "auth": {
+    "title": "Đăng nhập",
+    "google": "Tiếp tục với Google",
+    "or": "hoặc",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "passwordHint": "Từ 8 ký tự trở lên",
+    "login": "Đăng nhập",
+    "signup": "Đăng ký",
+    "signupTitle": "Đăng ký",
+    "displayName": "Tên (viết giống trong bảng ca)",
+    "displayNameHint": "Ví dụ: タナカ",
+    "haveAccount": "Đã có tài khoản",
+    "noAccount": "Lần đầu? Đăng ký tại đây",
+    "forgot": "Quên mật khẩu",
+    "resetTitle": "Đặt lại mật khẩu",
+    "sendReset": "Gửi email đặt lại",
+    "resetSent": "Đã gửi email. Hãy mở đường link trong email.",
+    "checkEmail": "Đã gửi email xác nhận. Hãy mở đường link trong email rồi đăng nhập.",
+    "newPassword": "Mật khẩu mới",
+    "updatePassword": "Đổi mật khẩu",
+    "passwordUpdated": "Đã đổi mật khẩu.",
+    "invalid": "Email hoặc mật khẩu không đúng."
+  },
+  "pending": {
+    "title": "Đang chờ duyệt",
+    "body": "Bạn có thể dùng app sau khi quản lý duyệt. Hãy nhập tên và cửa hàng.",
+    "homeStore": "Cửa hàng làm chính",
+    "saved": "Đã lưu"
+  },
+  "inactive": {
+    "title": "Tài khoản này không thể sử dụng",
+    "body": "Hãy liên hệ quản lý."
+  },
+  "privacy": {
+    "title": "Về thông tin cá nhân",
+    "body1": "Dữ liệu trong app (biên bản họp ca, phiếu tuần tra) dùng để cải thiện phục vụ khách và tính lương cho thời gian tuần tra.",
+    "body2": "Chỉ quản lý của công ty mới xem được. Không nhập thông tin khách hàng. Ảnh và video được lưu trên Google Drive của công ty. Không chụp/quay mặt khách hàng.",
+    "body3": "Dữ liệu chỉ dùng trong công ty và không bị xóa.",
+    "accept": "Tôi đã hiểu"
+  },
+  "home": {
+    "hello": "Chào {{name}}",
+    "now": "Ca hiện tại",
+    "choreiButton": "Ghi biên bản họp ca",
+    "patrolButton": "Phiếu tuần tra",
+    "historyButton": "Lịch sử của tôi",
+    "managerButton": "Quản lý",
+    "philosophy": "Triết lý kinh doanh",
+    "phrases": "Câu chào khách",
+    "installHint": "Chọn \"Thêm vào màn hình chính\" trên điện thoại để mở như một ứng dụng."
+  },
+  "phrase": {
+    "philosophy1": "Khách hàng là trên hết",
+    "philosophy2": "Tươi cười và đầy năng lượng",
+    "philosophy3": "Mang lại kỷ niệm đẹp nhất cho khách",
+    "irasshai": "Xin mời vào!",
+    "omatase": "Xin lỗi đã để quý khách chờ!",
+    "ookini": "Cảm ơn! (tiếng Osaka)"
+  },
+  "judgement": {
+    "good": "Tốt",
+    "improve": "Cần cải thiện",
+    "coaching": "Hướng dẫn ngay trong ngày"
+  },
+  "status": {
+    "valid": "Hợp lệ",
+    "void": "Đã hủy",
+    "draft": "Nháp"
+  },
+  "toast": {
+    "sent": "Đã gửi",
+    "saved": "Đã lưu"
+  },
+  "error": {
+    "generic": "Có lỗi xảy ra. Hãy thử lại.",
+    "network": "Không có kết nối. Hãy thử lại ở nơi có sóng tốt.",
+    "required": "Bắt buộc",
+    "notConfigured": "Máy chủ chưa được cài đặt (VITE_SUPABASE_URL)."
+  },
+  "history": {
+    "title": "Lịch sử của tôi",
+    "chorei": "Họp ca",
+    "patrol": "Tuần tra",
+    "empty": "Chưa có dữ liệu."
+  },
+  "profile": {
+    "title": "Cài đặt",
+    "saved": "Đã lưu",
+    "role": "Quyền",
+    "patroller": "Thành viên tuần tra"
+  },
+  "attach": {
+    "title": "Ảnh & video",
+    "addPhoto": "Ảnh",
+    "addVideo": "Video",
+    "rule": "Không chụp/quay mặt khách hàng.",
+    "limit": "Tối đa 5 ảnh và 1 video (60 giây, 100 MB). Tự động tải lên sau khi gửi.",
+    "tooLong": "Video tối đa 60 giây.",
+    "tooLarge": "File quá lớn (video tối đa 100 MB).",
+    "unsupported": "Không dùng được file này.",
+    "tooMany": "Không thể thêm nữa.",
+    "remove": "Xóa",
+    "processing": "Đang chuẩn bị…",
+    "count": "{{n}} file đính kèm"
+  },
+  "upload": {
+    "uploading": "Đang tải lên {{n}} file ({{pct}}%)",
+    "waiting": "{{n}} file đang chờ gửi (sẽ gửi khi sóng tốt)",
+    "failed": "{{n}} file không tải lên được",
+    "retry": "Gửi lại",
+    "discard": "Bỏ"
+  }
+}
