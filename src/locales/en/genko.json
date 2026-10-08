@@ -1,0 +1,62 @@
+{
+  "title": "Meeting script",
+  "subtitle": "Shift-start meeting, every day at 7:00, 17:00 and 23:00 (3–5 min)",
+  "leaderBy": "Leader: one person of the shift (taking turns)",
+  "point": "Loud voice, big smile. At 17:00 and 23:00 we also say \"Ohayō gozaimasu\".",
+  "furigana": "Furigana",
+  "openApp": "Send the meeting record",
+  "watchVideo": "Model video",
+  "before": {
+    "title": "Before the meeting (5 min before)",
+    "stock": "① Stock: ask the previous shift",
+    "target": "② Target: check \"Target bowls\" in the app",
+    "caution": "③ Point to be careful about: choose one (you can use an example below)"
+  },
+  "leaderSays": "Leader says",
+  "allSay": "Everyone says / does",
+  "twice": "×2",
+  "seconds": "{{n}} s",
+  "minutes": "{{n}} min",
+  "notes": {
+    "greeting": "Stop working and look at the leader.",
+    "philosophy": "Say it together, in one voice.",
+    "phrases": "After the leader, say each phrase twice with a smile.",
+    "handover": "Listen carefully. If something is unclear, ask right away. If there are no questions:",
+    "grooming": "Check each other. Fix problems right away. If everything is OK:",
+    "closing": "Energetic, with a smile."
+  },
+  "cautionTitle": "Examples of points to be careful about (choose one)",
+  "situations": {
+    "title": "In these cases",
+    "customer": "A customer comes in during the meeting → stop, everyone says \"Irasshai!\". Continue after serving.",
+    "busy": "Too many customers → customers first. When it is quiet, do only \"3. Service phrases\" and \"4. Handover\".",
+    "few": "Only 1–2 people → always do it, even with few people."
+  },
+  "after": {
+    "title": "When finished",
+    "record": "The leader sends the meeting record in the app."
+  },
+  "lines": {
+    "prepQuestion": "Is there anything we need to order?",
+    "start": "We will start the meeting now. Good morning!",
+    "ohayo": "Good morning!",
+    "philosophyStart": "Let's recite the company philosophy.",
+    "philosophy1": "One: customers come first!",
+    "philosophy2": "One: smile and be energetic!",
+    "philosophy3": "One: give customers the best memories!",
+    "phrasesStart": "Let's practise the service phrases. With a smile, please.",
+    "irasshai": "Welcome!",
+    "omatase": "Thank you for waiting!",
+    "ookini": "Thank you! (Osaka dialect)",
+    "handoverStart": "Now the handover.",
+    "handoverStock": "Stock: we need to order ○○. (Or: \"Nothing.\")",
+    "handoverTarget": "Target: this shift's target is ○○ bowls.",
+    "handoverCaution": "Point to be careful about: ○○○○.",
+    "questions": "Any questions?",
+    "noQuestions": "No questions!",
+    "groomingStart": "Grooming check: uniform, head towel, hair, nails, accessories.",
+    "ok": "OK!",
+    "closing": "Let's do our best today!",
+    "closingAll": "Let's do our best!"
+  }
+}

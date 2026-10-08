@@ -1,0 +1,62 @@
+{
+  "title": "Kịch bản họp ca",
+  "subtitle": "Họp đầu ca mỗi ngày lúc 7:00, 17:00 và 23:00 (3–5 phút)",
+  "leaderBy": "Người dẫn: 1 người trong ca (thay phiên)",
+  "point": "Nói to, tươi cười. Lúc 17:00 và 23:00 cũng chào \"Ohayō gozaimasu\".",
+  "furigana": "Furigana",
+  "openApp": "Gửi biên bản họp ca",
+  "watchVideo": "Video mẫu",
+  "before": {
+    "title": "Trước buổi họp (5 phút trước)",
+    "stock": "① Hàng tồn: hỏi người ca trước",
+    "target": "② Mục tiêu: xem \"Mục tiêu số bát\" trong app",
+    "caution": "③ Điểm cần chú ý: chọn một điều (có thể chọn từ ví dụ bên dưới)"
+  },
+  "leaderSays": "Người dẫn nói",
+  "allSay": "Mọi người nói / làm",
+  "twice": "×2",
+  "seconds": "{{n}} giây",
+  "minutes": "{{n}} phút",
+  "notes": {
+    "greeting": "Dừng tay và nhìn người dẫn.",
+    "philosophy": "Mọi người cùng đồng thanh.",
+    "phrases": "Nói theo người dẫn, mỗi câu 2 lần, tươi cười.",
+    "handover": "Lắng nghe kỹ. Không hiểu thì hỏi ngay. Nếu không có câu hỏi:",
+    "grooming": "Kiểm tra lẫn nhau. Chưa đạt thì sửa ngay. Nếu ổn:",
+    "closing": "Nói to, tươi cười."
+  },
+  "cautionTitle": "Ví dụ điểm cần chú ý (chọn một)",
+  "situations": {
+    "title": "Khi gặp tình huống",
+    "customer": "Khách vào giữa buổi họp → dừng lại, mọi người cùng nói \"Irasshai!\". Phục vụ xong thì họp tiếp.",
+    "busy": "Đông khách, không họp được → ưu tiên khách. Khi vắng, chỉ làm \"3. Câu chào khách\" và \"4. Bàn giao\".",
+    "few": "Chỉ có 1–2 người → dù ít người vẫn phải họp."
+  },
+  "after": {
+    "title": "Sau khi họp",
+    "record": "Người dẫn gửi \"Biên bản họp ca\" trên app."
+  },
+  "lines": {
+    "prepQuestion": "Có món nào cần nhập thêm không?",
+    "start": "Bây giờ bắt đầu họp ca. Chào buổi sáng!",
+    "ohayo": "Chào buổi sáng!",
+    "philosophyStart": "Cùng đọc triết lý kinh doanh.",
+    "philosophy1": "Một: khách hàng là trên hết!",
+    "philosophy2": "Một: tươi cười và đầy năng lượng!",
+    "philosophy3": "Một: mang lại kỷ niệm đẹp nhất cho khách!",
+    "phrasesStart": "Luyện câu chào khách. Hãy tươi cười nhé.",
+    "irasshai": "Xin mời vào!",
+    "omatase": "Xin lỗi đã để quý khách chờ!",
+    "ookini": "Cảm ơn! (tiếng Osaka)",
+    "handoverStart": "Bây giờ bàn giao.",
+    "handoverStock": "Hàng tồn: cần nhập ○○. (Hoặc: \"Không có.\")",
+    "handoverTarget": "Mục tiêu: ca này là ○○ bát.",
+    "handoverCaution": "Điểm cần chú ý: ○○○○.",
+    "questions": "Có câu hỏi nào không?",
+    "noQuestions": "Không có!",
+    "groomingStart": "Kiểm tra trang phục: đồng phục, khăn trùm đầu, tóc, móng tay, trang sức.",
+    "ok": "Ổn ạ!",
+    "closing": "Hôm nay cũng cố gắng nhé!",
+    "closingAll": "Cùng cố gắng!"
+  }
+}

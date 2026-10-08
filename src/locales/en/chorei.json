@@ -20,12 +20,28 @@
   "participants": {
     "label": "Participants",
     "showAll": "Show staff of the other store",
-    "extra": "People not in the list (names)",
-    "extraHint": "Separate with commas"
+    "extra": "Participant names (one per box)",
+    "addPerson": "Add a person",
+    "namePlaceholder": "Name of person {{n}}",
+    "removePerson": "Remove"
   },
-  "stock": { "label": "Stock (items to order)", "none": "Nothing needed", "placeholder": "e.g. green onion, paper napkins" },
-  "target": { "label": "Target bowls", "hint": "{{dayType}} guide: {{bowls}} bowls", "weekday": "Weekday", "weekend_holiday": "Weekend/holiday", "unit": "bowls" },
-  "caution": { "label": "Point to be careful about", "placeholder": "What to be careful about this shift", "picks": "Choose an example" },
+  "stock": {
+    "label": "Stock (items to order)",
+    "none": "Nothing needed",
+    "placeholder": "e.g. green onion, paper napkins"
+  },
+  "target": {
+    "label": "Target bowls",
+    "hint": "{{dayType}} guide: {{bowls}} bowls",
+    "weekday": "Weekday",
+    "weekend_holiday": "Weekend/holiday",
+    "unit": "bowls"
+  },
+  "caution": {
+    "label": "Point to be careful about",
+    "placeholder": "What to be careful about this shift",
+    "picks": "Choose an example"
+  },
   "steps": {
     "label": "Steps done in the meeting",
     "greeting": "1. Opening greeting",

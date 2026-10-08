@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
 import { Button, Card, Checkbox, ErrorBox, Segmented, Spinner, StickyActions, TextArea, TextInput } from '../../components/ui'
@@ -18,7 +18,7 @@ import { AttachmentPicker } from '../attachments/AttachmentPicker'
 import { useUploadQueue } from '../attachments/uploadQueue'
 import type { PreparedMedia } from '../../lib/media'
 import { HandoverCard } from './HandoverCard'
-import { choreiSchema, fieldErrors, parseNames } from './schema'
+import { choreiSchema, fieldErrors } from './schema'
 
 export function ChoreiFormPage() {
   const { t } = useTranslation('chorei')
@@ -39,7 +39,7 @@ export function ChoreiFormPage() {
   const [shift, setShift] = useState<Shift>(initial.shift)
   const [participants, setParticipants] = useState<string[]>([])
   const [showAllStaff, setShowAllStaff] = useState(false)
-  const [extra, setExtra] = useState('')
+  const [extraNames, setExtraNames] = useState<string[]>([''])
   const [stockNone, setStockNone] = useState(false)
   const [stockText, setStockText] = useState('')
   const [targetOverride, setTargetOverride] = useState<string | null>(null)
@@ -76,7 +76,7 @@ export function ChoreiFormPage() {
         business_date: businessDate,
         shift,
         participants,
-        participants_extra: parseNames(extra),
+        participants_extra: extraNames.map((n) => n.trim()).filter(Boolean),
         stock_none: stockNone,
         stock_text: stockNone ? null : stockText.trim() || null,
         target_bowls: targetValue === '' ? null : Number(targetValue),
@@ -125,7 +125,12 @@ export function ChoreiFormPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-bold">📣 {t('title')}</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold">📣 {t('title')}</h1>
+        <Link to="/genko" className="flex min-h-11 items-center rounded-xl px-3 text-sm font-bold text-brand ring-1 ring-brand">
+          📜 {t('genko:title')}
+        </Link>
+      </div>
 
       <Card className="flex flex-col gap-3">
         <Segmented
@@ -204,7 +209,41 @@ export function ChoreiFormPage() {
             <Checkbox checked={showAllStaff} onChange={setShowAllStaff}>
               {t('participants.showAll')}
             </Checkbox>
-            <TextInput label={t('participants.extra')} hint={t('participants.extraHint')} value={extra} onChange={(e) => setExtra(e.target.value)} />
+            <fieldset className="flex flex-col gap-2">
+              <legend className="mb-1 text-sm font-bold text-slate-700">{t('participants.extra')}</legend>
+              {extraNames.map((name, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-base focus:border-brand focus:outline-none"
+                    value={name}
+                    list="staff-names"
+                    placeholder={t('participants.namePlaceholder', { n: i + 1 })}
+                    aria-label={t('participants.namePlaceholder', { n: i + 1 })}
+                    onChange={(e) => setExtraNames((list) => list.map((x, j) => (j === i ? e.target.value : x)))}
+                  />
+                  <button
+                    type="button"
+                    aria-label={t('participants.removePerson')}
+                    onClick={() => setExtraNames((list) => (list.length === 1 ? [''] : list.filter((_, j) => j !== i)))}
+                    className="min-h-11 min-w-11 rounded-xl border border-slate-300 bg-white text-slate-600"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <datalist id="staff-names">
+                {(staff.data ?? []).map((s) => (
+                  <option key={s.id} value={s.full_name ?? s.display_name} />
+                ))}
+              </datalist>
+              <button
+                type="button"
+                onClick={() => setExtraNames((list) => [...list, ''])}
+                className="min-h-11 rounded-xl border border-dashed border-brand font-bold text-brand"
+              >
+                ＋ {t('participants.addPerson')}
+              </button>
+            </fieldset>
           </Card>
 
           <Card className="flex flex-col gap-3">

@@ -20,12 +20,28 @@
   "participants": {
     "label": "Người tham gia",
     "showAll": "Hiện cả nhân viên cửa hàng kia",
-    "extra": "Người không có trong danh sách (tên)",
-    "extraHint": "Cách nhau bằng dấu phẩy"
+    "extra": "Tên người tham gia (mỗi ô một người)",
+    "addPerson": "Thêm 1 người",
+    "namePlaceholder": "Tên người thứ {{n}}",
+    "removePerson": "Xóa"
   },
-  "stock": { "label": "Hàng tồn (cần nhập thêm)", "none": "Không cần", "placeholder": "Ví dụ: hành lá, giấy ăn" },
-  "target": { "label": "Mục tiêu số bát", "hint": "Mức tham khảo {{dayType}}: {{bowls}} bát", "weekday": "ngày thường", "weekend_holiday": "cuối tuần/ngày lễ", "unit": "bát" },
-  "caution": { "label": "Điểm cần chú ý", "placeholder": "Điều cần chú ý trong ca này", "picks": "Chọn từ ví dụ" },
+  "stock": {
+    "label": "Hàng tồn (cần nhập thêm)",
+    "none": "Không cần",
+    "placeholder": "Ví dụ: hành lá, giấy ăn"
+  },
+  "target": {
+    "label": "Mục tiêu số bát",
+    "hint": "Mức tham khảo {{dayType}}: {{bowls}} bát",
+    "weekday": "ngày thường",
+    "weekend_holiday": "cuối tuần/ngày lễ",
+    "unit": "bát"
+  },
+  "caution": {
+    "label": "Điểm cần chú ý",
+    "placeholder": "Điều cần chú ý trong ca này",
+    "picks": "Chọn từ ví dụ"
+  },
   "steps": {
     "label": "Các bước đã làm trong buổi họp",
     "greeting": "1. Chào mở đầu",

@@ -34,6 +34,9 @@ export function HomePage() {
       </p>
 
       <BigLink to="/chorei" icon="📣" label={t('home.choreiButton')} />
+      <Link to="/genko" className="flex min-h-12 items-center justify-center rounded-xl bg-white font-bold text-brand ring-1 ring-brand">
+        📜 {t('genko:title')}
+      </Link>
       {canPatrol && <BigLink to="/patrol" icon="🔍" label={t('home.patrolButton')} />}
       <div className="grid grid-cols-2 gap-2">
         <Link to="/history" className="flex min-h-12 items-center justify-center rounded-xl bg-white font-bold ring-1 ring-slate-300">

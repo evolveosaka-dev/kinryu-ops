@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next'
-import { HashRouter, Navigate, Route, Routes } from 'react-router'
+import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router'
 import { Button, ErrorBox, Spinner } from '../components/ui'
 import { LoginPage } from '../features/auth/LoginPage'
 import { UpdatePasswordPage } from '../features/auth/UpdatePasswordPage'
 import { ChoreiFormPage } from '../features/chorei/ChoreiFormPage'
+import { GenkoPage } from '../features/genko/GenkoPage'
 import { HistoryPage } from '../features/history/HistoryPage'
 import { SyncPage } from '../features/manager/SyncPage'
 import { UsersPage } from '../features/manager/UsersPage'
@@ -21,6 +22,10 @@ function Gate() {
   const { t } = useTranslation()
   const { session, initializing, recovery, profile, profileLoading, profileError, refreshProfile, canPatrol, isManager } = useAuth()
 
+  const location = useLocation()
+
+  // 朝礼原稿 is public: shareable link / QR code, no login needed
+  if (location.pathname === '/genko') return <GenkoPage />
   if (!isConfigured) return <ErrorBox message={t('error.notConfigured')} />
   if (initializing) return <Spinner label={t('action.loading')} />
   if (recovery && session) return <UpdatePasswordPage />

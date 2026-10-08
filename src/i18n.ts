@@ -17,16 +17,21 @@ import viPatrol from './locales/vi/patrol.json'
 import siCommon from './locales/si/common.json'
 import siChorei from './locales/si/chorei.json'
 import siPatrol from './locales/si/patrol.json'
+import jaGenko from './locales/ja/genko.json'
+import enGenko from './locales/en/genko.json'
+import viGenko from './locales/vi/genko.json'
+import siGenko from './locales/si/genko.json'
+import neGenko from './locales/ne/genko.json'
 import neCommon from './locales/ne/common.json'
 import neChorei from './locales/ne/chorei.json'
 import nePatrol from './locales/ne/patrol.json'
 
 export const resources = {
-  ja: { common: jaCommon, chorei: jaChorei, patrol: jaPatrol, manager: jaManager },
-  en: { common: enCommon, chorei: enChorei, patrol: enPatrol, manager: enManager },
-  vi: { common: viCommon, chorei: viChorei, patrol: viPatrol },
-  si: { common: siCommon, chorei: siChorei, patrol: siPatrol },
-  ne: { common: neCommon, chorei: neChorei, patrol: nePatrol },
+  ja: { common: jaCommon, chorei: jaChorei, patrol: jaPatrol, manager: jaManager, genko: jaGenko },
+  en: { common: enCommon, chorei: enChorei, patrol: enPatrol, manager: enManager, genko: enGenko },
+  vi: { common: viCommon, chorei: viChorei, patrol: viPatrol, genko: viGenko },
+  si: { common: siCommon, chorei: siChorei, patrol: siPatrol, genko: siGenko },
+  ne: { common: neCommon, chorei: neChorei, patrol: nePatrol, genko: neGenko },
 } as const
 
 // Load only the font a locale needs (slow mobile data).
@@ -59,7 +64,7 @@ void i18n
     nonExplicitSupportedLngs: true,
     fallbackLng: 'ja',
     defaultNS: 'common',
-    ns: ['common', 'chorei', 'patrol', 'manager'],
+    ns: ['common', 'chorei', 'patrol', 'manager', 'genko'],
     interpolation: { escapeValue: false },
     detection: { order: ['localStorage', 'navigator'], caches: ['localStorage'], lookupLocalStorage: 'kinryu.locale' },
   })
