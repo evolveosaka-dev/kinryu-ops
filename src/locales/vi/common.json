@@ -72,8 +72,7 @@
   },
   "pending": {
     "title": "Đang chờ duyệt",
-    "body": "Bạn có thể dùng app sau khi quản lý duyệt. Hãy nhập tên và cửa hàng.",
-    "homeStore": "Cửa hàng làm chính",
+    "body": "Bạn có thể dùng app sau khi quản lý duyệt. Hãy nhập tên của bạn.",
     "saved": "Đã lưu"
   },
   "inactive": {

@@ -3,10 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { useAuth, useMe } from '../../app/auth'
 import { LanguageSelect } from '../../components/LanguageSelect'
 import { useToast } from '../../components/Toast'
-import { Button, Card, ErrorBox, Segmented, TextInput } from '../../components/ui'
+import { Button, Card, ErrorBox, TextInput } from '../../components/ui'
 import { currentLocale } from '../../i18n'
-import { storeName } from '../../lib/format'
-import { useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 
 function GateShell({ children }: { children: React.ReactNode }) {
@@ -25,21 +23,19 @@ function GateShell({ children }: { children: React.ReactNode }) {
   )
 }
 
-/** Signed up but not approved yet: let the user fill name and store while waiting. */
+/** Signed up but not approved yet: let the user fill in their name while waiting. */
 export function PendingPage() {
   const { t } = useTranslation()
   const me = useMe()
   const { refreshProfile } = useAuth()
   const toast = useToast()
-  const stores = useStores()
   const [name, setName] = useState(me.display_name)
-  const [store, setStore] = useState(me.home_store_id ?? '')
   const [error, setError] = useState<string | null>(null)
 
   const save = async () => {
     const { error: e } = await supabase
       .from('profiles')
-      .update({ display_name: name.trim(), home_store_id: store || null, locale: currentLocale() })
+      .update({ display_name: name.trim(), locale: currentLocale() })
       .eq('id', me.id)
     if (e) return setError(e.message)
     toast(t('pending.saved'))
@@ -52,14 +48,6 @@ export function PendingPage() {
         <h2 className="text-lg font-bold">⏳ {t('pending.title')}</h2>
         <p>{t('pending.body')}</p>
         <TextInput label={t('auth.displayName')} hint={t('auth.displayNameHint')} value={name} onChange={(e) => setName(e.target.value)} />
-        {stores.data && (
-          <Segmented
-            label={t('pending.homeStore')}
-            value={store}
-            onChange={setStore}
-            options={stores.data.map((s) => ({ value: s.id, label: storeName(s, currentLocale()) }))}
-          />
-        )}
         {error && <ErrorBox message={error} />}
         <div className="grid grid-cols-2 gap-2">
           <Button onClick={save} disabled={!name.trim()}>

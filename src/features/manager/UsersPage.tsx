@@ -5,14 +5,13 @@ import { useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
 import { Button, Card, Checkbox, ErrorBox, Spinner } from '../../components/ui'
 import type { ProfileStatus, Role } from '../../domain/types'
-import { currentLocale } from '../../i18n'
-import { errorMessage, storeName } from '../../lib/format'
-import { unwrap, useStores } from '../../lib/queries'
+import { errorMessage } from '../../lib/format'
+import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import type { Profile } from '../../lib/types'
 import { ManagerTabs } from './ManagerTabs'
 
-type Patch = Partial<Pick<Profile, 'role' | 'can_patrol' | 'status' | 'home_store_id' | 'full_name'>>
+type Patch = Partial<Pick<Profile, 'role' | 'can_patrol' | 'status' | 'full_name'>>
 
 const ROLES: Role[] = ['staff', 'manager', 'admin']
 const STATUSES: ProfileStatus[] = ['pending', 'active', 'inactive']
@@ -20,7 +19,6 @@ const selectClass = 'min-h-11 w-full rounded-lg border border-slate-300 bg-white
 
 function UserRow({ user, onSave, isSelf }: { user: Profile; onSave: (p: Patch) => void; isSelf: boolean }) {
   const { t } = useTranslation('manager')
-  const stores = useStores()
   const [draft, setDraft] = useState<Patch>({})
   const v = { ...user, ...draft }
   const dirty = Object.keys(draft).length > 0
@@ -53,17 +51,6 @@ function UserRow({ user, onSave, isSelf }: { user: Profile; onSave: (p: Patch) =
           </select>
         </label>
         <label className="text-xs font-bold text-slate-600">
-          {t('users.homeStore')}
-          <select className={selectClass} value={v.home_store_id ?? ''} onChange={(e) => setDraft({ ...draft, home_store_id: e.target.value || null })}>
-            <option value="">{t('users.noStore')}</option>
-            {stores.data?.map((s) => (
-              <option key={s.id} value={s.id}>
-                {storeName(s, currentLocale())}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs font-bold text-slate-600">
           {t('users.role.staff')} / {t('users.role.manager')}
           <select className={selectClass} value={v.role} disabled={isSelf} onChange={(e) => setDraft({ ...draft, role: e.target.value as Role })}>
             {ROLES.map((r) => (
@@ -79,7 +66,7 @@ function UserRow({ user, onSave, isSelf }: { user: Profile; onSave: (p: Patch) =
       </div>
       <div className="flex gap-2">
         {user.status === 'pending' && !dirty && (
-          <Button className="flex-1" onClick={() => onSave({ status: 'active' })} disabled={!user.home_store_id}>
+          <Button className="flex-1" onClick={() => onSave({ status: 'active' })}>
             ✓ {t('users.approve')}
           </Button>
         )}

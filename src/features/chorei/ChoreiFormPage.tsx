@@ -18,6 +18,7 @@ import { AttachmentPicker } from '../attachments/AttachmentPicker'
 import { useUploadQueue } from '../attachments/uploadQueue'
 import type { PreparedMedia } from '../../lib/media'
 import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
+import { getLastStore, setLastStore } from '../../lib/lastStore'
 import { HandoverCard } from './HandoverCard'
 import { choreiSchema, fieldErrors } from './schema'
 
@@ -34,7 +35,7 @@ export function ChoreiFormPage() {
   const targets = useTargets()
 
   const initial = useMemo(() => currentSlot(new Date()), [])
-  const [storeId, setStoreId] = useState(me.home_store_id ?? '')
+  const [storeId, setStoreId] = useState(getLastStore() ?? '')
   const [businessDate, setBusinessDate] = useState(initial.businessDate)
   const [shift, setShift] = useState<Shift>(initial.shift)
   const [participantNames, setParticipantNames] = useState<string[]>([])
@@ -103,6 +104,7 @@ export function ChoreiFormPage() {
         leader_id: me.id,
       }
       const res = await supabase.from('chorei_records').insert(record).select('id').single()
+      if (!res.error) setLastStore(record.store_id)
       if (res.error) throw Object.assign(new Error(res.error.message), { code: res.error.code })
       // photos/videos go to Google Drive in the background (queued, retried)
       await uploads.enqueue('chorei', (res.data as { id: string }).id, media)

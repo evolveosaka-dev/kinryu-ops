@@ -72,8 +72,7 @@
   },
   "pending": {
     "title": "Waiting for approval",
-    "body": "You can use the app after a manager approves you. Please enter your name and store.",
-    "homeStore": "Main store",
+    "body": "You can use the app after a manager approves you. Please enter your name.",
     "saved": "Saved"
   },
   "inactive": {

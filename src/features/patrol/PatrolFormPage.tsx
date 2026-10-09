@@ -26,6 +26,7 @@ import { AttachmentPicker } from '../attachments/AttachmentPicker'
 import { useUploadQueue } from '../attachments/uploadQueue'
 import type { PreparedMedia } from '../../lib/media'
 import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
+import { initialStore } from '../../lib/lastStore'
 import { ScoreItem } from './ScoreItem'
 
 const JUDGEMENT_STYLE = {
@@ -40,8 +41,9 @@ function completeScores(s: PatrolFormState['scores']): PatrolScores | null {
   return { smile, voice, grooming, clean, quality }
 }
 
-function newForm(stores: Store[], homeStoreId: string | null): PatrolFormState {
-  const home = homeStoreId ?? stores[0]!.id
+function newForm(stores: Store[]): PatrolFormState {
+  // "own store" = the store used last time (staff work at both stores)
+  const home = initialStore(stores.map((s) => s.id))
   const other = stores.find((s) => s.id !== home)?.id ?? home
   const s = suggestPatrol(new Date(), home, other)
   return {
@@ -76,7 +78,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
   const queryClient = useQueryClient()
   const locale = currentLocale()
 
-  const [form, setForm] = useState<PatrolFormState>(() => loadLocalDraft(me.id) ?? newForm(stores, me.home_store_id))
+  const [form, setForm] = useState<PatrolFormState>(() => loadLocalDraft(me.id) ?? newForm(stores))
   const [resumed] = useState(() => Boolean(form.startedAt))
   const [now, setNow] = useState(() => new Date())
   const [error, setError] = useState<string | null>(null)

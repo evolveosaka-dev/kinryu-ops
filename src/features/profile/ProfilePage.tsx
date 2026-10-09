@@ -5,9 +5,6 @@ import { LanguageSelect } from '../../components/LanguageSelect'
 import { useToast } from '../../components/Toast'
 import { Button, Card, ErrorBox, TextInput } from '../../components/ui'
 import type { Locale } from '../../domain/types'
-import { currentLocale } from '../../i18n'
-import { storeName } from '../../lib/format'
-import { useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 
 export function ProfilePage() {
@@ -15,7 +12,6 @@ export function ProfilePage() {
   const me = useMe()
   const { refreshProfile } = useAuth()
   const toast = useToast()
-  const stores = useStores()
   const [name, setName] = useState(me.display_name)
   const [error, setError] = useState<string | null>(null)
 
@@ -44,9 +40,6 @@ export function ProfilePage() {
         </p>
         <p className="text-xs text-slate-500">{t('fullName.note')}</p>
         <p>{t('auth.email')}：{me.email}</p>
-        <p>
-          {t('pending.homeStore')}：{storeName(stores.data?.find((s) => s.id === me.home_store_id), currentLocale())}
-        </p>
         <p>
           {t('profile.role')}：{me.role}
           {me.can_patrol && ` / ${t('profile.patroller')}`}
