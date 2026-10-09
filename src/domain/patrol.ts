@@ -19,7 +19,7 @@ export type Judgement = 'good' | 'improve' | 'coaching'
 
 export const PATROL_TARGET_25 = 20
 export const PATROL_WARN_MINUTES = 15
-export const PATROL_REVIEW_MINUTES = 60
+export const PATROL_REVIEW_MINUTES = 15 // keep in sync with guard_patrol()
 
 export function patrolTotal(s: PatrolScores): number {
   return s.smile + s.voice + s.grooming + s.clean + (s.quality ?? 0)

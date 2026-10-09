@@ -151,7 +151,8 @@
     "tooMany": "これ以上追加できません。",
     "remove": "削除",
     "processing": "準備中…",
-    "count": "添付 {{n}}件"
+    "count": "添付 {{n}}件",
+    "photoRequired": "店の写真を1枚以上撮ってください。"
   },
   "upload": {
     "uploading": "アップロード中 {{n}}件（{{pct}}%）",

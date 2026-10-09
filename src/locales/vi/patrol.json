@@ -17,7 +17,13 @@
     "needStart": "Đến cửa hàng thì bấm \"Bắt đầu\".",
     "resumed": "Đã khôi phục lượt tuần tra chưa xong.",
     "discard": "Hủy lượt tuần tra này",
-    "endOnSubmit": "Thời điểm bấm \"Gửi\" sẽ là giờ kết thúc."
+    "end": "Kết thúc",
+    "ended": "Kết thúc {{time}}",
+    "needEnd": "Xem xong thì bấm \"Kết thúc\".",
+    "endFirst": "Hãy bấm \"Kết thúc\" trước. Sau đó mới gửi được.",
+    "limit": "tối đa 15 phút",
+    "overBanner": "Đã {{min}} phút — quá 15 phút. Hãy bấm \"Kết thúc\".",
+    "overReview": "Quá 15 phút: quản lý sẽ kiểm tra lại thời gian."
   },
   "items": {
     "smile": {
@@ -88,5 +94,7 @@
   "historyEmpty": "Chưa có phiếu tuần tra nào.",
   "minutes": "{{min}} phút",
   "timeReview": "Cần kiểm tra lại thời gian",
-  "staffOnShiftHint": "Chọn từng nhân viên đang làm ca. Nếu không chọn ai, sẽ ghi là \"tất cả\"."
+  "staffOnShiftHint": "Chọn từng nhân viên đang làm ca. Nếu không chọn ai, sẽ ghi là \"tất cả\".",
+  "photoHint": "Chụp ít nhất 1 ảnh tiệm trong lúc tuần tra. Có nhân viên trong ảnh càng tốt (không chụp mặt khách).",
+  "photoAfterStart": "Bấm \"Bắt đầu\" rồi mới chụp được."
 }

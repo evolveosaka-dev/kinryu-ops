@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { useMe } from '../../app/auth'
@@ -82,13 +82,16 @@ function PatrolForm({ stores }: { stores: Store[] }) {
   const [error, setError] = useState<string | null>(null)
   const [showMissing, setShowMissing] = useState(false)
   const [media, setMedia] = useState<PreparedMedia[]>([])
+  const [endMissing, setEndMissing] = useState(false)
+  const timeCard = useRef<HTMLDivElement>(null)
+  const vibrated = useRef(false)
   const uploads = useUploadQueue()
   const translation = useTranslationGate()
 
   useEffect(() => saveLocalDraft(me.id, form.startedAt ? form : null), [form, me.id])
 
   useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 15_000)
+    const id = window.setInterval(() => setNow(new Date()), 5_000)
     return () => window.clearInterval(id)
   }, [])
 
@@ -118,6 +121,14 @@ function PatrolForm({ stores }: { stores: Store[] }) {
     // Offline: keep the local start time; the record is inserted on submit.
     onError: (err) => !isNetworkError(err) && setError(errorMessage(err)),
   })
+
+  // 終了: recorded once, also on the server draft so the cron job does not flag it
+  const finish = async () => {
+    const endedAt = new Date().toISOString()
+    update({ endedAt })
+    setEndMissing(false)
+    if (form.draftId) await supabase.from('patrol_checks').update({ ended_at: endedAt }).eq('id', form.draftId)
+  }
 
   const submit = useMutation({
     mutationFn: async (endedAt: string) => {
@@ -179,12 +190,32 @@ function PatrolForm({ stores }: { stores: Store[] }) {
   const scores = completeScores(form.scores)
   const result = scores ? judgePatrol(scores) : null
   const started = form.startedAt ? new Date(form.startedAt) : null
-  const minutes = started ? durationMinutes(started, form.endedAt ? new Date(form.endedAt) : now) : 0
-  const ready = Boolean(started && scores && form.goodPoints.trim() && form.improvements.trim())
+  const ended = form.endedAt ? new Date(form.endedAt) : null
+  const minutes = started ? durationMinutes(started, ended ?? now) : 0
+  const overLimit = Boolean(started && !ended && minutes >= PATROL_WARN_MINUTES)
+  const photos = media.filter((m) => m.kind === 'image').length
+  const ready = Boolean(started && ended && photos > 0 && scores && form.goodPoints.trim() && form.improvements.trim())
+
+  // vibrate once when 15 minutes pass without 終了
+  useEffect(() => {
+    if (overLimit && !vibrated.current) {
+      vibrated.current = true
+      navigator.vibrate?.([300, 150, 300])
+    }
+  }, [overLimit])
 
   return (
     <div className="flex flex-col gap-4">
       {translation.review}
+      {overLimit && (
+        <button
+          type="button"
+          onClick={() => timeCard.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+          className="sticky top-14 z-30 animate-pulse rounded-xl bg-red-700 p-3 text-left font-bold text-white shadow-lg"
+        >
+          ⚠️ {t('time.overBanner', { min: minutes })}
+        </button>
+      )}
       <h1 className="text-xl font-bold">🔍 {t('title')}</h1>
       {resumed && form.startedAt && <p className="rounded-xl bg-blue-50 p-3 text-sm">{t('time.resumed')}</p>}
 
@@ -211,20 +242,28 @@ function PatrolForm({ stores }: { stores: Store[] }) {
         <TextInput label={t('common:field.date')} type="date" value={form.businessDate} onChange={(e) => update({ businessDate: e.target.value })} />
       </Card>
 
-      <Card className="flex flex-col gap-3">
-        <h2 className="text-sm font-bold text-slate-700">⏱️ {t('time.label')}</h2>
-        <Button onClick={() => start.mutate()} disabled={Boolean(started) || start.isPending}>
-          {started ? t('time.started', { time: formatTokyoTime(started) }) : `▶ ${t('time.start')}`}
-        </Button>
-        {started && (
-          <p className={minutes > PATROL_WARN_MINUTES ? 'font-bold text-red-700' : 'text-slate-700'}>
-            {t('time.elapsed', { min: minutes })}
-            {minutes > PATROL_WARN_MINUTES && ` — ⚠️ ${t('time.over')}`}
-          </p>
-        )}
-        {!started && <p className="text-sm text-slate-600">{t('time.needStart')}</p>}
-        {started && <p className="text-sm text-slate-600">{t('time.endOnSubmit')}</p>}
-      </Card>
+      <div ref={timeCard}>
+        <Card className={`flex flex-col gap-3 ${overLimit || (endMissing && !ended) ? 'ring-2 ring-red-600' : ''}`}>
+          <h2 className="text-sm font-bold text-slate-700">⏱️ {t('time.label')}</h2>
+          <div className="grid grid-cols-2 gap-2">
+            <Button onClick={() => start.mutate()} disabled={Boolean(started) || start.isPending}>
+              {started ? t('time.started', { time: formatTokyoTime(started) }) : `▶ ${t('time.start')}`}
+            </Button>
+            <Button onClick={() => void finish()} disabled={!started || Boolean(ended)} variant={overLimit ? 'danger' : 'primary'}>
+              {ended ? t('time.ended', { time: formatTokyoTime(ended) }) : `■ ${t('time.end')}`}
+            </Button>
+          </div>
+          {started && (
+            <p className={minutes > PATROL_WARN_MINUTES ? 'font-bold text-red-700' : 'text-slate-700'}>
+              {t('time.elapsed', { min: minutes })} / {t('time.limit')}
+              {ended && minutes > PATROL_WARN_MINUTES && ` — ${t('time.overReview')}`}
+            </p>
+          )}
+          {!started && <p className="text-sm text-slate-600">{t('time.needStart')}</p>}
+          {started && !ended && <p className="text-sm text-slate-600">{t('time.needEnd')}</p>}
+          {endMissing && !ended && <ErrorBox message={t('time.endFirst')} />}
+        </Card>
+      </div>
 
       <p className="text-sm text-slate-600">💡 {t('lowerHint')}</p>
       {PATROL_ITEMS.map((item) => (
@@ -275,7 +314,15 @@ function PatrolForm({ stores }: { stores: Store[] }) {
         <TextArea label={t('remarks.label')} placeholder={t('remarks.placeholder')} value={form.remarks} onChange={(e) => update({ remarks: e.target.value })} />
       </Card>
 
-      <AttachmentPicker value={media} onChange={setMedia} />
+      <AttachmentPicker
+        value={media}
+        onChange={setMedia}
+        requirePhoto
+        camera
+        hint={t('photoHint')}
+        lockedNote={started ? null : t('photoAfterStart')}
+        missing={showMissing}
+      />
 
       {form.startedAt && (
         <Button variant="danger" onClick={() => void discard()}>
@@ -294,17 +341,22 @@ function PatrolForm({ stores }: { stores: Store[] }) {
         )}
         {result?.max === 20 && <p className="mb-1 text-xs text-slate-600">{t('fourItems')}</p>}
         {showMissing && !started && <ErrorBox message={t('time.needStart')} />}
+        {endMissing && !ended && <ErrorBox message={t('time.endFirst')} />}
+        {showMissing && started && photos === 0 && <ErrorBox message={t('common:attach.photoRequired')} />}
         {error && <ErrorBox message={error} />}
         <Button
           className="w-full"
           disabled={submit.isPending}
           onClick={() => {
             setShowMissing(true)
-            if (!ready) return
-            // End time = first press of 送信する; kept for retries so a lost signal does not add paid minutes.
-            const endedAt = form.endedAt ?? new Date().toISOString()
-            update({ endedAt })
-            submit.mutate(endedAt)
+            if (started && !form.endedAt) {
+              // 送信 without 終了 → guide the patroller to 終了 first
+              setEndMissing(true)
+              timeCard.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              return
+            }
+            if (!ready || !form.endedAt) return
+            submit.mutate(form.endedAt)
           }}
         >
           {submit.isPending ? t('common:action.loading') : t('common:action.submit')}

@@ -126,12 +126,12 @@ describe('巡回チェック', () => {
     const [row] = await t.as(patroller, insertPatrol(), [midosuji])
     expect(row).toEqual({ total: 16, max_total: 20, judgement: 'good', duration_min: 12, needs_time_review: false })
   })
-  it('patrol over 60 minutes is flagged for review', async () => {
+  it('patrol over 15 minutes is flagged for review', async () => {
     const [row] = await t.as<{ needs_time_review: boolean }>(
       patroller,
       `insert into public.patrol_checks (store_id, business_date, shift, patrol_type, started_at, ended_at,
         score_smile, score_voice, score_grooming, score_clean, good_points, improvements)
-       values ($1, ${TODAY}, 'late', 'after_shift', now() - interval '90 minutes', now(), 3, 3, 3, 3, 'a', 'b')
+       values ($1, ${TODAY}, 'late', 'after_shift', now() - interval '16 minutes', now(), 3, 3, 3, 3, 'a', 'b')
        returning needs_time_review`,
       [midosuji],
     )
@@ -152,9 +152,9 @@ describe('巡回チェック', () => {
         values ($1, ${TODAY}, 'early', 'after_shift', now() - interval '10 minutes', now(), 3, 3, 3, 3, '', 'b')`, [midosuji]),
     ).rejects.toThrow(/patrol_complete/)
   })
-  it('draft started at 開始 is flagged by the cron job after 60 minutes', async () => {
+  it('draft started at 開始 without 終了 is flagged by the cron job after 15 minutes', async () => {
     await t.as(patroller, `insert into public.patrol_checks (store_id, business_date, shift, patrol_type, started_at, status)
-      values ($1, ${TODAY}, 'early', 'before_shift', now() - interval '61 minutes', 'draft')`, [sennichimae])
+      values ($1, ${TODAY}, 'early', 'before_shift', now() - interval '16 minutes', 'draft')`, [sennichimae])
     const [r] = await t.admin<{ n: number }>('select public.flag_open_patrols() as n')
     expect(r!.n).toBe(1)
   })
@@ -280,5 +280,28 @@ describe('mask rule (① 笑顔)', () => {
     await expect(insert(4)).rejects.toThrow(/patrol_mask_smile/)
     const [row] = await insert(1)
     expect(row!.total).toBe(21)
+  })
+})
+
+describe('15-minute patrol limit', () => {
+  it('a 14-minute patrol is not flagged; 終了 on a draft cannot be moved', async () => {
+    const [ok] = await t.as<{ needs_time_review: boolean }>(
+      patroller,
+      `insert into public.patrol_checks (store_id, business_date, shift, patrol_type, started_at, ended_at,
+        score_smile, score_voice, score_grooming, score_clean, good_points, improvements)
+       values ($1, ${TODAY}, 'early', 'in_shift', now() - interval '14 minutes', now(), 4, 4, 4, 4, 'a', 'b')
+       returning needs_time_review`,
+      [midosuji],
+    )
+    expect(ok!.needs_time_review).toBe(false)
+    const [d] = await t.as<{ id: string }>(
+      patroller,
+      `insert into public.patrol_checks (store_id, business_date, shift, patrol_type, started_at, ended_at, status)
+       values ($1, ${TODAY}, 'early', 'random', now() - interval '5 minutes', now() - interval '1 minute', 'draft') returning id`,
+      [midosuji],
+    )
+    await expect(
+      t.as(patroller, 'update public.patrol_checks set ended_at = now() where id = $1', [d!.id]),
+    ).rejects.toThrow(/end time already recorded/)
   })
 })

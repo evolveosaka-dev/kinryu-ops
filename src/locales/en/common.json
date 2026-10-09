@@ -151,7 +151,8 @@
     "tooMany": "You cannot add more.",
     "remove": "Remove",
     "processing": "Preparing…",
-    "count": "{{n}} attachment(s)"
+    "count": "{{n}} attachment(s)",
+    "photoRequired": "Please take at least 1 photo of the store."
   },
   "upload": {
     "uploading": "Uploading {{n}} file(s) ({{pct}}%)",

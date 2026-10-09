@@ -151,7 +151,8 @@
     "tooMany": "Không thể thêm nữa.",
     "remove": "Xóa",
     "processing": "Đang chuẩn bị…",
-    "count": "{{n}} file đính kèm"
+    "count": "{{n}} file đính kèm",
+    "photoRequired": "Hãy chụp ít nhất 1 ảnh tiệm."
   },
   "upload": {
     "uploading": "Đang tải lên {{n}} file ({{pct}}%)",

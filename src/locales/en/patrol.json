@@ -17,7 +17,13 @@
     "needStart": "Tap \"Start\" when you arrive at the store.",
     "resumed": "Your unfinished patrol was restored.",
     "discard": "Cancel this patrol",
-    "endOnSubmit": "The end time is recorded when you press \"Send\"."
+    "end": "End",
+    "ended": "End {{time}}",
+    "needEnd": "Tap \"End\" when you finish watching.",
+    "endFirst": "Please tap \"End\" first. Then you can send.",
+    "limit": "limit 15 min",
+    "overBanner": "{{min}} min passed — over 15 minutes. Tap \"End\".",
+    "overReview": "Over 15 minutes: a manager will check the time."
   },
   "items": {
     "smile": {
@@ -88,5 +94,7 @@
   "historyEmpty": "No patrol records yet.",
   "minutes": "{{min}} min",
   "timeReview": "Time needs review",
-  "staffOnShiftHint": "Choose each staff member on shift. If nobody is chosen, it is recorded as \"everyone\"."
+  "staffOnShiftHint": "Choose each staff member on shift. If nobody is chosen, it is recorded as \"everyone\".",
+  "photoHint": "Take at least 1 photo of the store during the patrol. Photos with staff are even better (do not film customers’ faces).",
+  "photoAfterStart": "You can take photos after tapping \"Start\"."
 }
