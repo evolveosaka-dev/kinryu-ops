@@ -22,4 +22,13 @@ describe('ScoreItem', () => {
     expect(screen.getByText('① Nụ cười')).toBeInTheDocument()
     await i18n.changeLanguage('ja')
   })
+
+  it('locked (マスク利用): buttons are disabled and show the fixed score', async () => {
+    await i18n.changeLanguage('ja')
+    const onChange = vi.fn()
+    render(<ScoreItem item="smile" value={1} locked onChange={onChange} />)
+    expect(screen.getByRole('radio', { name: /笑顔が見られない/ })).toBeDisabled()
+    expect(screen.getByRole('radio', { name: /4場面すべて/ })).toBeDisabled()
+    expect(screen.getByRole('radio', { name: /4場面中3場面/ })).toBeDisabled()
+  })
 })

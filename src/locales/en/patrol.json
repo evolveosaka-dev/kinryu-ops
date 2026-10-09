@@ -19,12 +19,14 @@
   },
   "items": {
     "smile": {
-      "1": "Unfriendly face, no eye contact, or private chatting",
-      "2": "No expression, but polite",
-      "3": "1 of 3 scenes",
-      "4": "2 of 3 scenes",
-      "5": "Eye contact and a smile in all 3 scenes: entry, serving, leaving",
-      "name": "① Smile"
+      "1": "No smile seen",
+      "2": "1 of 4 scenes",
+      "3": "2 of 4 scenes",
+      "4": "3 of 4 scenes",
+      "5": "Eye contact and a smile in all 4 scenes: entry, taking the meal ticket, serving, leaving",
+      "name": "① Smile",
+      "mask": "Mask worn",
+      "maskNote": "If staff wear masks, the smile score is 1 point."
     },
     "voice": {
       "1": "No greeting",

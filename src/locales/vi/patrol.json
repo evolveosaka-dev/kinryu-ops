@@ -19,12 +19,14 @@
   },
   "items": {
     "smile": {
-      "1": "Mặt khó chịu, không nhìn khách, vừa phục vụ vừa nói chuyện riêng",
-      "2": "Không biểu cảm nhưng lịch sự",
-      "3": "1 trong 3 lúc",
-      "4": "2 trong 3 lúc",
-      "5": "Nhìn mắt khách và cười ở cả 3 lúc: khách vào, mang món ra, khách về",
-      "name": "① Nụ cười"
+      "1": "Không thấy nụ cười",
+      "2": "1 trong 4 lúc",
+      "3": "2 trong 4 lúc",
+      "4": "3 trong 4 lúc",
+      "5": "Nhìn mắt khách và cười ở cả 4 lúc: khách vào, nhận vé ăn, mang món ra, khách về",
+      "name": "① Nụ cười",
+      "mask": "Có đeo khẩu trang",
+      "maskNote": "Nếu có người đeo khẩu trang thì mục này là 1 điểm cho tất cả."
     },
     "voice": {
       "1": "Không chào",

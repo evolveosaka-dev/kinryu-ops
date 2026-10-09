@@ -116,6 +116,7 @@ export interface PatrolCheck {
   needs_time_review: boolean
   staff_on_shift: string
   staff_names: string[]
+  mask_worn: boolean
   good_points: string | null
   improvements: string | null
   remarks: string | null

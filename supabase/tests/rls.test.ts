@@ -265,3 +265,20 @@ describe('staff roster', () => {
     expect(row!.staff_names).toEqual(['テスト', 'サンプル'])
   })
 })
+
+describe('mask rule (① 笑顔)', () => {
+  const insert = (smile: number) =>
+    t.as<{ total: number }>(
+      patroller,
+      `insert into public.patrol_checks (store_id, business_date, shift, patrol_type, started_at, ended_at,
+        score_smile, score_voice, score_grooming, score_clean, score_quality, good_points, improvements, mask_worn)
+       values ($1, (now() at time zone 'Asia/Tokyo')::date, 'early', 'after_shift', now() - interval '10 minutes', now(),
+        $2, 5, 5, 5, 5, 'a', 'b', true) returning total`,
+      [midosuji, smile],
+    )
+  it('mask worn → smile must be 1', async () => {
+    await expect(insert(4)).rejects.toThrow(/patrol_mask_smile/)
+    const [row] = await insert(1)
+    expect(row!.total).toBe(21)
+  })
+})

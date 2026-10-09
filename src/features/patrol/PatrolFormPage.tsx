@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router'
 import { useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
 import { StaffPicker } from '../../components/StaffPicker'
-import { Button, Card, ErrorBox, Segmented, Spinner, StickyActions, TextArea, TextInput } from '../../components/ui'
+import { Button, Card, Checkbox, ErrorBox, Segmented, Spinner, StickyActions, TextArea, TextInput } from '../../components/ui'
 import {
   durationMinutes,
   judgePatrol,
@@ -141,6 +141,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
         score_grooming: scores!.grooming,
         score_clean: scores!.clean,
         score_quality: scores!.quality,
+        mask_worn: Boolean(f.maskWorn),
         staff_names: (f.staffNames ?? []).filter(Boolean),
         staff_on_shift: (f.staffNames ?? []).filter(Boolean).join('、') || '全員',
         good_points: tr.values.good_points,
@@ -229,7 +230,26 @@ function PatrolForm({ stores }: { stores: Store[] }) {
 
       <p className="text-sm text-slate-600">💡 {t('lowerHint')}</p>
       {PATROL_ITEMS.map((item) => (
-        <ScoreItem key={item} item={item} value={form.scores[item]} onChange={(v) => update({ scores: { ...form.scores, [item]: v } })} />
+        <ScoreItem
+          key={item}
+          item={item}
+          value={form.scores[item]}
+          onChange={(v) => update({ scores: { ...form.scores, [item]: v } })}
+          locked={item === 'smile' && Boolean(form.maskWorn)}
+          extra={
+            item === 'smile' && (
+              <div className="rounded-xl bg-amber-50 px-2">
+                <Checkbox
+                  checked={Boolean(form.maskWorn)}
+                  onChange={(maskWorn) => update({ maskWorn, scores: { ...form.scores, smile: maskWorn ? 1 : undefined } })}
+                >
+                  😷 <b>{t('items.smile.mask')}</b>
+                </Checkbox>
+                {form.maskWorn && <p className="pb-2 text-xs text-amber-900">{t('items.smile.maskNote')}</p>}
+              </div>
+            )
+          }
+        />
       ))}
 
       <Card className="flex flex-col gap-3">

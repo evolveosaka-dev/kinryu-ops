@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useId, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cx } from '../../lib/cx'
 import { SCORES, type PatrolItem, type Score } from '../../domain/patrol'
@@ -8,8 +8,13 @@ export function ScoreItem({
   item,
   value,
   onChange,
+  locked = false,
+  extra,
 }: {
   item: PatrolItem
+  /** score fixed by a rule (e.g. マスク利用 → 1); buttons are disabled */
+  locked?: boolean
+  extra?: ReactNode
   /** undefined = not scored yet, null = "－" (quality only) */
   value: Score | null | undefined
   onChange: (v: Score | null) => void
@@ -26,6 +31,7 @@ export function ScoreItem({
         </span>
       </div>
       {hasDesc && <p className="text-xs text-slate-600">{t(`items.${item}.desc`)}</p>}
+      {extra}
       <div className="flex flex-col gap-1.5">
         {SCORES.map((s) => (
           <button
@@ -33,9 +39,10 @@ export function ScoreItem({
             type="button"
             role="radio"
             aria-checked={value === s}
+            disabled={locked}
             onClick={() => onChange(s)}
             className={cx(
-              'flex min-h-12 items-center gap-3 rounded-xl border px-3 py-2 text-left',
+              'flex min-h-12 items-center gap-3 rounded-xl border px-3 py-2 text-left disabled:opacity-50',
               value === s ? 'border-brand bg-red-50 ring-2 ring-brand' : 'border-slate-200 bg-white',
             )}
           >

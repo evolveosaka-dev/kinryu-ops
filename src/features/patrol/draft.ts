@@ -12,6 +12,8 @@ export interface PatrolFormState {
   endedAt: string | null
   scores: Partial<Record<PatrolItem, Score | null>>
   staffOnShift: string
+  /** マスク利用: ① 笑顔 is fixed to 1 */
+  maskWorn?: boolean
   /** chosen from the roster; empty = 全員 */
   staffNames?: string[]
   goodPoints: string
