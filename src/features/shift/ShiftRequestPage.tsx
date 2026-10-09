@@ -56,7 +56,7 @@ function Chip({ on, onClick, children, tone = 'blue' }: { on: boolean; onClick: 
       aria-pressed={on}
       onClick={onClick}
       className={cx(
-        'min-h-10 min-w-12 rounded-lg border-[1.5px] px-2 text-sm font-bold',
+        'min-h-10 rounded-lg border-[1.5px] px-0.5 text-sm font-bold tracking-tight whitespace-nowrap',
         on ? (tone === 'blue' ? 'border-brand bg-brand text-white' : 'border-slate-700 bg-slate-700 text-white') : 'border-line bg-white text-ink',
       )}
     >
@@ -228,15 +228,16 @@ function ShiftRequestForm({ month, months, onMonth, saved }: { month: string; mo
               {dates.map((date) => {
                 const d = days[date] ?? {}
                 return (
-                  <li key={date} className="flex items-start gap-3 px-3 py-2.5">
-                    <span className={cx('w-14 shrink-0 pt-2 font-bold', isOff(date) && 'text-red-700')}>
+                  <li key={date} className="flex items-start gap-2 px-3 py-2.5">
+                    <span className={cx('w-11 shrink-0 pt-2 font-bold', isOff(date) && 'text-red-700')}>
                       {Number(date.slice(8, 10))}
                       <span className="ml-1 text-xs">{t(`common:wd.${weekdayOf(date)}`)}</span>
                     </span>
                     <div className="flex flex-1 flex-col gap-1.5">
                       {shifts.map((s) => (
-                        <div key={s} className="flex flex-wrap items-center gap-1.5">
-                          {shifts.length > 1 && <span className="w-9 text-xs text-muted">{t(`common:shift.${s}`)}</span>}
+                        <div key={s} className="flex flex-col gap-0.5">
+                          {shifts.length > 1 && <span className="text-xs text-muted">{t(`common:shift.${s}`)}</span>}
+                          <div className="grid grid-cols-4 gap-1.5">
                           {OPTIONS[s].map(([value, label]) => (
                             <Chip key={value} on={d[s] === value} onClick={() => setDay(date, { [s]: d[s] === value ? undefined : value } as DayChoice)}>
                               {label}
@@ -247,6 +248,7 @@ function ShiftRequestForm({ month, months, onMonth, saved }: { month: string; mo
                               +17:30
                             </Chip>
                           )}
+                          </div>
                         </div>
                       ))}
                     </div>
