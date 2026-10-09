@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet } from 'react-router'
 import { UploadStatus } from '../features/attachments/UploadStatus'
 import { cx } from '../lib/cx'
-import { initials } from '../lib/format'
+import { familyName } from '../lib/format'
 import { useAuth } from './auth'
 
 export function Layout() {
@@ -28,8 +28,12 @@ export function Layout() {
           </span>
           <span className="text-[17px] font-bold">{t('app.title')}</span>
         </Link>
-        <Link to="/profile" className="flex size-9 items-center justify-center rounded-full bg-white/20 text-xs font-bold text-white" aria-label={t('nav.profile')}>
-          {initials(profile?.display_name || profile?.full_name || '?')}
+        <Link
+          to="/profile"
+          className="flex h-9 max-w-[9rem] items-center rounded-full bg-white/20 px-3.5 text-[15px] font-bold text-white"
+          aria-label={t('nav.profile')}
+        >
+          <span className="truncate">{familyName(profile?.full_name, profile?.display_name)}</span>
         </Link>
       </header>
       <UploadStatus />

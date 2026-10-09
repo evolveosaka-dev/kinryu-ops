@@ -15,8 +15,12 @@ export function isNetworkError(err: unknown): boolean {
   return /Failed to fetch|NetworkError|Load failed|network/i.test(m) || (typeof navigator !== 'undefined' && !navigator.onLine)
 }
 
-/** Two letters for the avatar (people's names are never translated). */
-export function initials(name: string): string {
-  const parts = name.trim().split(/\s+/)
-  return (parts.length > 1 ? parts[0]!.charAt(0) + parts[1]!.charAt(0) : name.trim().slice(0, 2)).toUpperCase() || '?'
+/**
+ * Family name (姓) for the header: the first part of the full name, which is entered in
+ * residence-card order (surname first). ALL-CAPS Latin names are shown as "Nguyen".
+ */
+export function familyName(fullName: string | null | undefined, fallback = ''): string {
+  const first = (fullName ?? '').trim().split(/\s+/)[0] ?? ''
+  if (!first) return fallback.trim() || '?'
+  return /^[A-Z][A-Z'-]+$/.test(first) ? first.charAt(0) + first.slice(1).toLowerCase() : first
 }
