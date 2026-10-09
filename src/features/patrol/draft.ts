@@ -26,7 +26,11 @@ const KEY = 'kinryu.patrolForm'
 export function loadLocalDraft(userId: string): PatrolFormState | null {
   try {
     const raw = localStorage.getItem(`${KEY}.${userId}`)
-    return raw ? (JSON.parse(raw) as PatrolFormState) : null
+    if (!raw) return null
+    const state = JSON.parse(raw) as PatrolFormState
+    // drafts saved before the 4 patrol types existed
+    if ((state.patrolType as string) === 'early') state.patrolType = 'before_shift'
+    return state
   } catch {
     return null
   }

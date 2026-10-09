@@ -56,9 +56,9 @@ describe('durationMinutes', () => {
 })
 
 describe('suggestPatrol', () => {
-  it('06:35 → early patrol of own store, previous 遅番', () => {
+  it('06:35 → 勤務前 patrol of own store, previous 遅番', () => {
     expect(suggestPatrol(jst('2026-10-13T06:35:00'), 'home', 'other')).toEqual({
-      patrolType: 'early',
+      patrolType: 'before_shift',
       storeId: 'home',
       businessDate: '2026-10-12',
       shift: 'late',

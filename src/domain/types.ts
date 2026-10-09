@@ -5,7 +5,8 @@ export const LOCALES = ['ja', 'en', 'vi', 'si', 'ne'] as const
 export type Locale = (typeof LOCALES)[number]
 
 export type DayType = 'weekday' | 'weekend_holiday'
-export type PatrolType = 'after_shift' | 'early'
+export const PATROL_TYPES = ['before_shift', 'in_shift', 'after_shift', 'random'] as const
+export type PatrolType = (typeof PATROL_TYPES)[number]
 export type Role = 'staff' | 'manager' | 'admin'
 export type ProfileStatus = 'pending' | 'active' | 'inactive'
 export type RecordStatus = 'valid' | 'void'

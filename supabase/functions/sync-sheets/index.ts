@@ -7,6 +7,7 @@ const TITLE = '金龍 朝礼・巡回 データ'
 const SHIFT = { early: '早番', middle: '中番', late: '遅番' } as Record<string, string>
 const JUDGE = { good: '良好', improve: '要改善', coaching: '即日指導' } as Record<string, string>
 const STATUS = { valid: '有効', void: '無効' } as Record<string, string>
+const PATROL_TYPE = { before_shift: '勤務前', in_shift: '勤務中', after_shift: '勤務後', random: 'ランダム' } as Record<string, string>
 const STEPS = { greeting: '挨拶', philosophy: '経営理念', phrases: '接客用語', handover: '引継ぎ', grooming: '身だしなみ', closing: '締め' } as Record<string, string>
 
 type Cell = string | number | boolean | null
@@ -118,7 +119,7 @@ serve(async (req) => {
         p.business_date,
         storeName.get(p.store_id) ?? '',
         SHIFT[p.shift] ?? p.shift,
-        p.patrol_type === 'early' ? '早出巡回' : '勤務後巡回',
+        PATROL_TYPE[p.patrol_type] ?? p.patrol_type,
         person.get(p.patroller_id) ?? '',
         shortName.get(p.patroller_id) ?? '',
         jst(p.started_at),

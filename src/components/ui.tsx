@@ -89,16 +89,19 @@ export function Segmented<T extends string>({
   value,
   options,
   onChange,
+  columns,
 }: {
   label: ReactNode
   value: T
   options: { value: T; label: ReactNode }[]
   onChange: (v: T) => void
+  /** defaults to one column per option */
+  columns?: number
 }) {
   return (
     <fieldset className="flex flex-col gap-1">
       <legend className="mb-1 text-sm font-bold text-slate-700">{label}</legend>
-      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
+      <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${columns ?? options.length}, minmax(0, 1fr))` }}>
         {options.map((o) => (
           <button
             key={o.value}

@@ -2,8 +2,10 @@
   "title": "Phiếu tuần tra",
   "type": {
     "label": "Loại tuần tra",
-    "after_shift": "Sau ca làm",
-    "early": "Tuần tra sớm (từ 6:30)"
+    "before_shift": "Trước ca",
+    "in_shift": "Trong ca",
+    "after_shift": "Sau ca",
+    "random": "Ngẫu nhiên"
   },
   "target": "Cửa hàng và ca cần kiểm tra",
   "time": {

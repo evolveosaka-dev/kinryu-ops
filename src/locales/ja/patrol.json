@@ -2,8 +2,10 @@
   "title": "巡回チェック",
   "type": {
     "label": "巡回の種類",
-    "after_shift": "勤務後の巡回",
-    "early": "早出巡回（6:30〜）"
+    "before_shift": "勤務前",
+    "in_shift": "勤務中",
+    "after_shift": "勤務後",
+    "random": "ランダム"
   },
   "target": "巡回する店舗・シフト",
   "time": {

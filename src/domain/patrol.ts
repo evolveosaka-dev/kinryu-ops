@@ -71,13 +71,13 @@ export interface PatrolSuggestion {
 }
 
 /**
- * 6:00–6:59 → early patrol of the own store's previous 遅番.
+ * 6:00–6:59 → 勤務前 patrol of the own store's previous 遅番 (before a 7:00 shift).
  * Otherwise → after-shift patrol of the other store's current shift.
  */
 export function suggestPatrol(at: Date, homeStoreId: string, otherStoreId: string): PatrolSuggestion {
   const { hour, date } = tokyoParts(at)
   if (hour === 6) {
-    return { patrolType: 'early', storeId: homeStoreId, businessDate: addDays(date, -1), shift: 'late' }
+    return { patrolType: 'before_shift', storeId: homeStoreId, businessDate: addDays(date, -1), shift: 'late' }
   }
   const shift = detectShift(at)
   return { patrolType: 'after_shift', storeId: otherStoreId, businessDate: businessDateFor(at, shift), shift }

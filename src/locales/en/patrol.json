@@ -2,8 +2,10 @@
   "title": "Patrol check",
   "type": {
     "label": "Patrol type",
-    "after_shift": "After my shift",
-    "early": "Early patrol (from 6:30)"
+    "before_shift": "Before shift",
+    "in_shift": "During shift",
+    "after_shift": "After shift",
+    "random": "Random"
   },
   "target": "Store and shift to check",
   "time": {

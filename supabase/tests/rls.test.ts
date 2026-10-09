@@ -154,7 +154,7 @@ describe('巡回チェック', () => {
   })
   it('draft started at 開始 is flagged by the cron job after 60 minutes', async () => {
     await t.as(patroller, `insert into public.patrol_checks (store_id, business_date, shift, patrol_type, started_at, status)
-      values ($1, ${TODAY}, 'early', 'early', now() - interval '61 minutes', 'draft')`, [sennichimae])
+      values ($1, ${TODAY}, 'early', 'before_shift', now() - interval '61 minutes', 'draft')`, [sennichimae])
     const [r] = await t.admin<{ n: number }>('select public.flag_open_patrols() as n')
     expect(r!.n).toBe(1)
   })

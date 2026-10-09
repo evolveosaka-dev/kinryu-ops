@@ -15,7 +15,7 @@ import {
   type PatrolScores,
 } from '../../domain/patrol'
 import { formatTokyoTime } from '../../domain/time'
-import { SHIFTS, type PatrolType } from '../../domain/types'
+import { PATROL_TYPES, SHIFTS, type PatrolType } from '../../domain/types'
 import { currentLocale } from '../../i18n'
 import { errorMessage, isNetworkError, storeName } from '../../lib/format'
 import { useStores } from '../../lib/queries'
@@ -193,10 +193,8 @@ function PatrolForm({ stores }: { stores: Store[] }) {
           label={t('type.label')}
           value={form.patrolType}
           onChange={(patrolType) => update({ patrolType })}
-          options={[
-            { value: 'after_shift', label: t('type.after_shift') },
-            { value: 'early', label: t('type.early') },
-          ]}
+          columns={2}
+          options={PATROL_TYPES.map((value) => ({ value, label: t(`type.${value}`) }))}
         />
         <Segmented
           label={t('target')}
