@@ -102,7 +102,7 @@ export function AttachmentPicker({
           type="button"
           disabled={busy || images >= MAX_IMAGES || Boolean(lockedNote)}
           onClick={() => photoInput.current?.click()}
-          className="min-h-12 rounded-xl border border-slate-300 bg-white font-bold disabled:text-slate-400"
+          className="min-h-12 rounded-xl border border-slate-300 bg-white font-bold disabled:text-slate-500"
         >
           📷 {t('attach.addPhoto')}（{images}/{MAX_IMAGES}）
         </button>
@@ -110,7 +110,7 @@ export function AttachmentPicker({
           type="button"
           disabled={busy || videos >= 1 || Boolean(lockedNote)}
           onClick={() => videoInput.current?.click()}
-          className="min-h-12 rounded-xl border border-slate-300 bg-white font-bold disabled:text-slate-400"
+          className="min-h-12 rounded-xl border border-slate-300 bg-white font-bold disabled:text-slate-500"
         >
           🎥 {t('attach.addVideo')}（{videos}/1）
         </button>
@@ -119,7 +119,7 @@ export function AttachmentPicker({
       <input ref={photoInput} type="file" accept="image/*" multiple={!camera} capture={camera ? 'environment' : undefined} hidden onChange={(e) => void add(e.target.files, 'image').then(() => (e.target.value = ''))} />
       <input ref={videoInput} type="file" accept="video/*" hidden onChange={(e) => void add(e.target.files, 'video').then(() => (e.target.value = ''))} />
       {busy && <p className="text-sm text-slate-600">{t('attach.processing')}</p>}
-      <p className="text-xs text-slate-500">{t('attach.limit')}</p>
+      <p className="text-xs text-slate-600">{t('attach.limit')}</p>
       {error && <ErrorBox message={error} />}
       {missing && requirePhoto && images === 0 && <ErrorBox message={t('attach.photoRequired')} />}
     </Card>

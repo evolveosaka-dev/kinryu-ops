@@ -17,7 +17,7 @@ function Ruby({ text, furigana }: { text: string; furigana: boolean }) {
         seg.reading && furigana ? (
           <ruby key={i}>
             {seg.text}
-            <rt className="text-[0.6em] font-normal text-slate-500">{seg.reading}</rt>
+            <rt className="text-[0.6em] font-normal text-slate-600">{seg.reading}</rt>
           </ruby>
         ) : (
           <span key={i}>{seg.text}</span>
@@ -37,7 +37,7 @@ function Line({ line, furigana }: { line: SpokenLine; furigana: boolean }) {
       </span>
       {!ja && (
         <>
-          <span className="text-xs text-slate-500">{line.romaji}</span>
+          <span className="text-xs text-slate-600">{line.romaji}</span>
           <span className="text-sm text-slate-700">{t(line.key)}</span>
         </>
       )}
@@ -71,10 +71,10 @@ export function GenkoPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col">
-      <header className="sticky top-0 z-20 flex items-center justify-between gap-2 border-b border-line bg-white/95 px-4 py-2 backdrop-blur">
+      <header className="sticky top-0 z-20 flex items-center justify-between gap-2 bg-brand px-4 py-2 text-white">
         <span className="font-bold tracking-tight">{t('title')}</span>
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-1 text-sm text-ink">
+        <div className="flex items-center gap-2 text-ink">
+          <label className="flex items-center gap-1 text-sm text-white">
             <input type="checkbox" className="size-5" checked={furigana} onChange={(e) => toggleFurigana(e.target.checked)} />
             {t('furigana')}
           </label>
@@ -135,7 +135,7 @@ export function GenkoPage() {
                 </span>
                 {currentLocale() !== 'ja' && (
                   <>
-                    <span className="text-xs text-slate-500">{p.romaji}</span>
+                    <span className="text-xs text-slate-600">{p.romaji}</span>
                     <span className="text-sm text-slate-700">{t(`chorei:${p.key}`)}</span>
                   </>
                 )}

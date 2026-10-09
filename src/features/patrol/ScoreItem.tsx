@@ -42,14 +42,14 @@ export function ScoreItem({
             disabled={locked}
             onClick={() => onChange(s)}
             className={cx(
-              'flex min-h-12 items-center gap-3 rounded-xl border px-3 py-2 text-left disabled:opacity-50',
-              value === s ? 'border-brand bg-brand-soft ring-1 ring-brand' : 'border-slate-200 bg-white',
+              'flex min-h-12 items-center gap-3 rounded-xl border-[1.5px] px-3 py-2 text-left disabled:opacity-50',
+              value === s ? 'border-brand bg-brand-soft' : 'border-line bg-white',
             )}
           >
             <span className={cx('flex size-9 shrink-0 items-center justify-center rounded-full text-lg font-bold', value === s ? 'bg-brand text-white' : 'bg-surface')}>
               {s}
             </span>
-            <span className="text-sm leading-snug">{t(`items.${item}.${s}`)}</span>
+            <span className="text-[15px] leading-snug">{t(`items.${item}.${s}`)}</span>
           </button>
         ))}
         {item === 'quality' && (

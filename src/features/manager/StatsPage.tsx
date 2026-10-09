@@ -135,7 +135,7 @@ export function StatsPage() {
       <ManagerTabs />
       <PageTitle title={t('stats.title')} />
       <PeriodBar period={period} />
-      <p className="text-xs text-slate-500">{t('countNote')}</p>
+      <p className="text-xs text-slate-600">{t('countNote')}</p>
       <Button variant="secondary" onClick={() => void doExport()} disabled={exporting}>
         {exporting ? t('common:action.loading') : t('stats.export')}
       </Button>
@@ -163,11 +163,11 @@ export function StatsPage() {
             <Bar value={r.average} max={25} target={PATROL_TARGET_25} />
             <span className="text-right font-bold">
               {r.average ?? '—'}
-              <span className="text-xs font-normal text-slate-500">（{r.count}）</span>
+              <span className="text-xs font-normal text-slate-600">（{r.count}）</span>
             </span>
           </div>
         ))}
-        <p className="text-xs text-slate-500">{t('stats.scaleNote')}</p>
+        <p className="text-xs text-slate-600">{t('stats.scaleNote')}</p>
       </Card>
 
       <Card className="flex flex-col gap-2">
@@ -189,7 +189,7 @@ export function StatsPage() {
         <Card className="flex flex-col gap-1">
           <h2 className="font-bold">{t('stats.trend')}</h2>
           <table className="w-full text-sm">
-            <thead className="text-xs text-slate-500">
+            <thead className="text-xs text-slate-600">
               <tr>
                 <th className="text-left">{t('stats.week')}</th>
                 <th>{t('dashboard.patrols')}</th>
@@ -213,12 +213,12 @@ export function StatsPage() {
 
       <Card className="flex flex-col gap-2">
         <h2 className="font-bold">{t('stats.ranking')}</h2>
-        <p className="text-xs text-slate-500">{t('stats.rankingNote')}</p>
+        <p className="text-xs text-slate-600">{t('stats.rankingNote')}</p>
         {ranking.length === 0 ? (
-          <p className="text-sm text-slate-500">{t('stats.noData')}</p>
+          <p className="text-sm text-slate-600">{t('stats.noData')}</p>
         ) : (
           <table className="w-full text-sm">
-            <thead className="text-xs text-slate-500">
+            <thead className="text-xs text-slate-600">
               <tr>
                 <th className="text-left">#</th>
                 <th className="text-left">{t('stats.name')}</th>

@@ -55,7 +55,7 @@ export function HoursPage() {
       <ManagerTabs />
       <PageTitle title={t('hours.title')} />
       <PeriodBar period={period} allowModes={false} />
-      <p className="text-xs text-slate-500">{t('countNote')}</p>
+      <p className="text-xs text-slate-600">{t('countNote')}</p>
       <div className="grid grid-cols-2 gap-2">
         <Button variant="secondary" onClick={() => void exportXlsx(`金龍_巡回時間_${month}.xlsx`, [{ name: '集計', rows: summaryRows }, { name: '明細', rows: detailRows }])}>
           Excel
@@ -68,7 +68,7 @@ export function HoursPage() {
 
       <Card className="overflow-x-auto p-2">
         <table className="w-full min-w-[20rem] text-sm">
-          <thead className="text-xs text-slate-500">
+          <thead className="text-xs text-slate-600">
             <tr>
               <th className="text-left">{t('detail.patroller')}</th>
               <th>{t('stats.times')}</th>
@@ -89,8 +89,8 @@ export function HoursPage() {
             ))}
           </tbody>
         </table>
-        {rows.length === 0 && <p className="p-2 text-sm text-slate-500">{t('stats.noData')}</p>}
-        <p className="mt-2 text-xs text-slate-500">{t('hours.note')}</p>
+        {rows.length === 0 && <p className="p-2 text-sm text-slate-600">{t('stats.noData')}</p>}
+        <p className="mt-2 text-xs text-slate-600">{t('hours.note')}</p>
       </Card>
 
       {flagged.length > 0 && (

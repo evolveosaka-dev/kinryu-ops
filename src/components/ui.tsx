@@ -6,8 +6,8 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
 const VARIANTS: Record<Variant, string> = {
   primary: 'px-4 bg-brand text-white hover:bg-brand-dark active:bg-brand-dark disabled:bg-slate-300',
-  secondary: 'px-4 bg-white text-ink border border-ink/80 hover:bg-surface active:bg-surface disabled:border-line disabled:text-slate-400',
-  ghost: 'px-1 text-brand hover:underline underline-offset-2 disabled:text-slate-400',
+  secondary: 'px-4 bg-white text-brand-dark border-[1.5px] border-brand hover:bg-brand-soft active:bg-brand-soft disabled:border-line disabled:text-slate-500',
+  ghost: 'px-1 text-brand hover:underline underline-offset-2 disabled:text-slate-500',
   danger: 'px-4 bg-white text-red-700 border border-red-300 hover:bg-red-50 active:bg-red-50',
 }
 
@@ -21,7 +21,7 @@ export function Button({
       type="button"
       {...props}
       className={cx(
-        'min-h-12 rounded-xl py-2 text-[15px] font-semibold transition-colors disabled:cursor-not-allowed',
+        'min-h-12 rounded-xl py-2 text-base font-bold transition-colors disabled:cursor-not-allowed',
         VARIANTS[variant],
         className,
       )}
@@ -31,7 +31,7 @@ export function Button({
 
 /** Light-grey surface card (the reference design's grouped blocks). */
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cx('rounded-2xl border border-line bg-white p-4', className)}>{children}</section>
+  return <section className={cx('rounded-2xl border border-line bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.06)]', className)}>{children}</section>
 }
 
 /** Page title with an optional subtitle. */
@@ -39,7 +39,7 @@ export function PageTitle({ title, subtitle, action }: { title: ReactNode; subti
   return (
     <div className="flex items-end justify-between gap-3">
       <div>
-        <h1 className="text-[22px] leading-tight font-bold tracking-tight">{title}</h1>
+        <h1 className="text-[23px] leading-tight font-bold">{title}</h1>
         {subtitle && <p className="mt-0.5 text-sm text-muted">{subtitle}</p>}
       </div>
       {action}
@@ -48,7 +48,7 @@ export function PageTitle({ title, subtitle, action }: { title: ReactNode; subti
 }
 
 export function SectionTitle({ children }: { children: ReactNode }) {
-  return <h2 className="text-base font-bold tracking-tight">{children}</h2>
+  return <h2 className="text-[17px] font-bold">{children}</h2>
 }
 
 export function Field({
@@ -66,11 +66,11 @@ export function Field({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={htmlFor} className="text-sm font-semibold text-ink">
+      <label htmlFor={htmlFor} className="text-[15px] font-bold text-ink">
         {label}
       </label>
       {children}
-      {hint && <p className="text-xs text-muted">{hint}</p>}
+      {hint && <p className="text-sm text-muted">{hint}</p>}
       {error && (
         <p role="alert" className="text-sm font-semibold text-red-700">
           {error}
@@ -81,7 +81,7 @@ export function Field({
 }
 
 const inputClass =
-  'w-full min-h-12 rounded-xl border border-line bg-surface px-3.5 py-2.5 text-base placeholder:text-slate-400 focus:border-brand focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand/10'
+  'w-full min-h-12 rounded-xl border border-slate-400 bg-white px-3.5 py-2.5 text-base placeholder:text-slate-600 focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/15'
 
 export function TextInput({ label, hint, error, ...props }: InputHTMLAttributes<HTMLInputElement> & { label: ReactNode; hint?: ReactNode; error?: string | null }) {
   const id = useId()
@@ -118,7 +118,7 @@ export function Segmented<T extends string>({
 }) {
   return (
     <fieldset className="flex flex-col gap-1.5">
-      {label && <legend className="mb-1.5 text-sm font-semibold text-ink">{label}</legend>}
+      {label && <legend className="mb-1.5 text-[15px] font-bold text-ink">{label}</legend>}
       <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${columns ?? options.length}, minmax(0, 1fr))` }}>
         {options.map((o) => (
           <button
@@ -128,8 +128,8 @@ export function Segmented<T extends string>({
             aria-checked={value === o.value}
             onClick={() => onChange(o.value)}
             className={cx(
-              'min-h-12 rounded-xl border px-2 py-2 text-sm font-semibold transition-colors',
-              value === o.value ? 'border-brand bg-brand-soft text-brand ring-1 ring-brand' : 'border-line bg-white text-ink hover:bg-surface',
+              'min-h-12 rounded-xl border-[1.5px] px-2 py-2 text-[15px] font-bold transition-colors',
+              value === o.value ? 'border-brand bg-brand text-white' : 'border-line bg-white text-ink hover:bg-surface',
             )}
           >
             {o.label}
@@ -144,7 +144,7 @@ export function Checkbox({ checked, onChange, children }: { checked: boolean; on
   return (
     <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-1">
       <input type="checkbox" className="size-5 rounded accent-brand" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      <span className="text-[15px]">{children}</span>
+      <span className="text-base">{children}</span>
     </label>
   )
 }

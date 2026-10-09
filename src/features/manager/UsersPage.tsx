@@ -27,7 +27,7 @@ function UserRow({ user, onSave, isSelf }: { user: Profile; onSave: (p: Patch) =
     <Card className="flex flex-col gap-2">
       <div>
         <p className="font-bold">{user.display_name || '（名前なし）'}</p>
-        <p className="text-xs text-slate-500">{user.email}</p>
+        <p className="text-xs text-slate-600">{user.email}</p>
       </div>
       <label className="text-xs font-bold text-slate-600">
         {t('users.fullName')}

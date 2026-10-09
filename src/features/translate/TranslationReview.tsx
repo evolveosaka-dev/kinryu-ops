@@ -42,7 +42,7 @@ export function TranslationReview({
               <section key={item.key} className="flex flex-col gap-2 rounded-2xl bg-white p-3 border border-line">
                 <h3 className="font-bold">{item.label}</h3>
                 <div>
-                  <p className="text-xs font-bold text-slate-500">{t('translate.original')}</p>
+                  <p className="text-xs font-bold text-slate-600">{t('translate.original')}</p>
                   <p className="text-sm whitespace-pre-wrap text-slate-700">{item.original}</p>
                 </div>
                 <label className="flex flex-col gap-1">
@@ -58,7 +58,7 @@ export function TranslationReview({
                 </label>
                 {showBack && (
                   <div className="rounded-lg bg-slate-50 p-2">
-                    <p className="text-xs font-bold text-slate-500">{t('translate.back')}</p>
+                    <p className="text-xs font-bold text-slate-600">{t('translate.back')}</p>
                     <p className="text-sm whitespace-pre-wrap">{item.back}</p>
                     {edited && <p className="mt-1 text-xs text-amber-800">{t('translate.editedNote')}</p>}
                   </div>

@@ -20,7 +20,7 @@ export default defineConfig({
         short_name: '金龍 朝礼',
         description: '朝礼記録・店舗巡回チェック',
         lang: 'ja',
-        theme_color: '#2563eb',
+        theme_color: '#1d4ed8',
         background_color: '#ffffff',
         display: 'standalone',
         start_url: base,

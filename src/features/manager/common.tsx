@@ -42,11 +42,11 @@ export function PeriodBar({ period, allowModes = true }: { period: ReturnType<ty
 export function Stat({ label, value, sub, tone }: { label: string; value: ReactNode; sub?: ReactNode; tone?: 'good' | 'warn' | 'bad' }) {
   return (
     <div className="rounded-2xl bg-white p-3 border border-line">
-      <p className="text-xs font-bold text-slate-500">{label}</p>
+      <p className="text-xs font-bold text-slate-600">{label}</p>
       <p className={cx('text-2xl font-bold', tone === 'good' && 'text-green-700', tone === 'warn' && 'text-amber-700', tone === 'bad' && 'text-red-700')}>
         {value}
       </p>
-      {sub && <p className="text-xs text-slate-500">{sub}</p>}
+      {sub && <p className="text-xs text-slate-600">{sub}</p>}
     </div>
   )
 }

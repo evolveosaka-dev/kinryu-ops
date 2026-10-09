@@ -387,7 +387,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
             {submit.isPending ? t('common:action.loading') : t('common:action.submit')}
           </Button>
         </div>
-        <p className="mt-1 text-center text-xs text-slate-500">{t('editable')}</p>
+        <p className="mt-1 text-center text-xs text-slate-600">{t('editable')}</p>
       </StickyActions>
     </div>
   )

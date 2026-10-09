@@ -100,7 +100,8 @@
     "menu": "Menu",
     "patrolSub": "Chấm 5 mục, ảnh và thời gian",
     "historySub": "Họp ca và tuần tra bạn đã gửi",
-    "managerSub": "Bảng tổng quan, báo cáo, cài đặt"
+    "managerSub": "Bảng tổng quan, báo cáo, cài đặt",
+    "name": "{{name}}"
   },
   "phrase": {
     "philosophy1": "Khách hàng là trên hết",

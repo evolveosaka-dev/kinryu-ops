@@ -50,7 +50,7 @@ export function SyncPage() {
       ) : (
         <Card className="flex flex-col gap-3">
           <p className="text-sm">{syncedAt ? t('sync.last', { time: jst(syncedAt) }) : t('sync.never')}</p>
-          <p className="text-xs text-slate-500">{t('sync.daily')}</p>
+          <p className="text-xs text-slate-600">{t('sync.daily')}</p>
           {url && (
             <a href={url} target="_blank" rel="noreferrer" className="flex min-h-11 items-center justify-center rounded-xl bg-green-700 font-bold text-white">
               {t('sync.open')} ↗

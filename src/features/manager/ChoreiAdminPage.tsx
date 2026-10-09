@@ -53,7 +53,7 @@ export function ChoreiAdminPage() {
                 </th>
               ))}
             </tr>
-            <tr className="text-slate-500">
+            <tr className="text-slate-600">
               <th />
               {storeIds.flatMap((sid) =>
                 SHIFTS.map((s, i) => (
@@ -90,7 +90,7 @@ export function ChoreiAdminPage() {
             ))}
           </tbody>
         </table>
-        <p className="mt-2 text-left text-xs text-slate-500">{t('choreiList.legend')}</p>
+        <p className="mt-2 text-left text-xs text-slate-600">{t('choreiList.legend')}</p>
       </Card>
 
       <Card>

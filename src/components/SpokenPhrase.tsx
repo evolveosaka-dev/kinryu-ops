@@ -14,7 +14,7 @@ export function SpokenPhrase({ ja, romaji, tKey, ns = 'common' }: { ja: string; 
       </span>
       {!isJa && (
         <>
-          <span className="text-xs text-slate-500">{romaji}</span>
+          <span className="text-xs text-slate-600">{romaji}</span>
           <span className="text-xs text-slate-600">{t(tKey)}</span>
         </>
       )}

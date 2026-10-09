@@ -76,7 +76,7 @@ export function LoginPage() {
             <Button variant="secondary" onClick={google} className="flex items-center justify-center gap-2">
               <span aria-hidden className="text-lg">G</span> {t('auth.google')}
             </Button>
-            <div className="flex items-center gap-3 text-sm text-slate-500">
+            <div className="flex items-center gap-3 text-sm text-slate-600">
               <hr className="flex-1" /> {t('auth.or')} <hr className="flex-1" />
             </div>
           </>
@@ -151,7 +151,7 @@ export function LoginPage() {
           )}
         </div>
       </Card>
-      <p className="text-center text-xs text-slate-400">
+      <p className="text-center text-xs text-slate-500">
         {t('app.company')} ・{' '}
         <a href="privacy.html" className="underline">
           Privacy Policy

@@ -29,3 +29,6 @@ Thumbs.db
 
 # Internal spec (staff names, business data) — kept local only
 CLAUDE.md
+
+# design mock-ups (local only)
+design/

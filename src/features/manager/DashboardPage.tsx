@@ -89,7 +89,7 @@ export function DashboardPage() {
                 {SHIFTS.map((shift) => {
                   const slot = todaySlots.find((x) => x.storeId === sid && x.shift === shift)!
                   return (
-                    <td key={shift} className={cx('py-2 font-bold', slot.state === 'done' ? 'text-green-700' : slot.state === 'missing' ? 'text-red-700' : 'text-slate-400')}>
+                    <td key={shift} className={cx('py-2 font-bold', slot.state === 'done' ? 'text-green-700' : slot.state === 'missing' ? 'text-red-700' : 'text-slate-500')}>
                       {slot.state === 'done' ? `✓ ${formatTokyoTime(new Date(slot.record!.submitted_at))}` : slot.state === 'missing' ? `✗ ${t('dashboard.missing')}` : '―'}
                     </td>
                   )

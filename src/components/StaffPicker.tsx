@@ -82,11 +82,11 @@ export function StaffPicker({
         type="button"
         onClick={() => onChange([...rows, ''])}
         disabled={rows.some((x) => !x)}
-        className="min-h-11 rounded-xl border border-dashed border-brand font-bold text-brand disabled:border-slate-300 disabled:text-slate-400"
+        className="min-h-11 rounded-xl border border-dashed border-brand font-bold text-brand disabled:border-slate-300 disabled:text-slate-500"
       >
         ＋ {t('picker.add')}
       </button>
-      {hint && <p className="text-xs text-slate-500">{hint}</p>}
+      {hint && <p className="text-xs text-slate-600">{hint}</p>}
     </fieldset>
   )
 }

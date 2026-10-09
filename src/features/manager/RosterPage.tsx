@@ -50,7 +50,7 @@ export function RosterPage() {
 
   const Row = ({ r }: { r: RosterEntry }) => (
     <li className="flex items-center gap-2 py-1">
-      <span className={`flex-1 font-bold ${r.active ? '' : 'text-slate-400 line-through'}`}>{r.name}</span>
+      <span className={`flex-1 font-bold ${r.active ? '' : 'text-slate-500 line-through'}`}>{r.name}</span>
       <select
         className={selectClass}
         value={r.home_store_id ?? ''}
@@ -106,7 +106,7 @@ export function RosterPage() {
           </ul>
           {inactive.length > 0 && (
             <>
-              <h2 className="mt-4 mb-1 font-bold text-slate-500">
+              <h2 className="mt-4 mb-1 font-bold text-slate-600">
                 {t('users.inactive')}（{inactive.length}）
               </h2>
               <ul className="divide-y divide-slate-100">

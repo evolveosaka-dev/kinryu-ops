@@ -51,7 +51,7 @@ export function SettingsPage() {
                 <span className="font-semibold">{l.label}</span>
                 <span className="text-xs text-muted">{l.sub}</span>
               </span>
-              <Icon name="chevronRight" size={18} className="text-slate-400" />
+              <Icon name="chevronRight" size={18} className="text-slate-500" />
             </Link>
           </li>
         ))}
@@ -61,12 +61,12 @@ export function SettingsPage() {
         {usage.data ? (
           <>
             <p>{t('settings.translationCalls', { n: usage.data.calls })}</p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-600">
               {t('settings.translationTokens', { input: usage.data.input, output: usage.data.output, usd: usage.data.usd.toFixed(2) })}
             </p>
           </>
         ) : (
-          <p className="text-slate-500">—</p>
+          <p className="text-slate-600">—</p>
         )}
       </Card>
     </div>

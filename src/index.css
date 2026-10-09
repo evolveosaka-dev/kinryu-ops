@@ -1,23 +1,26 @@
 @import 'tailwindcss';
 
-/* Design tokens (clean white UI, blue primary — see docs/app-design reference) */
+/* Design A "UD・見やすさ重視": BIZ UDPGothic, 16px, deep blue, grey page with white cards. */
 @theme {
-  --color-brand: #2563eb;
-  --color-brand-dark: #1d4ed8;
-  --color-brand-soft: #eff4ff;
+  --color-brand: #1d4ed8;
+  --color-brand-dark: #1e40af;
+  --color-brand-soft: #eff6ff;
   --color-ink: #111827;
-  --color-muted: #6b7280;
-  --color-line: #e5e7eb;
-  --color-surface: #f5f6f8;
-  --font-sans: 'Urbanist', 'Noto Sans JP', 'Noto Sans Sinhala', 'Noto Sans Devanagari', system-ui, sans-serif;
+  --color-muted: #4b5563;
+  --color-line: #d1d5db;
+  --color-surface: #f3f4f6;
+  --font-sans: 'BIZ UDPGothic', 'Noto Sans', 'Noto Sans Sinhala', 'Noto Sans Devanagari', 'Noto Sans JP', system-ui, sans-serif;
 }
 
 html {
   font-family: var(--font-sans);
+  font-size: 16px;
+  font-feature-settings: 'palt' 1;
   -webkit-tap-highlight-color: transparent;
-  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
 }
 body {
-  background: #ffffff;
+  background: var(--color-surface);
   color: var(--color-ink);
+  line-height: 1.6;
 }

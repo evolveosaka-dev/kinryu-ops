@@ -11,7 +11,7 @@ export function HandoverCard({ handover }: { handover: HandoverSummary | null })
         <p className="text-sm text-slate-600">{t('previous.none')}</p>
       ) : (
         <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
-          <dt className="text-slate-500">
+          <dt className="text-slate-600">
             {formatShortDate(handover.business_date)} {t(`common:shift.${handover.shift}`)}
           </dt>
           <dd>

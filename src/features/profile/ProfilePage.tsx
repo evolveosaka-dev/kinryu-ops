@@ -38,7 +38,7 @@ export function ProfilePage() {
         <p>
           {t('fullName.label')}：<b>{me.full_name}</b>
         </p>
-        <p className="text-xs text-slate-500">{t('fullName.note')}</p>
+        <p className="text-xs text-slate-600">{t('fullName.note')}</p>
         <p>{t('auth.email')}：{me.email}</p>
         <p>
           {t('profile.role')}：{me.role}

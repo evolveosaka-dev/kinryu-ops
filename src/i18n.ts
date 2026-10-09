@@ -36,10 +36,11 @@ export const resources = {
 
 // Load only the font a locale needs (slow mobile data).
 const FONT_FAMILIES: Partial<Record<Locale, string>> = {
+  vi: 'Noto+Sans:wght@400;700',
   si: 'Noto+Sans+Sinhala:wght@400;700',
   ne: 'Noto+Sans+Devanagari:wght@400;700',
 }
-const JP_FONT = 'Noto+Sans+JP:wght@400;700'
+const JP_FONT = 'BIZ+UDPGothic:wght@400;700'
 
 function ensureFont(family: string) {
   const id = `font-${family}`

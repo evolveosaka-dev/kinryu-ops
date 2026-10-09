@@ -35,7 +35,7 @@ function useUpdate(table: 'patrol_checks' | 'chorei_records', id: string, onDone
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="grid grid-cols-[7rem_1fr] gap-2 text-sm">
-      <span className="font-bold text-slate-500">{label}</span>
+      <span className="font-bold text-slate-600">{label}</span>
       <span className="whitespace-pre-wrap">{children}</span>
     </div>
   )
@@ -44,7 +44,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 function Original({ texts, field }: { texts: Record<string, string> | null; field: string }) {
   const { t } = useTranslation('manager')
   const original = texts?.[field]
-  return original ? <p className="mt-1 text-xs text-slate-500">{t('detail.original')}: {original}</p> : null
+  return original ? <p className="mt-1 text-xs text-slate-600">{t('detail.original')}: {original}</p> : null
 }
 
 function Attachments({ list }: { list: AttachmentSummary[] }) {

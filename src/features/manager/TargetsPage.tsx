@@ -75,7 +75,7 @@ export function TargetsPage() {
         <Card key={s.id} className="flex flex-col gap-2">
           <h2 className="font-bold">{storeName(s, 'ja')}</h2>
           <table className="w-full text-center text-sm">
-            <thead className="text-xs text-slate-500">
+            <thead className="text-xs text-slate-600">
               <tr>
                 <th />
                 {SHIFTS.map((shift) => (
