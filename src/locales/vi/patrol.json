@@ -16,7 +16,6 @@
     "over": "Đã quá 15 phút",
     "needStart": "Đến cửa hàng thì bấm \"Bắt đầu\".",
     "resumed": "Đã khôi phục lượt tuần tra chưa xong.",
-    "discard": "Hủy lượt tuần tra này",
     "end": "Kết thúc",
     "ended": "Kết thúc {{time}}",
     "needEnd": "Xem xong thì bấm \"Kết thúc\".",
@@ -96,5 +95,12 @@
   "timeReview": "Cần kiểm tra lại thời gian",
   "staffOnShiftHint": "Chọn từng nhân viên đang làm ca. Nếu không chọn ai, sẽ ghi là \"tất cả\".",
   "photoHint": "Chụp ít nhất 1 ảnh tiệm trong lúc tuần tra. Có nhân viên trong ảnh càng tốt (không chụp mặt khách).",
-  "photoAfterStart": "Bấm \"Bắt đầu\" rồi mới chụp được."
+  "photoAfterStart": "Bấm \"Bắt đầu\" rồi mới chụp được.",
+  "cancel": {
+    "button": "Hủy",
+    "title": "Hủy lượt tuần tra này?",
+    "body": "Giờ bắt đầu, điểm, nhận xét và ảnh sẽ bị xóa hết.",
+    "yes": "Hủy tuần tra",
+    "no": "Tiếp tục"
+  }
 }

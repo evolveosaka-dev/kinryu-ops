@@ -83,6 +83,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
   const [showMissing, setShowMissing] = useState(false)
   const [media, setMedia] = useState<PreparedMedia[]>([])
   const [endMissing, setEndMissing] = useState(false)
+  const [confirmCancel, setConfirmCancel] = useState(false)
   const timeCard = useRef<HTMLDivElement>(null)
   const vibrated = useRef(false)
   const uploads = useUploadQueue()
@@ -180,12 +181,17 @@ function PatrolForm({ stores }: { stores: Store[] }) {
     },
   })
 
-  const discard = async () => {
+  // キャンセル: drop the server draft, the saved form and the photos, then go home
+  const cancel = async () => {
     if (form.draftId) await supabase.from('patrol_checks').delete().eq('id', form.draftId)
     saveLocalDraft(me.id, null)
-    setForm(newForm(stores, me.home_store_id))
-    setError(null)
+    setMedia([])
+    setConfirmCancel(false)
+    void navigate('/')
   }
+  const hasInput = Boolean(
+    form.startedAt || media.length || form.goodPoints.trim() || form.improvements.trim() || form.remarks.trim() || Object.keys(form.scores).length,
+  )
 
   const scores = completeScores(form.scores)
   const result = scores ? judgePatrol(scores) : null
@@ -324,10 +330,23 @@ function PatrolForm({ stores }: { stores: Store[] }) {
         missing={showMissing}
       />
 
-      {form.startedAt && (
-        <Button variant="danger" onClick={() => void discard()}>
-          {t('time.discard')}
-        </Button>
+      {confirmCancel && (
+        <div role="alertdialog" aria-modal="true" aria-labelledby="cancel-title" className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center">
+          <div className="flex w-full max-w-sm flex-col gap-3 rounded-2xl bg-white p-4">
+            <h2 id="cancel-title" className="font-bold">
+              {t('cancel.title')}
+            </h2>
+            <p className="text-sm text-slate-700">{t('cancel.body')}</p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="secondary" onClick={() => setConfirmCancel(false)}>
+                {t('cancel.no')}
+              </Button>
+              <Button variant="danger" onClick={() => void cancel()}>
+                {t('cancel.yes')}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
 
       <StickyActions>
@@ -344,23 +363,28 @@ function PatrolForm({ stores }: { stores: Store[] }) {
         {endMissing && !ended && <ErrorBox message={t('time.endFirst')} />}
         {showMissing && started && photos === 0 && <ErrorBox message={t('common:attach.photoRequired')} />}
         {error && <ErrorBox message={error} />}
-        <Button
-          className="w-full"
-          disabled={submit.isPending}
-          onClick={() => {
-            setShowMissing(true)
-            if (started && !form.endedAt) {
-              // 送信 without 終了 → guide the patroller to 終了 first
-              setEndMissing(true)
-              timeCard.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-              return
-            }
-            if (!ready || !form.endedAt) return
-            submit.mutate(form.endedAt)
-          }}
-        >
-          {submit.isPending ? t('common:action.loading') : t('common:action.submit')}
-        </Button>
+        <div className="grid grid-cols-[1fr_2fr] gap-2">
+          <Button variant="secondary" disabled={submit.isPending} onClick={() => (hasInput ? setConfirmCancel(true) : void navigate('/'))}>
+            {t('cancel.button')}
+          </Button>
+          <Button
+            className="w-full"
+            disabled={submit.isPending}
+            onClick={() => {
+              setShowMissing(true)
+              if (started && !form.endedAt) {
+                // 送信 without 終了 → guide the patroller to 終了 first
+                setEndMissing(true)
+                timeCard.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                return
+              }
+              if (!ready || !form.endedAt) return
+              submit.mutate(form.endedAt)
+            }}
+          >
+            {submit.isPending ? t('common:action.loading') : t('common:action.submit')}
+          </Button>
+        </div>
         <p className="mt-1 text-center text-xs text-slate-500">{t('editable')}</p>
       </StickyActions>
     </div>

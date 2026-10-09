@@ -16,7 +16,6 @@
     "over": "Over 15 minutes",
     "needStart": "Tap \"Start\" when you arrive at the store.",
     "resumed": "Your unfinished patrol was restored.",
-    "discard": "Cancel this patrol",
     "end": "End",
     "ended": "End {{time}}",
     "needEnd": "Tap \"End\" when you finish watching.",
@@ -96,5 +95,12 @@
   "timeReview": "Time needs review",
   "staffOnShiftHint": "Choose each staff member on shift. If nobody is chosen, it is recorded as \"everyone\".",
   "photoHint": "Take at least 1 photo of the store during the patrol. Photos with staff are even better (do not film customers’ faces).",
-  "photoAfterStart": "You can take photos after tapping \"Start\"."
+  "photoAfterStart": "You can take photos after tapping \"Start\".",
+  "cancel": {
+    "button": "Cancel",
+    "title": "Cancel this patrol?",
+    "body": "The start time, scores, comments and photos will all be deleted.",
+    "yes": "Cancel patrol",
+    "no": "Keep going"
+  }
 }
