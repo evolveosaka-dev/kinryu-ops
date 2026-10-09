@@ -103,7 +103,9 @@
     "managerSub": "ダッシュボード・集計・設定",
     "name": "{{name}} さん",
     "shiftRequest": "シフト希望提出",
-    "shiftRequestSub": "来月の出勤できる日と時間"
+    "shiftRequestSub": "来月の出勤できる日と時間",
+    "schedule": "シフトスケジュール",
+    "scheduleSub": "自分の勤務日・時間・お店"
   },
   "phrase": {
     "philosophy1": "お客様第一",

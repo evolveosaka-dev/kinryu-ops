@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { SpokenPhrase } from '../components/SpokenPhrase'
 import { Card, SectionTitle } from '../components/ui'
+import { NextShiftCard } from '../features/schedule/NextShiftCard'
 import { PHILOSOPHY, SERVICE_PHRASES } from '../domain/phrases'
 import { currentSlot, formatShortDate, MEETING_TIME } from '../domain/time'
 import { useAuth, useMe } from './auth'
@@ -50,6 +51,8 @@ export function HomePage() {
         <p className="mt-1 text-muted">{t('home.welcome')}</p>
       </div>
 
+      <NextShiftCard />
+
       <Card className="border-blue-200">
         <p className="mb-2 font-bold text-brand">{t('home.now')}</p>
         <ul className="flex flex-col gap-2">
@@ -78,6 +81,7 @@ export function HomePage() {
         <Card className="p-0">
           <ul className="divide-y divide-line">
             {canPatrol && <MenuItem to="/patrol" icon="🔍" tint="bg-amber-100" title={t('home.patrolButton')} sub={t('home.patrolSub')} />}
+            <MenuItem to="/schedule" icon="📅" tint="bg-sky-100" title={t('home.schedule')} sub={t('home.scheduleSub')} />
             <MenuItem to="/shift-request" icon="📝" tint="bg-violet-100" title={t('home.shiftRequest')} sub={t('home.shiftRequestSub')} />
             <MenuItem to="/history" icon="🗂️" tint="bg-green-100" title={t('home.historyButton')} sub={t('home.historySub')} />
             {isManager && <MenuItem to="/manager" icon="📊" tint="bg-blue-100" title={t('home.managerButton')} sub={t('home.managerSub')} />}

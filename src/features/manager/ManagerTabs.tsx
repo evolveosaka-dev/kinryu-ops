@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { NavLink, useLocation } from 'react-router'
 import { cx } from '../../lib/cx'
 
-const SETTINGS_PATHS = ['/manager/settings', '/manager/users', '/manager/roster', '/manager/sync', '/manager/targets', '/manager/shift-requests']
+const SETTINGS_PATHS = ['/manager/settings', '/manager/users', '/manager/roster', '/manager/sync', '/manager/targets', '/manager/shift-requests', '/manager/shift-import']
 
 export function ManagerTabs() {
   const { t } = useTranslation('manager')

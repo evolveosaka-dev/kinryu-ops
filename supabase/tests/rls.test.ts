@@ -350,3 +350,35 @@ describe('shift request deadline (20th of the previous month)', () => {
     expect(updated.length).toBeGreaterThan(0)
   })
 })
+
+describe('shift schedule', () => {
+  const rows = JSON.stringify([
+    { business_date: '2026-10-12', shift: 'middle', roster_name: 'ミナミ', store_mark: '⑤', start_min: 1020, end_min: 1380, raw: '⑤17-23' },
+    { business_date: '2026-10-12', shift: 'middle', roster_name: 'キタ', store_mark: '⑤', start_min: 1050, end_min: 1380, raw: '⑤17.5-23' },
+    { business_date: '2026-10-12', shift: 'middle', roster_name: 'ヒガシ', store_mark: '①', start_min: 1020, end_min: 1380, raw: '①17-23' },
+    { business_date: '2026-10-12', shift: 'late', roster_name: 'ミナミ', store_mark: '①', start_min: 1380, end_min: 1860, raw: '①23-7' },
+  ])
+  it('only managers import; new names join the roster', async () => {
+    await expect(t.as(staffM, 'select public.import_shift_month($1, $2)', ['2026-10-01', rows])).rejects.toThrow(/managers only/)
+    const [r] = await t.as<{ n: number }>(manager, 'select public.import_shift_month($1, $2) as n', ['2026-10-01', rows])
+    expect(r!.n).toBe(4)
+    expect((await t.admin(`select name from public.staff_roster where name in ('ミナミ','キタ','ヒガシ')`)).length).toBe(3)
+    const [store] = await t.admin<{ ok: boolean }>(`select store_id = $1 as ok from public.shift_assignments where raw = '①23-7'`, [midosuji])
+    expect(store!.ok).toBe(true)
+  })
+  it('staff see only their own assignments, and coworkers of their own shifts', async () => {
+    await t.admin(`update public.profiles set roster_name = 'ミナミ' where id = $1`, [staffM])
+    expect(await t.as(staffM, 'select shift from public.shift_assignments order by start_min')).toEqual([{ shift: 'middle' }, { shift: 'late' }])
+    expect(await t.as(staffS, 'select id from public.shift_assignments')).toHaveLength(0)
+    const co = await t.as<{ roster_name: string }>(staffM, `select roster_name from public.shift_coworkers('2026-10-12', 'middle')`)
+    expect(co.map((c) => c.roster_name)).toEqual(['キタ']) // same store ⑤ only
+    expect(await t.as(staffS, `select * from public.shift_coworkers('2026-10-12', 'middle')`)).toHaveLength(0)
+  })
+  it('staff cannot link themselves to another shift-table name', async () => {
+    await expect(t.as(staffS, "update public.profiles set roster_name = 'ミナミ' where id = auth.uid()")).rejects.toThrow(/only managers/)
+  })
+  it('re-import replaces the month', async () => {
+    await t.as(manager, 'select public.import_shift_month($1, $2)', ['2026-10-01', JSON.stringify([JSON.parse(rows)[0]])])
+    expect((await t.admin(`select id from public.shift_assignments where month = '2026-10-01'`)).length).toBe(1)
+  })
+})

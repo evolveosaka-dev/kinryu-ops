@@ -57,5 +57,29 @@
     "checks": "Hãy đánh dấu cả 2 mục xác nhận."
   },
   "deadline": "Hạn nộp: {{date}} (ngày 20)",
-  "closed": "Đã quá hạn nộp ({{date}}) nên không sửa được. Nếu cần thay đổi, hãy liên hệ quản lý."
+  "closed": "Đã quá hạn nộp ({{date}}) nên không sửa được. Nếu cần thay đổi, hãy liên hệ quản lý.",
+  "schedule": {
+    "title": "Lịch làm việc",
+    "next": "Ca tiếp theo",
+    "now": "Đang làm",
+    "today": "Hôm nay",
+    "tomorrow": "Ngày mai",
+    "inDays": "Còn {{n}} ngày",
+    "none": "Chưa có ca nào.",
+    "notLinked": "Tên của bạn trong bảng ca chưa được đăng ký. Hãy liên hệ quản lý.",
+    "thisWeek": "Tuần này",
+    "list": "Danh sách",
+    "calendar": "Lịch",
+    "summary": "{{days}} ngày · tổng {{hours}} giờ",
+    "noMonth": "Tháng này chưa có ca.",
+    "long": "Làm liên tục {{h}} giờ. Hãy giữ gìn sức khỏe.",
+    "longShort": "Liên tục {{h}} giờ",
+    "coworkers": "Làm cùng",
+    "noCoworkers": "Không có ai làm cùng giờ.",
+    "hours": "{{h}} giờ",
+    "open": "Xem lịch làm việc",
+    "prevMonth": "Tháng trước",
+    "nextMonth": "Tháng sau",
+    "off": "Nghỉ"
+  }
 }

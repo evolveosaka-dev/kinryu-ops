@@ -18,7 +18,9 @@
     "saved": "保存しました",
     "empty": "ユーザーがいません。",
     "fullName": "氏名（集計用）",
-    "noFullName": "未登録"
+    "noFullName": "未登録",
+    "rosterName": "シフト表の名前（スケジュール表示用）",
+    "noRoster": "未連携"
   },
   "sync": {
     "tab": "スプレッドシート",
@@ -169,7 +171,8 @@
     "translation": "翻訳の利用（今月）",
     "translationCalls": "{{n}}回",
     "translationTokens": "入力 {{input}} / 出力 {{output}} トークン（約 ${{usd}}）",
-    "shiftRequestsSub": "提出状況とExcel出力"
+    "shiftRequestsSub": "提出状況とExcel出力",
+    "shiftImportSub": "毎月のシフト表を読み込み、スタッフにスケジュールを表示"
   },
   "targets": {
     "title": "目標杯数",
@@ -190,5 +193,24 @@
     "none": "まだ提出がありません。",
     "note": "出力したシートは、シフト表の「早番希望」「中番希望」「遅番希望」と同じ形です。",
     "deadline": "提出の締切：{{date}}"
+  },
+  "shiftImport": {
+    "title": "シフト表の読み込み",
+    "note": "シフト表（.xlsm）を選ぶと、早番・中番・遅番のシートだけをスマホ／PCの中で読み取ります。ファイル自体はアップロードされません。",
+    "pick": "シフト表ファイルを選ぶ",
+    "noRows": "シフト（例：①7-17）が見つかりませんでした。",
+    "readError": "ファイルを読めませんでした：{{msg}}",
+    "month": "{{y}}年{{m}}月",
+    "rows": "{{n}}件",
+    "people": "人数：{{n}}人",
+    "missingSheets": "シートが見つかりません：{{names}}",
+    "newNames": "名簿に追加される名前：{{names}}",
+    "linked": "アプリのアカウントと連携済み",
+    "noLinked": "まだいません（ユーザー画面で「シフト表の名前」を設定）",
+    "days": "{{n}}件",
+    "overwrite": "この月はすでに {{n}}件 あります。読み込むと置き換えます。",
+    "import": "この内容で読み込む",
+    "importing": "読み込み中…",
+    "done": "{{n}}件のシフトを読み込みました"
   }
 }

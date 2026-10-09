@@ -103,7 +103,9 @@
     "managerSub": "සාරාංශය, වාර්තා සහ සැකසුම්",
     "name": "{{name}}",
     "shiftRequest": "ෂිෆ්ට් ඉල්ලීම්",
-    "shiftRequestSub": "ලබන මාසයේ වැඩ කළ හැකි දින සහ වේලාව"
+    "shiftRequestSub": "ලබන මාසයේ වැඩ කළ හැකි දින සහ වේලාව",
+    "schedule": "වැඩ මුර කාලසටහන",
+    "scheduleSub": "මගේ වැඩ දින, වේලාව සහ ශාඛාව"
   },
   "phrase": {
     "philosophy1": "පාරිභෝගිකයා පළමුව",

@@ -57,5 +57,29 @@
     "checks": "Tick both confirmations."
   },
   "deadline": "Deadline: {{date}} (the 20th)",
-  "closed": "The deadline ({{date}}) has passed, so this cannot be changed. Please contact a manager."
+  "closed": "The deadline ({{date}}) has passed, so this cannot be changed. Please contact a manager.",
+  "schedule": {
+    "title": "Shift schedule",
+    "next": "Next shift",
+    "now": "Working now",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "inDays": "In {{n}} days",
+    "none": "No shifts scheduled.",
+    "notLinked": "Your name in the shift table is not set yet. Please contact a manager.",
+    "thisWeek": "This week",
+    "list": "List",
+    "calendar": "Calendar",
+    "summary": "{{days}} days · {{hours}} h in total",
+    "noMonth": "No shifts for this month yet.",
+    "long": "{{h}} hours in a row. Please take care of yourself.",
+    "longShort": "{{h}} h in a row",
+    "coworkers": "Working with you",
+    "noCoworkers": "Nobody else at the same time.",
+    "hours": "{{h}} h",
+    "open": "See shift schedule",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "off": "Day off"
+  }
 }

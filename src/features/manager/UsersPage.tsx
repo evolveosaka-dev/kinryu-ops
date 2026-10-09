@@ -11,13 +11,13 @@ import { supabase } from '../../lib/supabase'
 import type { Profile } from '../../lib/types'
 import { ManagerTabs } from './ManagerTabs'
 
-type Patch = Partial<Pick<Profile, 'role' | 'can_patrol' | 'status' | 'full_name'>>
+type Patch = Partial<Pick<Profile, 'role' | 'can_patrol' | 'status' | 'full_name' | 'roster_name'>>
 
 const ROLES: Role[] = ['staff', 'manager', 'admin']
 const STATUSES: ProfileStatus[] = ['pending', 'active', 'inactive']
 const selectClass = 'min-h-11 w-full rounded-lg border border-slate-300 bg-white px-2 text-sm'
 
-function UserRow({ user, onSave, isSelf }: { user: Profile; onSave: (p: Patch) => void; isSelf: boolean }) {
+function UserRow({ user, onSave, isSelf, rosterNames, takenNames }: { user: Profile; onSave: (p: Patch) => void; isSelf: boolean; rosterNames: string[]; takenNames: Set<string> }) {
   const { t } = useTranslation('manager')
   const [draft, setDraft] = useState<Patch>({})
   const v = { ...user, ...draft }
@@ -38,6 +38,18 @@ function UserRow({ user, onSave, isSelf }: { user: Profile; onSave: (p: Patch) =
           maxLength={100}
           onChange={(e) => setDraft({ ...draft, full_name: e.target.value })}
         />
+      </label>
+      <label className="text-xs font-bold text-slate-600">
+        {t('users.rosterName')}
+        <select className={selectClass} value={v.roster_name ?? ''} onChange={(e) => setDraft({ ...draft, roster_name: e.target.value || null })}>
+          <option value="">{t('users.noRoster')}</option>
+          {rosterNames.map((n) => (
+            <option key={n} value={n} disabled={takenNames.has(n) && n !== user.roster_name}>
+              {n}
+              {takenNames.has(n) && n !== user.roster_name ? ' ✓' : ''}
+            </option>
+          ))}
+        </select>
       </label>
       <div className="grid grid-cols-2 gap-2">
         <label className="text-xs font-bold text-slate-600">
@@ -96,6 +108,10 @@ export function UsersPage() {
     queryKey: ['profiles'],
     queryFn: async () => unwrap<Profile[]>(await supabase.from('profiles').select('*').order('created_at', { ascending: false })),
   })
+  const roster = useQuery({
+    queryKey: ['staff_roster', 'all-names-sorted'],
+    queryFn: async () => unwrap<{ name: string }[]>(await supabase.from('staff_roster').select('name').order('name')).map((r) => r.name),
+  })
   const save = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Patch }) => unwrap(await supabase.from('profiles').update(patch).eq('id', id)),
     onSuccess: () => {
@@ -104,12 +120,14 @@ export function UsersPage() {
       void queryClient.invalidateQueries({ queryKey: ['staff_directory'] })
       // the edited user may be me (e.g. a manager giving themselves patrol rights)
       void queryClient.invalidateQueries({ queryKey: ['profile'] })
+      void queryClient.invalidateQueries({ queryKey: ['shift_assignments'] })
     },
   })
 
   if (users.isLoading) return <Spinner />
   if (users.error) return <ErrorBox message={errorMessage(users.error)} />
 
+  const takenNames = new Set((users.data ?? []).flatMap((u) => (u.roster_name ? [u.roster_name] : [])))
   const groups = STATUSES.map((s) => ({ status: s, list: (users.data ?? []).filter((u) => u.status === s) }))
 
   return (
@@ -125,7 +143,7 @@ export function UsersPage() {
                 {t(`users.${g.status}`)}（{g.list.length}）
               </h2>
               {g.list.map((u) => (
-                <UserRow key={u.id} user={u} isSelf={u.id === me.id} onSave={(patch) => save.mutate({ id: u.id, patch })} />
+                <UserRow key={u.id} user={u} isSelf={u.id === me.id} rosterNames={roster.data ?? []} takenNames={takenNames} onSave={(patch) => save.mutate({ id: u.id, patch })} />
               ))}
             </section>
           ),

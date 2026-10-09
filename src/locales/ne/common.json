@@ -103,7 +103,9 @@
     "managerSub": "ड्यासबोर्ड, रिपोर्ट र सेटिङ",
     "name": "{{name}}",
     "shiftRequest": "सिफ्ट इच्छा पेश",
-    "shiftRequestSub": "अर्को महिना काम गर्न सक्ने दिन र समय"
+    "shiftRequestSub": "अर्को महिना काम गर्न सक्ने दिन र समय",
+    "schedule": "सिफ्ट तालिका",
+    "scheduleSub": "मेरो कामको दिन, समय र पसल"
   },
   "phrase": {
     "philosophy1": "ग्राहक पहिलो",

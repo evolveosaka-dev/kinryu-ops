@@ -103,7 +103,9 @@
     "managerSub": "Dashboard, reports and settings",
     "name": "{{name}}",
     "shiftRequest": "Shift requests",
-    "shiftRequestSub": "Days and hours you can work next month"
+    "shiftRequestSub": "Days and hours you can work next month",
+    "schedule": "Shift schedule",
+    "scheduleSub": "My work days, times and store"
   },
   "phrase": {
     "philosophy1": "Customers come first",

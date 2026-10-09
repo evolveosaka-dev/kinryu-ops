@@ -18,7 +18,9 @@
     "saved": "Saved",
     "empty": "No users.",
     "fullName": "Full name (for reports)",
-    "noFullName": "Not registered"
+    "noFullName": "Not registered",
+    "rosterName": "Shift-table name (for the schedule)",
+    "noRoster": "Not linked"
   },
   "sync": {
     "tab": "Spreadsheet",
@@ -169,7 +171,8 @@
     "translation": "Translation use (this month)",
     "translationCalls": "{{n}} calls",
     "translationTokens": "input {{input}} / output {{output}} tokens (about ${{usd}})",
-    "shiftRequestsSub": "Who submitted, Excel export"
+    "shiftRequestsSub": "Who submitted, Excel export",
+    "shiftImportSub": "Load the monthly shift table and show staff their schedule"
   },
   "targets": {
     "title": "Target bowls",
@@ -190,5 +193,24 @@
     "none": "No requests yet.",
     "note": "The exported sheets have the same layout as 早番希望 / 中番希望 / 遅番希望 in the shift workbook.",
     "deadline": "Deadline: {{date}}"
+  },
+  "shiftImport": {
+    "title": "Import shift table",
+    "note": "Pick the shift workbook (.xlsm). Only the 早番 / 中番 / 遅番 sheets are read, on this device. The file is not uploaded.",
+    "pick": "Choose shift workbook",
+    "noRows": "No shifts (e.g. ①7-17) were found.",
+    "readError": "Could not read the file: {{msg}}",
+    "month": "{{y}}/{{m}}",
+    "rows": "{{n}} rows",
+    "people": "People: {{n}}",
+    "missingSheets": "Sheets not found: {{names}}",
+    "newNames": "Names added to the roster: {{names}}",
+    "linked": "Linked to app accounts",
+    "noLinked": "None yet (set \"shift-table name\" on the Users screen)",
+    "days": "{{n}} shifts",
+    "overwrite": "This month already has {{n}} rows. Importing replaces them.",
+    "import": "Import",
+    "importing": "Importing…",
+    "done": "Imported {{n}} shifts"
   }
 }

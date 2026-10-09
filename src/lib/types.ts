@@ -21,6 +21,8 @@ export interface Profile {
   status: ProfileStatus
   privacy_accepted_at: string | null
   home_store_id: string | null
+  /** name used in the shift workbook (e.g. バンダラ); set by managers */
+  roster_name: string | null
   locale: Locale
   created_at: string
 }
