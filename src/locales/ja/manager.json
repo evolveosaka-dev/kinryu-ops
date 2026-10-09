@@ -40,5 +40,141 @@
     "add": "追加",
     "deactivate": "停止",
     "activate": "再開"
+  },
+  "tabs": {
+    "dashboard": "ダッシュボード",
+    "chorei": "朝礼",
+    "patrol": "巡回",
+    "stats": "集計",
+    "hours": "巡回時間",
+    "settings": "設定"
+  },
+  "period": {
+    "weekMode": "週",
+    "monthMode": "月",
+    "month": "{{y}}年{{m}}月",
+    "prev": "前へ",
+    "next": "次へ"
+  },
+  "weekday": {
+    "0": "日",
+    "1": "月",
+    "2": "火",
+    "3": "水",
+    "4": "木",
+    "5": "金",
+    "6": "土"
+  },
+  "dashboard": {
+    "title": "ダッシュボード",
+    "today": "今日 {{date}} の朝礼",
+    "missing": "未記録",
+    "todo": "要対応",
+    "coaching": "即日指導（面談待ち）",
+    "timeReview": "時間確認が必要",
+    "missingChorei": "朝礼の記録なし（7日間）",
+    "pendingUsers": "承認待ちユーザー",
+    "thisWeek": "今週 {{from}}〜{{to}}",
+    "avgScore": "巡回 平均（25点換算）",
+    "target": "目標 {{n}}",
+    "vsLastWeek": "先週比",
+    "choreiRate": "朝礼 実施率",
+    "patrols": "巡回回数",
+    "mask": "マスク（笑顔1点）"
+  },
+  "filter": {
+    "store": "店舗",
+    "shift": "シフト",
+    "type": "種類",
+    "patroller": "巡回者",
+    "judgement": "判定",
+    "todo": "要対応",
+    "allStores": "すべての店舗",
+    "allShifts": "すべてのシフト",
+    "allTypes": "すべての種類",
+    "allPatrollers": "すべての巡回者",
+    "allJudgements": "すべての判定",
+    "all": "すべて"
+  },
+  "patrolList": {
+    "title": "巡回一覧",
+    "count": "{{n}}件"
+  },
+  "choreiList": {
+    "title": "朝礼一覧",
+    "missing": "記録なし",
+    "legend": "✓ 記録あり（押すと詳細）／✗ 記録なし（朝礼の30分後から）／― まだ",
+    "byShift": "店舗×シフト別の実施率",
+    "voided": "無効にした記録"
+  },
+  "detail": {
+    "original": "原文",
+    "attachments": "写真・動画",
+    "patroller": "巡回者",
+    "type": "種類",
+    "time": "時間",
+    "min": "分",
+    "score25": "25点換算 {{score}}",
+    "staff": "対象スタッフ",
+    "followUp": "即日指導の面談",
+    "followUpDone": "{{at}} 面談済み",
+    "followUpNote": "面談の内容（任意）",
+    "markFollowUp": "面談済みにする",
+    "followUpOpen": "面談待ち",
+    "followUpShort": "面談済み",
+    "timeReview": "時間の確認",
+    "start": "開始",
+    "end": "終了",
+    "confirmTime": "この時間で確定する",
+    "void": "無効にする",
+    "voidReason": "理由（必須）",
+    "voidButton": "無効にする",
+    "leader": "誘導者",
+    "submitted": "送信",
+    "skipped": "未実施の手順"
+  },
+  "stats": {
+    "title": "集計",
+    "export": "Excel で出力（集計＋一覧）",
+    "byStoreShift": "店舗×シフト別 巡回平均",
+    "scaleNote": "⑤なし（20点満点）の巡回は25点に換算。縦線は目標20点。（ ）は回数。",
+    "byItem": "項目別の平均（5点満点）",
+    "weakest": "一番低い項目：{{item}}",
+    "trend": "週ごとの推移",
+    "week": "週",
+    "ranking": "個人ランキング（巡回点数）",
+    "rankingNote": "各巡回の点数（25点換算）を、その巡回の「対象スタッフ」に選ばれた全員に入れて平均しています。「全員」で記録した巡回は含みません。点数はシフト全体の評価です。",
+    "noData": "データがありません。",
+    "name": "名前",
+    "times": "回数",
+    "range": "最低–最高",
+    "leaders": "朝礼の誘導回数",
+    "participants": "朝礼の参加回数",
+    "skipped": "できなかった手順"
+  },
+  "hours": {
+    "title": "巡回時間（給与用）",
+    "minutes": "合計（分）",
+    "hours": "時間",
+    "over": "15分超",
+    "note": "有効な巡回の「開始」〜「終了」の実際の分数です（切り上げなし）。",
+    "reviewFirst": "時間確認が必要な巡回があります。給与計算の前に確定してください。",
+    "flagged": "15分超・時間確認が必要"
+  },
+  "settings": {
+    "usersSub": "承認・権限・巡回メンバー・氏名",
+    "rosterSub": "朝礼・巡回で選ぶスタッフ名",
+    "targetsSub": "月ごとの目標杯数",
+    "syncSub": "毎朝7:30に同期",
+    "translation": "翻訳の利用（今月）",
+    "translationCalls": "{{n}}回",
+    "translationTokens": "入力 {{input}} / 出力 {{output}} トークン（約 ${{usd}}）"
+  },
+  "targets": {
+    "title": "目標杯数",
+    "empty": "この月の目標杯数がまだありません。朝礼の目標杯数が自動で入りません。",
+    "copyPrevious": "前月の値をコピー",
+    "save": "保存",
+    "fillAll": "すべての欄に0以上の数字を入れてください。"
   }
 }

@@ -43,7 +43,7 @@ export function HomePage() {
           🗂️ {t('home.historyButton')}
         </Link>
         {isManager && (
-          <Link to="/manager/users" className="flex min-h-12 items-center justify-center rounded-xl bg-white font-bold ring-1 ring-slate-300">
+          <Link to="/manager" className="flex min-h-12 items-center justify-center rounded-xl bg-white font-bold ring-1 ring-slate-300">
             🛠️ {t('home.managerButton')}
           </Link>
         )}

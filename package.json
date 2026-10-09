@@ -23,6 +23,7 @@
     "react-dom": "^19.3.0",
     "react-i18next": "^17.0.16",
     "react-router": "^8.4.0",
+    "write-excel-file": "^4.1.1",
     "zod": "^4.6.5"
   },
   "devDependencies": {

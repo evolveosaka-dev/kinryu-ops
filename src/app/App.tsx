@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router'
 import { Button, ErrorBox, Spinner } from '../components/ui'
@@ -6,9 +7,6 @@ import { UpdatePasswordPage } from '../features/auth/UpdatePasswordPage'
 import { ChoreiFormPage } from '../features/chorei/ChoreiFormPage'
 import { GenkoPage } from '../features/genko/GenkoPage'
 import { HistoryPage } from '../features/history/HistoryPage'
-import { RosterPage } from '../features/manager/RosterPage'
-import { SyncPage } from '../features/manager/SyncPage'
-import { UsersPage } from '../features/manager/UsersPage'
 import { PatrolFormPage } from '../features/patrol/PatrolFormPage'
 import { FullNamePage, InactivePage, PendingPage, PrivacyPage } from '../features/profile/GatePages'
 import { ProfilePage } from '../features/profile/ProfilePage'
@@ -17,6 +15,20 @@ import { isConfigured, supabase } from '../lib/supabase'
 import { useAuth } from './auth'
 import { HomePage } from './HomePage'
 import { Layout } from './Layout'
+
+// Manager screens are loaded only for managers (keeps the staff bundle small).
+const page = <K extends string>(load: () => Promise<Record<K, React.ComponentType>>, name: K) =>
+  lazy(async () => ({ default: (await load())[name] }))
+const DashboardPage = page(() => import('../features/manager/DashboardPage'), 'DashboardPage')
+const ChoreiAdminPage = page(() => import('../features/manager/ChoreiAdminPage'), 'ChoreiAdminPage')
+const PatrolAdminPage = page(() => import('../features/manager/PatrolAdminPage'), 'PatrolAdminPage')
+const StatsPage = page(() => import('../features/manager/StatsPage'), 'StatsPage')
+const HoursPage = page(() => import('../features/manager/HoursPage'), 'HoursPage')
+const SettingsPage = page(() => import('../features/manager/SettingsPage'), 'SettingsPage')
+const TargetsPage = page(() => import('../features/manager/TargetsPage'), 'TargetsPage')
+const UsersPage = page(() => import('../features/manager/UsersPage'), 'UsersPage')
+const RosterPage = page(() => import('../features/manager/RosterPage'), 'RosterPage')
+const SyncPage = page(() => import('../features/manager/SyncPage'), 'SyncPage')
 
 /** Decides which screen a visitor may see: login → approval → privacy notice → app. */
 function Gate() {
@@ -49,6 +61,7 @@ function Gate() {
   if (!profile.privacy_accepted_at) return <PrivacyPage />
 
   return (
+    <Suspense fallback={<Spinner />}>
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
@@ -56,13 +69,24 @@ function Gate() {
         {canPatrol && <Route path="patrol" element={<PatrolFormPage />} />}
         <Route path="history" element={<HistoryPage />} />
         <Route path="profile" element={<ProfilePage />} />
-        {isManager && <Route path="manager/users" element={<UsersPage />} />}
-        {isManager && <Route path="manager/sync" element={<SyncPage />} />}
-        {isManager && <Route path="manager/roster" element={<RosterPage />} />}
-        {isManager && <Route path="manager" element={<Navigate to="/manager/users" replace />} />}
+        {isManager && (
+          <Route path="manager">
+            <Route index element={<DashboardPage />} />
+            <Route path="chorei" element={<ChoreiAdminPage />} />
+            <Route path="patrol" element={<PatrolAdminPage />} />
+            <Route path="stats" element={<StatsPage />} />
+            <Route path="hours" element={<HoursPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="targets" element={<TargetsPage />} />
+            <Route path="users" element={<UsersPage />} />
+            <Route path="roster" element={<RosterPage />} />
+            <Route path="sync" element={<SyncPage />} />
+          </Route>
+        )}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
+    </Suspense>
   )
 }
 

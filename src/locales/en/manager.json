@@ -40,5 +40,141 @@
     "add": "Add",
     "deactivate": "Deactivate",
     "activate": "Reactivate"
+  },
+  "tabs": {
+    "dashboard": "Dashboard",
+    "chorei": "Meetings",
+    "patrol": "Patrols",
+    "stats": "Reports",
+    "hours": "Patrol time",
+    "settings": "Settings"
+  },
+  "period": {
+    "weekMode": "Week",
+    "monthMode": "Month",
+    "month": "{{m}}/{{y}}",
+    "prev": "Previous",
+    "next": "Next"
+  },
+  "weekday": {
+    "0": "Sun",
+    "1": "Mon",
+    "2": "Tue",
+    "3": "Wed",
+    "4": "Thu",
+    "5": "Fri",
+    "6": "Sat"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "today": "Meetings today {{date}}",
+    "missing": "missing",
+    "todo": "To do",
+    "coaching": "Same-day coaching (talk pending)",
+    "timeReview": "Time needs review",
+    "missingChorei": "Meetings not recorded (7 days)",
+    "pendingUsers": "Users waiting for approval",
+    "thisWeek": "This week {{from}}–{{to}}",
+    "avgScore": "Patrol average (/25)",
+    "target": "target {{n}}",
+    "vsLastWeek": "vs last week",
+    "choreiRate": "Meeting rate",
+    "patrols": "Patrols",
+    "mask": "Masks (smile = 1)"
+  },
+  "filter": {
+    "store": "Store",
+    "shift": "Shift",
+    "type": "Type",
+    "patroller": "Patroller",
+    "judgement": "Judgement",
+    "todo": "To do",
+    "allStores": "All stores",
+    "allShifts": "All shifts",
+    "allTypes": "All types",
+    "allPatrollers": "All patrollers",
+    "allJudgements": "All judgements",
+    "all": "All"
+  },
+  "patrolList": {
+    "title": "Patrol checks",
+    "count": "{{n}} records"
+  },
+  "choreiList": {
+    "title": "Meeting records",
+    "missing": "Missing",
+    "legend": "✓ recorded (tap for details) / ✗ missing (from 30 min after the meeting) / ― not yet",
+    "byShift": "Rate by store × shift",
+    "voided": "Voided records"
+  },
+  "detail": {
+    "original": "Original",
+    "attachments": "Photos / video",
+    "patroller": "Patroller",
+    "type": "Type",
+    "time": "Time",
+    "min": " min",
+    "score25": "{{score}} on 25",
+    "staff": "Staff",
+    "followUp": "Same-day coaching talk",
+    "followUpDone": "talked on {{at}}",
+    "followUpNote": "What was discussed (optional)",
+    "markFollowUp": "Mark as talked",
+    "followUpOpen": "Talk pending",
+    "followUpShort": "Talked",
+    "timeReview": "Check the time",
+    "start": "Start",
+    "end": "End",
+    "confirmTime": "Confirm this time",
+    "void": "Void",
+    "voidReason": "Reason (required)",
+    "voidButton": "Void this record",
+    "leader": "Leader",
+    "submitted": "Sent",
+    "skipped": "Steps not done"
+  },
+  "stats": {
+    "title": "Reports",
+    "export": "Export to Excel (reports + lists)",
+    "byStoreShift": "Patrol average by store × shift",
+    "scaleNote": "Checks without ⑤ (out of 20) are converted to 25. The line is the target 20. ( ) = count.",
+    "byItem": "Average per item (out of 5)",
+    "weakest": "Lowest item: {{item}}",
+    "trend": "Week by week",
+    "week": "Week",
+    "ranking": "Staff ranking (patrol scores)",
+    "rankingNote": "Each patrol score (on 25) is counted for everyone selected as \"staff\" in that patrol, then averaged. Patrols recorded as \"everyone\" are not included. Scores rate the whole shift.",
+    "noData": "No data.",
+    "name": "Name",
+    "times": "Count",
+    "range": "Min–max",
+    "leaders": "Times leading the meeting",
+    "participants": "Times joining the meeting",
+    "skipped": "Steps not done"
+  },
+  "hours": {
+    "title": "Patrol time (payroll)",
+    "minutes": "Total (min)",
+    "hours": "Hours",
+    "over": "Over 15 min",
+    "note": "Actual minutes from Start to End of valid patrols (not rounded up).",
+    "reviewFirst": "Some patrols need a time review. Confirm them before payroll.",
+    "flagged": "Over 15 min / time review"
+  },
+  "settings": {
+    "usersSub": "Approval, roles, patrol members, full names",
+    "rosterSub": "Staff names for meetings and patrols",
+    "targetsSub": "Target bowls per month",
+    "syncSub": "Synced every morning at 7:30",
+    "translation": "Translation use (this month)",
+    "translationCalls": "{{n}} calls",
+    "translationTokens": "input {{input}} / output {{output}} tokens (about ${{usd}})"
+  },
+  "targets": {
+    "title": "Target bowls",
+    "empty": "No targets for this month yet. The meeting form cannot pre-fill the target.",
+    "copyPrevious": "Copy last month",
+    "save": "Save",
+    "fillAll": "Enter a number (0 or more) in every box."
   }
 }
