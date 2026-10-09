@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { EMPTY_ANSWERS, monthDates, nextMonth, sheetCell, sheetDayLabel, sheetRows, validateRequest } from './shiftRequest'
+import { EMPTY_ANSWERS, isRequestOpen, monthDates, nextMonth, requestDeadline, sheetCell, sheetDayLabel, sheetRows, validateRequest } from './shiftRequest'
 
 describe('dates', () => {
   it('lists every day of the month', () => {
@@ -12,6 +12,17 @@ describe('dates', () => {
   })
   it('row label like the workbook', () => {
     expect(sheetDayLabel('2026-10-01')).toBe('10月 [1日　(木)]')
+  })
+})
+
+describe('deadline: the 20th of the previous month', () => {
+  it('computes the deadline', () => {
+    expect(requestDeadline('2026-11-01')).toBe('2026-10-20')
+    expect(requestDeadline('2027-01-01')).toBe('2026-12-20')
+  })
+  it('is open up to and including the 20th', () => {
+    expect(isRequestOpen('2026-11-01', '2026-10-20')).toBe(true)
+    expect(isRequestOpen('2026-11-01', '2026-10-21')).toBe(false)
   })
 })
 

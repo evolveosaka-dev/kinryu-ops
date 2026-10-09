@@ -55,5 +55,7 @@
     "homeTripWhen": "Hãy ghi thời gian về nước.",
     "resignWhen": "Hãy ghi thời gian dự định nghỉ việc.",
     "checks": "Hãy đánh dấu cả 2 mục xác nhận."
-  }
+  },
+  "deadline": "Hạn nộp: {{date}} (ngày 20)",
+  "closed": "Đã quá hạn nộp ({{date}}) nên không sửa được. Nếu cần thay đổi, hãy liên hệ quản lý."
 }

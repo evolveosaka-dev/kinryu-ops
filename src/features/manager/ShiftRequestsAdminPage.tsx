@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Card, ErrorBox, PageTitle, Segmented, Spinner } from '../../components/ui'
-import { EMPTY_ANSWERS, nextMonth, SHEET_NAME, sheetRows, type DayChoice, type ExportRequest, type ShiftAnswers } from '../../domain/shiftRequest'
+import { EMPTY_ANSWERS, nextMonth, requestDeadline, SHEET_NAME, sheetRows, type DayChoice, type ExportRequest, type ShiftAnswers } from '../../domain/shiftRequest'
 import { tokyoParts } from '../../domain/time'
 import { SHIFTS, type Shift } from '../../domain/types'
 import { errorMessage } from '../../lib/format'
@@ -72,6 +72,7 @@ export function ShiftRequestsAdminPage() {
       <ManagerTabs />
       <PageTitle title={t('shiftRequests.title')} />
       <Segmented label="" value={month} onChange={setMonth} options={months.map((m) => ({ value: m, label: label(m) }))} />
+      <p className="text-sm font-bold">{t('shiftRequests.deadline', { date: requestDeadline(month).slice(5).replace('-', '/') })}</p>
       <Button variant="secondary" onClick={() => void doExport()} disabled={rows.length === 0}>
         {t('shiftRequests.export')}
       </Button>

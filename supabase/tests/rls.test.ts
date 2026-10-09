@@ -322,7 +322,8 @@ describe('test data before the operation start (2026-10-12)', () => {
 })
 
 describe('shift requests (シフト希望)', () => {
-  const NEXT = `date_trunc('month', (now() at time zone 'Asia/Tokyo')::date + interval '1 month')::date`
+  // two months ahead: its deadline (20th of next month) is always in the future
+  const NEXT = `date_trunc('month', (now() at time zone 'Asia/Tokyo')::date + interval '2 month')::date`
   it('staff submit and update their own request; others cannot read it; managers can', async () => {
     await t.as(staffM, `insert into public.shift_requests (month, shifts, days) values (${NEXT}, '{early}', '{"x": {"early": "full"}}')`)
     await t.as(staffM, `update public.shift_requests set shifts = '{early,middle}' where user_id = auth.uid()`)
@@ -334,5 +335,18 @@ describe('shift requests (シフト希望)', () => {
     await expect(t.as(staffM, `insert into public.shift_requests (month, shifts) values (${NEXT}, '{late}')`)).rejects.toThrow(/duplicate key/)
     await expect(t.as(staffS, `insert into public.shift_requests (month, shifts) values ('2026-01-01', '{late}')`)).rejects.toThrow(/row-level security/)
     await expect(t.as(staffS, `insert into public.shift_requests (month, shifts) values (${NEXT}, '{night}')`)).rejects.toThrow(/check constraint/)
+  })
+})
+
+describe('shift request deadline (20th of the previous month)', () => {
+  it('deadline date', async () => {
+    const [r] = await t.admin<{ a: string; b: string }>(`select public.shift_request_deadline('2026-11-01')::text as a, public.shift_request_deadline('2027-01-01')::text as b`)
+    expect(r).toEqual({ a: '2026-10-20', b: '2026-12-20' })
+  })
+  it('staff cannot send for a month whose deadline has passed; managers can still edit', async () => {
+    const THIS_MONTH = `date_trunc('month', (now() at time zone 'Asia/Tokyo')::date)::date`
+    await expect(t.as(staffS, `insert into public.shift_requests (month, shifts) values (${THIS_MONTH}, '{early}')`)).rejects.toThrow(/row-level security/)
+    const updated = await t.as(manager, `update public.shift_requests set answers = '{"message": "ok"}' returning id`)
+    expect(updated.length).toBeGreaterThan(0)
   })
 })

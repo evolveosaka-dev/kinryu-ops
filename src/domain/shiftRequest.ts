@@ -97,6 +97,15 @@ export function monthDates(month: string): string[] {
   return out
 }
 
+/** Requests for month M can be sent or changed until the 20th of month M-1 (Tokyo date). */
+export function requestDeadline(month: string): string {
+  const d = new Date(`${month.slice(0, 7)}-01T00:00:00Z`)
+  d.setUTCMonth(d.getUTCMonth() - 1)
+  return `${d.toISOString().slice(0, 7)}-20`
+}
+
+export const isRequestOpen = (month: string, today: string) => today <= requestDeadline(month)
+
 /** First day of the next month (default month for requests). */
 export function nextMonth(today: string): string {
   const d = new Date(`${today.slice(0, 7)}-01T00:00:00Z`)

@@ -7,8 +7,10 @@ import { useToast } from '../../components/Toast'
 import { Button, Card, Checkbox, ErrorBox, PageTitle, Segmented, SectionTitle, Spinner, StickyActions, TextArea, TextInput } from '../../components/ui'
 import {
   EMPTY_ANSWERS,
+  isRequestOpen,
   monthDates,
   nextMonth,
+  requestDeadline,
   validateRequest,
   type AnswerError,
   type DayChoice,
@@ -69,7 +71,8 @@ export function ShiftRequestPage() {
   const me = useMe()
   const today = tokyoParts(new Date()).date
   const months = [nextMonth(today), nextMonth(nextMonth(today))]
-  const [month, setMonth] = useState(months[0]!)
+  // start with the first month that is still open (after the 20th that is the month after next)
+  const [month, setMonth] = useState(months.find((m) => isRequestOpen(m, today)) ?? months[0]!)
   const existing = useQuery({
     queryKey: ['shift_request', me.id, month],
     queryFn: async () =>
@@ -77,10 +80,23 @@ export function ShiftRequestPage() {
   })
   if (existing.isLoading) return <Spinner />
   // remount the form per month so it starts from the saved request
-  return <ShiftRequestForm key={month} month={month} months={months} onMonth={setMonth} saved={existing.data ?? null} />
+  return <ShiftRequestForm key={month} month={month} months={months} onMonth={setMonth} saved={existing.data ?? null} open={isRequestOpen(month, today)} />
 }
 
-function ShiftRequestForm({ month, months, onMonth, saved }: { month: string; months: string[]; onMonth: (m: string) => void; saved: StoredRequest | null }) {
+function ShiftRequestForm({
+  month,
+  months,
+  onMonth,
+  saved,
+  open,
+}: {
+  month: string
+  months: string[]
+  onMonth: (m: string) => void
+  saved: StoredRequest | null
+  /** false after the deadline: read-only */
+  open: boolean
+}) {
   const { t } = useTranslation('shift')
   const me = useMe()
   const toast = useToast()
@@ -95,6 +111,8 @@ function ShiftRequestForm({ month, months, onMonth, saved }: { month: string; mo
   const [errors, setErrors] = useState<AnswerError[]>([])
   const [error, setError] = useState<string | null>(null)
   const dates = monthDates(month)
+  const deadline = requestDeadline(month)
+  const deadlineLabel = `${Number(deadline.slice(5, 7))}/${Number(deadline.slice(8, 10))}`
   const set = (patch: Partial<ShiftAnswers>) => setAnswers((a) => ({ ...a, ...patch }))
 
   const setDay = (date: string, patch: DayChoice) =>
@@ -187,8 +205,15 @@ function ShiftRequestForm({ month, months, onMonth, saved }: { month: string; mo
         </p>
       )}
 
-      <Card className="flex flex-col gap-4">
+      <Card className="flex flex-col gap-2">
         <Segmented label={t('month')} value={month} onChange={onMonth} options={months.map((m) => ({ value: m, label: monthLabel(m) }))} />
+        <p className={open ? 'text-sm font-bold text-ink' : 'text-sm font-bold text-red-700'}>{t('deadline', { date: deadlineLabel })}</p>
+      </Card>
+      {!open && <ErrorBox message={t('closed', { date: deadlineLabel })} />}
+
+      {/* after the deadline everything below is read-only */}
+      <fieldset disabled={!open} className="flex min-w-0 flex-col gap-4 disabled:opacity-70">
+      <Card className="flex flex-col gap-4">
         <fieldset className="flex flex-col gap-1.5">
           <legend className="mb-1.5 text-[15px] font-bold">{t('shifts.label')}</legend>
           {SHIFTS.map((s) => (
@@ -315,6 +340,9 @@ function ShiftRequestForm({ month, months, onMonth, saved }: { month: string; mo
         </Card>
       </section>
 
+      </fieldset>
+
+      {open && (
       <StickyActions>
         {error && <ErrorBox message={error} />}
         {errors.length > 0 && <ErrorBox message={t(`err.${errors[0]}`)} />}
@@ -322,6 +350,7 @@ function ShiftRequestForm({ month, months, onMonth, saved }: { month: string; mo
           {submit.isPending ? t('common:action.loading') : t('common:action.submit')}
         </Button>
       </StickyActions>
+      )}
     </div>
   )
 }

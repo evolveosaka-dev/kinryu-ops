@@ -55,5 +55,7 @@
     "homeTripWhen": "Write when you will go home.",
     "resignWhen": "Write when you plan to quit.",
     "checks": "Tick both confirmations."
-  }
+  },
+  "deadline": "Deadline: {{date}} (the 20th)",
+  "closed": "The deadline ({{date}}) has passed, so this cannot be changed. Please contact a manager."
 }

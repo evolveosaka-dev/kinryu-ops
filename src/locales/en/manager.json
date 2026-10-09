@@ -188,6 +188,7 @@
     "updated": "updated {{at}}",
     "days": "{{shift}} {{n}} days",
     "none": "No requests yet.",
-    "note": "The exported sheets have the same layout as 早番希望 / 中番希望 / 遅番希望 in the shift workbook."
+    "note": "The exported sheets have the same layout as 早番希望 / 中番希望 / 遅番希望 in the shift workbook.",
+    "deadline": "Deadline: {{date}}"
   }
 }
