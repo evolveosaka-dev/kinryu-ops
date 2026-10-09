@@ -168,7 +168,8 @@
     "syncSub": "Synced every morning at 7:30",
     "translation": "Translation use (this month)",
     "translationCalls": "{{n}} calls",
-    "translationTokens": "input {{input}} / output {{output}} tokens (about ${{usd}})"
+    "translationTokens": "input {{input}} / output {{output}} tokens (about ${{usd}})",
+    "shiftRequestsSub": "Who submitted, Excel export"
   },
   "targets": {
     "title": "Target bowls",
@@ -178,5 +179,15 @@
     "fillAll": "Enter a number (0 or more) in every box."
   },
   "testPeriod": "Before 10/12 is the test period and is not counted",
-  "countNote": "Counting starts on 10/12 (operation start). Earlier records are test data and excluded."
+  "countNote": "Counting starts on 10/12 (operation start). Earlier records are test data and excluded.",
+  "shiftRequests": {
+    "title": "Shift requests",
+    "export": "Export to Excel (早番希望・中番希望・遅番希望)",
+    "submitted": "{{n}} submitted",
+    "notSubmitted": "Not submitted yet",
+    "updated": "updated {{at}}",
+    "days": "{{shift}} {{n}} days",
+    "none": "No requests yet.",
+    "note": "The exported sheets have the same layout as 早番希望 / 中番希望 / 遅番希望 in the shift workbook."
+  }
 }

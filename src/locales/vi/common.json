@@ -101,7 +101,9 @@
     "patrolSub": "Chấm 5 mục, ảnh và thời gian",
     "historySub": "Họp ca và tuần tra bạn đã gửi",
     "managerSub": "Bảng tổng quan, báo cáo, cài đặt",
-    "name": "{{name}}"
+    "name": "{{name}}",
+    "shiftRequest": "Đăng ký nguyện vọng ca",
+    "shiftRequestSub": "Ngày và giờ có thể làm tháng sau"
   },
   "phrase": {
     "philosophy1": "Khách hàng là trên hết",
@@ -195,5 +197,14 @@
     "rewrite": "Viết lại",
     "failed": "Không dịch được",
     "offline": "Cần kết nối mạng để dịch. Hãy gửi lại ở nơi có sóng tốt."
+  },
+  "wd": {
+    "0": "CN",
+    "1": "T2",
+    "2": "T3",
+    "3": "T4",
+    "4": "T5",
+    "5": "T6",
+    "6": "T7"
   }
 }

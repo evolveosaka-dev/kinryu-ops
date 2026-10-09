@@ -29,6 +29,8 @@ const TargetsPage = page(() => import('../features/manager/TargetsPage'), 'Targe
 const UsersPage = page(() => import('../features/manager/UsersPage'), 'UsersPage')
 const RosterPage = page(() => import('../features/manager/RosterPage'), 'RosterPage')
 const SyncPage = page(() => import('../features/manager/SyncPage'), 'SyncPage')
+const ShiftRequestsAdminPage = page(() => import('../features/manager/ShiftRequestsAdminPage'), 'ShiftRequestsAdminPage')
+const ShiftRequestPage = page(() => import('../features/shift/ShiftRequestPage'), 'ShiftRequestPage')
 
 /** Decides which screen a visitor may see: login → approval → privacy notice → app. */
 function Gate() {
@@ -68,6 +70,7 @@ function Gate() {
         <Route path="chorei" element={<ChoreiFormPage />} />
         {canPatrol && <Route path="patrol" element={<PatrolFormPage />} />}
         <Route path="history" element={<HistoryPage />} />
+        <Route path="shift-request" element={<ShiftRequestPage />} />
         <Route path="profile" element={<ProfilePage />} />
         {isManager && (
           <Route path="manager">
@@ -81,6 +84,7 @@ function Gate() {
             <Route path="users" element={<UsersPage />} />
             <Route path="roster" element={<RosterPage />} />
             <Route path="sync" element={<SyncPage />} />
+            <Route path="shift-requests" element={<ShiftRequestsAdminPage />} />
           </Route>
         )}
         <Route path="*" element={<Navigate to="/" replace />} />

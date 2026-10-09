@@ -1,0 +1,59 @@
+{
+  "title": "Shift requests",
+  "month": "Month",
+  "monthLabel": "{{m}}/{{y}}",
+  "submitted": "Sent on {{date}}. You can change it and send again.",
+  "done": "Sent",
+  "shifts": {
+    "label": "Shifts you want (choose any)",
+    "early": "Morning 7:00–17:00",
+    "middle": "Evening 17:00–23:00",
+    "late": "Night 23:00–7:00"
+  },
+  "days": {
+    "title": "Days you can work",
+    "hint": "Choose the hours you can work. Days with nothing chosen mean \"cannot work\".",
+    "allOk": "Available every day",
+    "clear": "Clear",
+    "count": "{{n}} days",
+    "legendEarly": "7-17 / 7-11 / 11-17: hours you can work  +17:30: can work until 17:30",
+    "legendMiddle": "17-23: available  17:30～: from 17:30",
+    "legendLate": "23-7: available  22:00～: from 22:00"
+  },
+  "questionsTitle": "Questions",
+  "q": {
+    "message": "Anything to tell us about your shifts",
+    "homeTrip": "Do you plan a trip home?",
+    "homeTripWhen": "When will you go home?",
+    "homeTripWhenHint": "e.g. 4/30–5/5",
+    "paidLeave": "Paid leave",
+    "paidLeaveComment": "Comment (number of days, etc.)",
+    "schoolHoliday": "School holidays",
+    "schoolHolidayHint": "e.g. 2026/9/26–10/8",
+    "resign": "Do you plan to quit (leave Kinryu)?",
+    "resignWhen": "Planned last day or period",
+    "checkNotice": "I have read \"Reporting to the company\"",
+    "checkIrregular": "I have read how to fill in the \"Irregular sheet\""
+  },
+  "opt": {
+    "homeTrip": {
+      "no": "No",
+      "yes": "Yes",
+      "unknown": "Not sure"
+    },
+    "paidLeave": {
+      "none": "None",
+      "want": "I want paid leave"
+    },
+    "resign": {
+      "no": "No, not yet",
+      "yes": "Yes"
+    }
+  },
+  "err": {
+    "shifts": "Choose at least one shift.",
+    "homeTripWhen": "Write when you will go home.",
+    "resignWhen": "Write when you plan to quit.",
+    "checks": "Tick both confirmations."
+  }
+}

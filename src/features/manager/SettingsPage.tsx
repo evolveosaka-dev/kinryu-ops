@@ -33,6 +33,7 @@ export function SettingsPage() {
   const links: { to: string; icon: IconName; label: string; sub: string }[] = [
     { to: '/manager/users', icon: 'users', label: t('users.title'), sub: t('settings.usersSub') },
     { to: '/manager/roster', icon: 'clipboard', label: t('roster.title'), sub: t('settings.rosterSub') },
+    { to: '/manager/shift-requests', icon: 'calendar', label: t('shiftRequests.title'), sub: t('settings.shiftRequestsSub') },
     { to: '/manager/targets', icon: 'chart', label: t('targets.title'), sub: t('settings.targetsSub') },
     { to: '/manager/sync', icon: 'calendar', label: t('sync.title'), sub: t('settings.syncSub') },
   ]

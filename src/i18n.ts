@@ -22,16 +22,21 @@ import enGenko from './locales/en/genko.json'
 import viGenko from './locales/vi/genko.json'
 import siGenko from './locales/si/genko.json'
 import neGenko from './locales/ne/genko.json'
+import jaShift from './locales/ja/shift.json'
+import enShift from './locales/en/shift.json'
+import viShift from './locales/vi/shift.json'
+import siShift from './locales/si/shift.json'
+import neShift from './locales/ne/shift.json'
 import neCommon from './locales/ne/common.json'
 import neChorei from './locales/ne/chorei.json'
 import nePatrol from './locales/ne/patrol.json'
 
 export const resources = {
-  ja: { common: jaCommon, chorei: jaChorei, patrol: jaPatrol, manager: jaManager, genko: jaGenko },
-  en: { common: enCommon, chorei: enChorei, patrol: enPatrol, manager: enManager, genko: enGenko },
-  vi: { common: viCommon, chorei: viChorei, patrol: viPatrol, genko: viGenko },
-  si: { common: siCommon, chorei: siChorei, patrol: siPatrol, genko: siGenko },
-  ne: { common: neCommon, chorei: neChorei, patrol: nePatrol, genko: neGenko },
+  ja: { common: jaCommon, chorei: jaChorei, patrol: jaPatrol, manager: jaManager, genko: jaGenko, shift: jaShift },
+  en: { common: enCommon, chorei: enChorei, patrol: enPatrol, manager: enManager, genko: enGenko, shift: enShift },
+  vi: { common: viCommon, chorei: viChorei, patrol: viPatrol, genko: viGenko, shift: viShift },
+  si: { common: siCommon, chorei: siChorei, patrol: siPatrol, genko: siGenko, shift: siShift },
+  ne: { common: neCommon, chorei: neChorei, patrol: nePatrol, genko: neGenko, shift: neShift },
 } as const
 
 // Load only the font a locale needs (slow mobile data).
@@ -65,7 +70,7 @@ void i18n
     nonExplicitSupportedLngs: true,
     fallbackLng: 'ja',
     defaultNS: 'common',
-    ns: ['common', 'chorei', 'patrol', 'manager', 'genko'],
+    ns: ['common', 'chorei', 'patrol', 'manager', 'genko', 'shift'],
     interpolation: { escapeValue: false },
     detection: { order: ['localStorage', 'navigator'], caches: ['localStorage'], lookupLocalStorage: 'kinryu.locale' },
   })

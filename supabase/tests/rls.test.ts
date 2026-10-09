@@ -320,3 +320,19 @@ describe('test data before the operation start (2026-10-12)', () => {
     expect(flags.find((f) => f.d === '2026-10-12')?.is_test).toBe(false)
   })
 })
+
+describe('shift requests (シフト希望)', () => {
+  const NEXT = `date_trunc('month', (now() at time zone 'Asia/Tokyo')::date + interval '1 month')::date`
+  it('staff submit and update their own request; others cannot read it; managers can', async () => {
+    await t.as(staffM, `insert into public.shift_requests (month, shifts, days) values (${NEXT}, '{early}', '{"x": {"early": "full"}}')`)
+    await t.as(staffM, `update public.shift_requests set shifts = '{early,middle}' where user_id = auth.uid()`)
+    expect(await t.as(staffS, 'select id from public.shift_requests')).toHaveLength(0)
+    const rows = await t.as<{ shifts: string[] }>(manager, 'select shifts from public.shift_requests')
+    expect(rows[0]!.shifts).toEqual(['early', 'middle'])
+  })
+  it('one request per person per month; past months are closed; shifts must be valid', async () => {
+    await expect(t.as(staffM, `insert into public.shift_requests (month, shifts) values (${NEXT}, '{late}')`)).rejects.toThrow(/duplicate key/)
+    await expect(t.as(staffS, `insert into public.shift_requests (month, shifts) values ('2026-01-01', '{late}')`)).rejects.toThrow(/row-level security/)
+    await expect(t.as(staffS, `insert into public.shift_requests (month, shifts) values (${NEXT}, '{night}')`)).rejects.toThrow(/check constraint/)
+  })
+})

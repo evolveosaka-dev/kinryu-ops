@@ -101,7 +101,9 @@
     "patrolSub": "5-item scoring, photos and time",
     "historySub": "Meetings and patrols you sent",
     "managerSub": "Dashboard, reports and settings",
-    "name": "{{name}}"
+    "name": "{{name}}",
+    "shiftRequest": "Shift requests",
+    "shiftRequestSub": "Days and hours you can work next month"
   },
   "phrase": {
     "philosophy1": "Customers come first",
@@ -195,5 +197,14 @@
     "rewrite": "Rewrite",
     "failed": "Could not translate",
     "offline": "Translation needs a connection. Please send again where the signal is good."
+  },
+  "wd": {
+    "0": "Sun",
+    "1": "Mon",
+    "2": "Tue",
+    "3": "Wed",
+    "4": "Thu",
+    "5": "Fri",
+    "6": "Sat"
   }
 }

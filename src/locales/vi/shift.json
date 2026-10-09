@@ -1,0 +1,59 @@
+{
+  "title": "Đăng ký nguyện vọng ca",
+  "month": "Tháng đăng ký",
+  "monthLabel": "Tháng {{m}}/{{y}}",
+  "submitted": "Đã gửi lúc {{date}}. Có thể sửa và gửi lại.",
+  "done": "Đã gửi",
+  "shifts": {
+    "label": "Ca muốn làm (chọn bao nhiêu cũng được)",
+    "early": "Ca sáng 7:00–17:00",
+    "middle": "Ca chiều tối 17:00–23:00",
+    "late": "Ca đêm 23:00–7:00"
+  },
+  "days": {
+    "title": "Ngày có thể đi làm",
+    "hint": "Chọn giờ có thể làm. Ngày không chọn gì nghĩa là \"không đi làm được\".",
+    "allOk": "Tất cả ngày đều được",
+    "clear": "Xóa",
+    "count": "{{n}} ngày",
+    "legendEarly": "7-17 / 7-11 / 11-17: giờ có thể làm  +17:30: làm được đến 17:30",
+    "legendMiddle": "17-23: đi làm được  17:30～: từ 17:30",
+    "legendLate": "23-7: đi làm được  22:00～: từ 22:00"
+  },
+  "questionsTitle": "Câu hỏi",
+  "q": {
+    "message": "Điều muốn nói về ca làm",
+    "homeTrip": "Bạn có dự định về nước tạm thời không?",
+    "homeTripWhen": "Khi nào bạn về nước?",
+    "homeTripWhenHint": "Ví dụ: 4/30～5/5",
+    "paidLeave": "Nghỉ phép có lương",
+    "paidLeaveComment": "Ghi chú (số ngày…)",
+    "schoolHoliday": "Kỳ nghỉ dài của trường",
+    "schoolHolidayHint": "Ví dụ: 26/9/2026～8/10",
+    "resign": "Bạn có dự định nghỉ việc ở Kinryu không?",
+    "resignWhen": "Ngày hoặc thời gian dự định nghỉ việc",
+    "checkNotice": "Tôi đã đọc \"Về việc báo cáo cho công ty\"",
+    "checkIrregular": "Tôi đã đọc cách ghi \"Phiếu xử lý bất thường\""
+  },
+  "opt": {
+    "homeTrip": {
+      "no": "Không",
+      "yes": "Có",
+      "unknown": "Chưa biết"
+    },
+    "paidLeave": {
+      "none": "Không",
+      "want": "Muốn nghỉ phép có lương"
+    },
+    "resign": {
+      "no": "Chưa có",
+      "yes": "Có"
+    }
+  },
+  "err": {
+    "shifts": "Hãy chọn ít nhất 1 ca.",
+    "homeTripWhen": "Hãy ghi thời gian về nước.",
+    "resignWhen": "Hãy ghi thời gian dự định nghỉ việc.",
+    "checks": "Hãy đánh dấu cả 2 mục xác nhận."
+  }
+}
