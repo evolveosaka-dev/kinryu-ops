@@ -25,6 +25,7 @@ import { loadLocalDraft, saveLocalDraft, type PatrolFormState } from './draft'
 import { AttachmentPicker } from '../attachments/AttachmentPicker'
 import { useUploadQueue } from '../attachments/uploadQueue'
 import type { PreparedMedia } from '../../lib/media'
+import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 import { ScoreItem } from './ScoreItem'
 
 const JUDGEMENT_STYLE = {
@@ -82,6 +83,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
   const [showMissing, setShowMissing] = useState(false)
   const [media, setMedia] = useState<PreparedMedia[]>([])
   const uploads = useUploadQueue()
+  const translation = useTranslationGate()
 
   useEffect(() => saveLocalDraft(me.id, form.startedAt ? form : null), [form, me.id])
 
@@ -121,6 +123,12 @@ function PatrolForm({ stores }: { stores: Store[] }) {
     mutationFn: async (endedAt: string) => {
       const f = form
       const scores = completeScores(f.scores)
+      // other languages → Japanese, confirmed (and editable) before saving
+      const tr = await translation.prepare([
+        { key: 'good_points', label: t('goodPoints.label'), text: f.goodPoints.trim() },
+        { key: 'improvements', label: t('improvements.label'), text: f.improvements.trim() },
+        { key: 'remarks', label: t('remarks.label'), text: f.remarks.trim() || null },
+      ])
       const payload = {
         store_id: f.storeId,
         business_date: f.businessDate,
@@ -135,9 +143,11 @@ function PatrolForm({ stores }: { stores: Store[] }) {
         score_quality: scores!.quality,
         staff_names: (f.staffNames ?? []).filter(Boolean),
         staff_on_shift: (f.staffNames ?? []).filter(Boolean).join('、') || '全員',
-        good_points: f.goodPoints.trim(),
-        improvements: f.improvements.trim(),
-        remarks: f.remarks.trim() || null,
+        good_points: tr.values.good_points,
+        improvements: tr.values.improvements,
+        remarks: tr.values.remarks || null,
+        original_texts: tr.originals,
+        source_lang: tr.sourceLang,
         status: 'valid',
       }
       const res = f.draftId
@@ -152,7 +162,10 @@ function PatrolForm({ stores }: { stores: Store[] }) {
       void queryClient.invalidateQueries({ queryKey: ['my_patrols'] })
       void navigate('/history?tab=patrol')
     },
-    onError: (err) => setError(isNetworkError(err) ? t('common:error.network') : `${t('common:error.generic')} (${errorMessage(err)})`),
+    onError: (err) => {
+      if (err instanceof TranslationCancelled) return setError(null)
+      setError(isNetworkError(err) ? t('common:error.network') : `${t('common:error.generic')} (${errorMessage(err)})`)
+    },
   })
 
   const discard = async () => {
@@ -170,6 +183,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
 
   return (
     <div className="flex flex-col gap-4">
+      {translation.review}
       <h1 className="text-xl font-bold">🔍 {t('title')}</h1>
       {resumed && form.startedAt && <p className="rounded-xl bg-blue-50 p-3 text-sm">{t('time.resumed')}</p>}
 

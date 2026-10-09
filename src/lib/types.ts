@@ -72,6 +72,8 @@ export interface ChoreiRecord {
   submitted_at: string
   status: RecordStatus
   void_reason: string | null
+  original_texts: Record<string, string> | null
+  source_lang: string | null
   attachments?: AttachmentSummary[]
 }
 
@@ -119,5 +121,7 @@ export interface PatrolCheck {
   remarks: string | null
   submitted_at: string | null
   status: 'draft' | 'valid' | 'void'
+  original_texts: Record<string, string> | null
+  source_lang: string | null
   attachments?: AttachmentSummary[]
 }

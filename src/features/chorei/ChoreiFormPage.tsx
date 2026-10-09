@@ -17,6 +17,7 @@ import type { ChoreiSlot } from '../../lib/types'
 import { AttachmentPicker } from '../attachments/AttachmentPicker'
 import { useUploadQueue } from '../attachments/uploadQueue'
 import type { PreparedMedia } from '../../lib/media'
+import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 import { HandoverCard } from './HandoverCard'
 import { choreiSchema, fieldErrors } from './schema'
 
@@ -46,6 +47,7 @@ export function ChoreiFormPage() {
   const [note, setNote] = useState('')
   const [media, setMedia] = useState<PreparedMedia[]>([])
   const uploads = useUploadQueue()
+  const translation = useTranslationGate()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
 
@@ -85,7 +87,22 @@ export function ChoreiFormPage() {
         throw new Error('validation')
       }
       setErrors({})
-      const res = await supabase.from('chorei_records').insert({ ...parsed.data, leader_id: me.id }).select('id').single()
+      // other languages → Japanese, confirmed by the writer before saving
+      const tr = await translation.prepare([
+        { key: 'stock_text', label: t('stock.label'), text: parsed.data.stock_text },
+        { key: 'caution_text', label: t('caution.label'), text: parsed.data.caution_text },
+        { key: 'skip_reason', label: t('steps.skipReason'), text: parsed.data.skip_reason },
+      ])
+      const record = {
+        ...parsed.data,
+        stock_text: tr.values.stock_text ?? null,
+        caution_text: tr.values.caution_text ?? null,
+        skip_reason: tr.values.skip_reason ?? null,
+        original_texts: tr.originals,
+        source_lang: tr.sourceLang,
+        leader_id: me.id,
+      }
+      const res = await supabase.from('chorei_records').insert(record).select('id').single()
       if (res.error) throw Object.assign(new Error(res.error.message), { code: res.error.code })
       // photos/videos go to Google Drive in the background (queued, retried)
       await uploads.enqueue('chorei', (res.data as { id: string }).id, media)
@@ -96,7 +113,7 @@ export function ChoreiFormPage() {
       void navigate('/history')
     },
     onError: (err: Error & { code?: string }) => {
-      if (err.message === 'validation') return setSubmitError(null)
+      if (err.message === 'validation' || err instanceof TranslationCancelled) return setSubmitError(null)
       if (err.code === '23505') {
         void slot.refetch()
         return setSubmitError(t('duplicate'))
@@ -106,13 +123,17 @@ export function ChoreiFormPage() {
   })
 
   const addNote = useMutation({
-    mutationFn: async (choreiId: string) =>
-      unwrap(await supabase.rpc('add_chorei_note', { p_chorei: choreiId, p_body: note.trim() })),
+    mutationFn: async (choreiId: string) => {
+      const tr = await translation.prepare([{ key: 'body', label: t('existing.addNote'), text: note.trim() }])
+      return unwrap(
+        await supabase.rpc('add_chorei_note', { p_chorei: choreiId, p_body: tr.values.body, p_original: tr.originals?.body ?? null }),
+      )
+    },
     onSuccess: () => {
       setNote('')
       toast(t('existing.noteAdded'))
     },
-    onError: (err) => setSubmitError(errorMessage(err)),
+    onError: (err) => !(err instanceof TranslationCancelled) && setSubmitError(errorMessage(err)),
   })
 
   if (stores.isLoading) return <Spinner />
@@ -121,6 +142,7 @@ export function ChoreiFormPage() {
 
   return (
     <div className="flex flex-col gap-4">
+      {translation.review}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">📣 {t('title')}</h1>
         <Link to="/genko" className="flex min-h-11 items-center rounded-xl px-3 text-sm font-bold text-brand ring-1 ring-brand">

@@ -83,7 +83,7 @@
   "privacy": {
     "title": "About your personal data",
     "body1": "Records in this app (meeting records and patrol checks) are used to improve customer service and to pay patrol time.",
-    "body2": "Only company managers can see the records. Do not enter customer information. Photos and videos are saved in the company’s Google Drive. Do not film customers’ faces.",
+    "body2": "Only company managers can see the records. Do not enter customer information. Photos and videos are saved in the company’s Google Drive. Do not film customers’ faces. Text written in other languages is sent to an external translation service (Anthropic) to be translated into Japanese.",
     "body3": "Records are used only inside the company and are not deleted.",
     "accept": "I understand"
   },
@@ -175,5 +175,17 @@
     "remove": "Remove",
     "noStore": "No store",
     "empty": "The staff list is empty. Please contact a manager."
+  },
+  "translate": {
+    "title": "Check the translation",
+    "body": "Your text was translated into Japanese. Check that the meaning is right. You can edit the Japanese directly.",
+    "original": "What you wrote",
+    "japanese": "Japanese (this will be saved)",
+    "back": "Meaning of the Japanese (for checking)",
+    "editedNote": "You edited the Japanese, so this check text was not updated.",
+    "confirm": "Send this",
+    "rewrite": "Rewrite",
+    "failed": "Could not translate",
+    "offline": "Translation needs a connection. Please send again where the signal is good."
   }
 }

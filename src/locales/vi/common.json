@@ -83,7 +83,7 @@
   "privacy": {
     "title": "Về thông tin cá nhân",
     "body1": "Dữ liệu trong app (biên bản họp ca, phiếu tuần tra) dùng để cải thiện phục vụ khách và tính lương cho thời gian tuần tra.",
-    "body2": "Chỉ quản lý của công ty mới xem được. Không nhập thông tin khách hàng. Ảnh và video được lưu trên Google Drive của công ty. Không chụp/quay mặt khách hàng.",
+    "body2": "Chỉ quản lý của công ty mới xem được. Không nhập thông tin khách hàng. Ảnh và video được lưu trên Google Drive của công ty. Không chụp/quay mặt khách hàng. Nội dung viết bằng ngôn ngữ khác tiếng Nhật sẽ được gửi tới dịch vụ dịch bên ngoài (Anthropic) để dịch sang tiếng Nhật.",
     "body3": "Dữ liệu chỉ dùng trong công ty và không bị xóa.",
     "accept": "Tôi đã hiểu"
   },
@@ -175,5 +175,17 @@
     "remove": "Xóa",
     "noStore": "Chưa có cửa hàng",
     "empty": "Chưa có danh sách nhân viên. Hãy liên hệ quản lý."
+  },
+  "translate": {
+    "title": "Kiểm tra bản dịch",
+    "body": "Nội dung đã được dịch sang tiếng Nhật. Hãy kiểm tra ý nghĩa có đúng không. Có thể sửa trực tiếp phần tiếng Nhật.",
+    "original": "Nội dung bạn viết",
+    "japanese": "Tiếng Nhật (sẽ được lưu)",
+    "back": "Ý nghĩa của bản tiếng Nhật (để kiểm tra)",
+    "editedNote": "Bạn đã sửa phần tiếng Nhật nên dòng kiểm tra này không được cập nhật.",
+    "confirm": "Gửi nội dung này",
+    "rewrite": "Viết lại",
+    "failed": "Không dịch được",
+    "offline": "Cần kết nối mạng để dịch. Hãy gửi lại ở nơi có sóng tốt."
   }
 }
