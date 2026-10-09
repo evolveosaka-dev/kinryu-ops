@@ -65,7 +65,12 @@ serve(async (req) => {
   const { count } = await admin.from('translation_log').select('id', { count: 'exact', head: true }).eq('user_id', caller.id).gte('at', since)
   if ((count ?? 0) >= CALLS_PER_HOUR) throw new HttpError(429, 'too many translations, try again later')
 
-  const client = new Anthropic({ apiKey: env('ANTHROPIC_API_KEY') })
+  // Organization-level keys (not scoped to a workspace) must name the workspace on every request.
+  const workspaceId = Deno.env.get('ANTHROPIC_WORKSPACE_ID')
+  const client = new Anthropic({
+    apiKey: env('ANTHROPIC_API_KEY'),
+    defaultHeaders: workspaceId ? { 'anthropic-workspace-id': workspaceId } : undefined,
+  })
   const userText =
     `Check language for "back": ${LANG_NAMES[backLang]}\n\n` +
     fields.map((f) => `<field key="${f.key}">${escapeXml(f.text)}</field>`).join('\n')
@@ -81,7 +86,10 @@ serve(async (req) => {
     })
   } catch (err) {
     if (err instanceof Anthropic.RateLimitError) throw new HttpError(429, 'translation service busy, try again')
-    if (err instanceof Anthropic.APIError) throw new HttpError(502, `translation failed (${err.status})`)
+    if (err instanceof Anthropic.APIError) {
+      console.error('anthropic error', err.status, err.message)
+      throw new HttpError(502, `translation failed (${err.status}): ${err.message}`)
+    }
     throw err
   }
   if (response.stop_reason === 'refusal' || response.stop_reason === 'max_tokens') {
