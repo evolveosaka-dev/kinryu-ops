@@ -26,7 +26,7 @@ export const CAUTION_PICKS: Phrase[] = [
   { ja: 'お客様が帰るとき、全員で『おおきに』を言いましょう。', romaji: "Okyakusama ga kaeru toki, zen-in de 'ōkini' o iimashō.", key: 'pick.1' },
   { ja: '食券を受け取ったら、『まいど！』と言いましょう。', romaji: "Shokken o uketottara, 'maido!' to iimashō.", key: 'pick.8' },
   { ja: 'お客様の目を見て、笑顔で話しましょう。', romaji: 'Okyakusama no me o mite, egao de hanashimashō.', key: 'pick.2' },
-  { ja: '海外のお客様の場合、写真の手伝いしましょう。', romaji: 'Kaigai no okyakusama no baai, shashin no tetsudai shimashō.', key: 'pick.3' },
+  { ja: '海外のお客様の場合、写真の手伝いをしましょう。', romaji: 'Kaigai no okyakusama no baai, shashin no tetsudai o shimashō.', key: 'pick.3' },
   { ja: 'スープの量を見本の線までそろえましょう。', romaji: 'Sūpu no ryō o mihon no sen made soroemashō.', key: 'pick.4' },
   { ja: '丼の縁をきれいにしてから出しましょう。', romaji: 'Donburi no fuchi o kirei ni shite kara dashimashō.', key: 'pick.5' },
   { ja: '混む前に、箸と紙ナプキンを補充しましょう。', romaji: 'Komu mae ni, hashi to kami napukin o hojū shimashō.', key: 'pick.6' },
