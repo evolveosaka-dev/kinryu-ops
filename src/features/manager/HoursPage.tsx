@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button, Card, ErrorBox, Spinner } from '../../components/ui'
+import { Button, Card, ErrorBox, Spinner, PageTitle } from '../../components/ui'
 import { formatHoursMinutes, PATROL_WARN_MINUTES } from '../../domain/patrol'
 import { patrolHours } from '../../domain/stats'
 import { formatShortDate } from '../../domain/time'
 import { PATROL_TYPES } from '../../domain/types'
 import { errorMessage, storeName } from '../../lib/format'
 import { useStores } from '../../lib/queries'
-import { PeriodBar } from './common'
+import { PeriodBar, Dot } from './common'
 import { exportCsv, exportXlsx, jstDateTime, usePeople, useRecords, type AdminPatrol, usePeriod } from './data'
 import { PatrolDetail } from './details'
 import { ManagerTabs } from './ManagerTabs'
@@ -53,18 +53,18 @@ export function HoursPage() {
   return (
     <div className="flex flex-col gap-3">
       <ManagerTabs />
-      <h1 className="text-xl font-bold">⏱️ {t('hours.title')}</h1>
+      <PageTitle title={t('hours.title')} />
       <PeriodBar period={period} allowModes={false} />
       <p className="text-xs text-slate-500">{t('countNote')}</p>
       <div className="grid grid-cols-2 gap-2">
         <Button variant="secondary" onClick={() => void exportXlsx(`金龍_巡回時間_${month}.xlsx`, [{ name: '集計', rows: summaryRows }, { name: '明細', rows: detailRows }])}>
-          ⬇️ Excel
+          Excel
         </Button>
         <Button variant="secondary" onClick={() => exportCsv(`金龍_巡回時間_${month}.csv`, summaryRows)}>
-          ⬇️ CSV
+          CSV
         </Button>
       </div>
-      {flagged.some((p) => p.needs_time_review) && <p className="rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-900">🟡 {t('hours.reviewFirst')}</p>}
+      {flagged.some((p) => p.needs_time_review) && <p className="rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-900"><Dot tone="amber" /> {t('hours.reviewFirst')}</p>}
 
       <Card className="overflow-x-auto p-2">
         <table className="w-full min-w-[20rem] text-sm">
@@ -99,7 +99,7 @@ export function HoursPage() {
           {flagged.map((p) => (
             <button key={p.id} type="button" onClick={() => setSelected(p)} className="rounded-lg bg-white p-2 text-left text-sm ring-1 ring-amber-200">
               {formatShortDate(p.business_date)} {people.name(p.patroller_id)} — {p.duration_min ?? '—'}
-              {t('detail.min')} {p.needs_time_review && `🟡 ${t('dashboard.timeReview')}`}
+              {t('detail.min')} {p.needs_time_review && t('dashboard.timeReview')}
             </button>
           ))}
         </Card>

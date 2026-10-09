@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
-import { Card, ErrorBox, Spinner } from '../../components/ui'
+import { Card, ErrorBox, Spinner, PageTitle } from '../../components/ui'
 import { normalizedTo25 } from '../../domain/patrol'
 import { formatShortDate, formatTokyoTime } from '../../domain/time'
 import { PATROL_TYPES, SHIFTS } from '../../domain/types'
@@ -9,7 +9,7 @@ import { currentLocale } from '../../i18n'
 import { cx } from '../../lib/cx'
 import { errorMessage, storeName } from '../../lib/format'
 import { useStores } from '../../lib/queries'
-import { PeriodBar } from './common'
+import { PeriodBar, Dot } from './common'
 import { usePeople, useRecords, type AdminPatrol, usePeriod, JUDGE_STYLE } from './data'
 import { PatrolDetail } from './details'
 import { ManagerTabs } from './ManagerTabs'
@@ -52,7 +52,7 @@ export function PatrolAdminPage() {
   return (
     <div className="flex flex-col gap-3">
       <ManagerTabs />
-      <h1 className="text-xl font-bold">🔍 {t('patrolList.title')}</h1>
+      <PageTitle title={t('patrolList.title')} />
       <PeriodBar period={period} />
 
       <Card className="grid grid-cols-2 gap-2">
@@ -98,8 +98,8 @@ export function PatrolAdminPage() {
         </select>
         <select className={selectClass} value={filter} onChange={(e) => setParams(e.target.value ? { filter: e.target.value } : {})} aria-label={t('filter.todo')}>
           <option value="">{t('filter.all')}</option>
-          <option value="coaching">🔴 {t('dashboard.coaching')}</option>
-          <option value="time">🟡 {t('dashboard.timeReview')}</option>
+          <option value="coaching">{t('dashboard.coaching')}</option>
+          <option value="time">{t('dashboard.timeReview')}</option>
         </select>
       </Card>
 
@@ -110,7 +110,7 @@ export function PatrolAdminPage() {
             <button
               type="button"
               onClick={() => setSelected(p)}
-              className={cx('flex w-full flex-col gap-1 rounded-2xl bg-white p-3 text-left ring-1 ring-slate-200', p.status === 'void' && 'opacity-50')}
+              className={cx('flex w-full flex-col gap-1 rounded-2xl bg-white p-3 text-left border border-line', p.status === 'void' && 'opacity-50')}
             >
               <span className="flex items-center justify-between">
                 <b>
@@ -130,11 +130,11 @@ export function PatrolAdminPage() {
               <span className="flex flex-wrap gap-1 text-xs font-bold">
                 {p.status === 'draft' && <span className="rounded bg-slate-200 px-1">{t('common:status.draft')}</span>}
                 {p.status === 'void' && <span className="rounded bg-slate-200 px-1">{t('common:status.void')}</span>}
-                {p.needs_time_review && <span className="rounded bg-amber-100 px-1 text-amber-900">🟡 {t('dashboard.timeReview')}</span>}
-                {p.judgement === 'coaching' && !p.follow_up_done_at && p.status === 'valid' && <span className="rounded bg-red-100 px-1 text-red-900">🔴 {t('detail.followUpOpen')}</span>}
+                {p.needs_time_review && <span className="rounded bg-amber-100 px-1 text-amber-900"><Dot tone="amber" /> {t('dashboard.timeReview')}</span>}
+                {p.judgement === 'coaching' && !p.follow_up_done_at && p.status === 'valid' && <span className="rounded bg-red-100 px-1 text-red-900"><Dot tone="red" /> {t('detail.followUpOpen')}</span>}
                 {p.follow_up_done_at && <span className="rounded bg-green-100 px-1 text-green-900">✓ {t('detail.followUpShort')}</span>}
                 {p.mask_worn && <span className="rounded bg-slate-100 px-1">😷</span>}
-                {p.attachments.some((a) => a.status === 'uploaded') && <span className="rounded bg-slate-100 px-1">📎 {p.attachments.filter((a) => a.status === 'uploaded').length}</span>}
+                {p.attachments.some((a) => a.status === 'uploaded') && <span className="rounded bg-slate-100 px-1">{p.attachments.filter((a) => a.status === 'uploaded').length}</span>}
               </span>
             </button>
           </li>

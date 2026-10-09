@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router'
 import { useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
 import { StaffPicker } from '../../components/StaffPicker'
-import { Button, Card, Checkbox, ErrorBox, Segmented, Spinner, StickyActions, TextArea, TextInput } from '../../components/ui'
+import { Button, Card, Checkbox, ErrorBox, Segmented, Spinner, StickyActions, TextArea, TextInput, PageTitle } from '../../components/ui'
 import {
   durationMinutes,
   judgePatrol,
@@ -224,7 +224,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
           ⚠️ {t('time.overBanner', { min: minutes })}
         </button>
       )}
-      <h1 className="text-xl font-bold">🔍 {t('title')}</h1>
+      <PageTitle title={t('title')} />
       {resumed && form.startedAt && <p className="rounded-xl bg-blue-50 p-3 text-sm">{t('time.resumed')}</p>}
 
       <Card className="flex flex-col gap-3">
@@ -252,7 +252,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
 
       <div ref={timeCard}>
         <Card className={`flex flex-col gap-3 ${overLimit || (endMissing && !ended) ? 'ring-2 ring-red-600' : ''}`}>
-          <h2 className="text-sm font-bold text-slate-700">⏱️ {t('time.label')}</h2>
+          <h2 className="text-sm font-bold text-slate-700">{t('time.label')}</h2>
           <div className="grid grid-cols-2 gap-2">
             <Button onClick={() => start.mutate()} disabled={Boolean(started) || start.isPending}>
               {started ? t('time.started', { time: formatTokyoTime(started) }) : `▶ ${t('time.start')}`}
@@ -273,7 +273,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
         </Card>
       </div>
 
-      <p className="text-sm text-slate-600">💡 {t('lowerHint')}</p>
+      <p className="text-sm text-slate-600">{t('lowerHint')}</p>
       {PATROL_ITEMS.map((item) => (
         <ScoreItem
           key={item}

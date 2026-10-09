@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button, Card, ErrorBox, Spinner } from '../../components/ui'
+import { Button, Card, ErrorBox, Spinner, PageTitle } from '../../components/ui'
 import { PATROL_TARGET_25 } from '../../domain/patrol'
 import {
   byStoreShift,
@@ -133,11 +133,11 @@ export function StatsPage() {
   return (
     <div className="flex flex-col gap-3">
       <ManagerTabs />
-      <h1 className="text-xl font-bold">📈 {t('stats.title')}</h1>
+      <PageTitle title={t('stats.title')} />
       <PeriodBar period={period} />
       <p className="text-xs text-slate-500">{t('countNote')}</p>
       <Button variant="secondary" onClick={() => void doExport()} disabled={exporting}>
-        ⬇️ {exporting ? t('common:action.loading') : t('stats.export')}
+        {exporting ? t('common:action.loading') : t('stats.export')}
       </Button>
       {exportError && <ErrorBox message={exportError} />}
 
@@ -212,7 +212,7 @@ export function StatsPage() {
       )}
 
       <Card className="flex flex-col gap-2">
-        <h2 className="font-bold">🏅 {t('stats.ranking')}</h2>
+        <h2 className="font-bold">{t('stats.ranking')}</h2>
         <p className="text-xs text-slate-500">{t('stats.rankingNote')}</p>
         {ranking.length === 0 ? (
           <p className="text-sm text-slate-500">{t('stats.noData')}</p>
@@ -245,7 +245,7 @@ export function StatsPage() {
       </Card>
 
       <Card className="flex flex-col gap-2">
-        <h2 className="font-bold">📣 {t('stats.leaders')}</h2>
+        <h2 className="font-bold">{t('stats.leaders')}</h2>
         <ul className="flex flex-wrap gap-2 text-sm">
           {crowd.leaders.map((x) => (
             <li key={x.name} className="rounded-full bg-slate-100 px-3 py-1">

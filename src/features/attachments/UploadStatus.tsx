@@ -19,7 +19,7 @@ export function UploadStatus() {
       {active.length > 0 && (
         <div>
           <p className="font-bold text-blue-900">
-            📤 {uploading ? t('upload.uploading', { n: active.length, pct }) : t('upload.waiting', { n: active.length })}
+            {uploading ? t('upload.uploading', { n: active.length, pct }) : t('upload.waiting', { n: active.length })}
           </p>
           <div className="mt-1 h-2 overflow-hidden rounded-full bg-blue-100">
             <div className="h-full bg-blue-600 transition-all" style={{ width: `${pct}%` }} />

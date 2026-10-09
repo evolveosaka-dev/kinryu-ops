@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router'
 import { useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
 import { StaffPicker } from '../../components/StaffPicker'
-import { Button, Card, Checkbox, ErrorBox, Segmented, Spinner, StickyActions, TextArea, TextInput } from '../../components/ui'
+import { Button, Card, Checkbox, ErrorBox, Segmented, Spinner, StickyActions, TextArea, TextInput, PageTitle } from '../../components/ui'
 import { CAUTION_PICKS } from '../../domain/phrases'
 import { currentSlot, dayType, formatTokyoTime, MEETING_TIME, monthOf } from '../../domain/time'
 import { ALL_STEPS_DONE, CHOREI_STEPS, SHIFTS, type Shift, type StepsDone } from '../../domain/types'
@@ -146,9 +146,9 @@ export function ChoreiFormPage() {
     <div className="flex flex-col gap-4">
       {translation.review}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">📣 {t('title')}</h1>
+        <PageTitle title={t('title')} />
         <Link to="/genko" className="flex min-h-11 items-center rounded-xl px-3 text-sm font-bold text-brand ring-1 ring-brand">
-          📜 {t('genko:title')}
+          {t('genko:title')}
         </Link>
       </div>
 

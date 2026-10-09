@@ -23,7 +23,7 @@ export function ScoreItem({
   const headingId = useId()
   const hasDesc = item === 'grooming' || item === 'clean' || item === 'quality'
   return (
-    <div role="radiogroup" aria-labelledby={headingId} className="flex flex-col gap-2 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+    <div role="radiogroup" aria-labelledby={headingId} className="flex flex-col gap-2 rounded-2xl bg-white p-4 border border-line">
       <div className="flex items-baseline justify-between">
         <h2 id={headingId} className="text-lg font-bold">{t(`items.${item}.name`)}</h2>
         <span className={cx('text-2xl font-bold', value === undefined ? 'text-slate-300' : 'text-brand')}>
@@ -43,10 +43,10 @@ export function ScoreItem({
             onClick={() => onChange(s)}
             className={cx(
               'flex min-h-12 items-center gap-3 rounded-xl border px-3 py-2 text-left disabled:opacity-50',
-              value === s ? 'border-brand bg-red-50 ring-2 ring-brand' : 'border-slate-200 bg-white',
+              value === s ? 'border-brand bg-brand-soft ring-1 ring-brand' : 'border-slate-200 bg-white',
             )}
           >
-            <span className={cx('flex size-9 shrink-0 items-center justify-center rounded-full text-lg font-bold', value === s ? 'bg-brand text-white' : 'bg-slate-100')}>
+            <span className={cx('flex size-9 shrink-0 items-center justify-center rounded-full text-lg font-bold', value === s ? 'bg-brand text-white' : 'bg-surface')}>
               {s}
             </span>
             <span className="text-sm leading-snug">{t(`items.${item}.${s}`)}</span>

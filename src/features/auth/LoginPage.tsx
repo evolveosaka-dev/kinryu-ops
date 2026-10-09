@@ -59,7 +59,12 @@ export function LoginPage() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 px-4 py-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-brand">{t('app.title')}</h1>
+        <h1 className="flex items-center gap-2 text-lg font-bold tracking-tight">
+          <span className="flex size-9 items-center justify-center rounded-xl bg-brand text-base text-white" aria-hidden>
+            金
+          </span>
+          {t('app.title')}
+        </h1>
         <LanguageSelect compact />
       </div>
 

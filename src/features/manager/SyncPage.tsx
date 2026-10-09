@@ -1,7 +1,7 @@
 import { FunctionsHttpError } from '@supabase/supabase-js'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Button, Card, ErrorBox, Spinner } from '../../components/ui'
+import { Button, Card, ErrorBox, Spinner, PageTitle } from '../../components/ui'
 import { errorMessage } from '../../lib/format'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
@@ -44,7 +44,7 @@ export function SyncPage() {
   return (
     <div className="flex flex-col gap-4">
       <ManagerTabs />
-      <h1 className="text-xl font-bold">📊 {t('sync.title')}</h1>
+      <PageTitle title={t('sync.title')} />
       {kv.isLoading ? (
         <Spinner />
       ) : (

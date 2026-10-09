@@ -95,7 +95,12 @@
     "managerButton": "Admin",
     "philosophy": "Company philosophy",
     "phrases": "Service phrases",
-    "installHint": "Use \"Add to Home Screen\" on your phone to open this like an app."
+    "installHint": "Use \"Add to Home Screen\" on your phone to open this like an app.",
+    "welcome": "Welcome back! Here is your shift today.",
+    "menu": "Menu",
+    "patrolSub": "5-item scoring, photos and time",
+    "historySub": "Meetings and patrols you sent",
+    "managerSub": "Dashboard, reports and settings"
   },
   "phrase": {
     "philosophy1": "Customers come first",

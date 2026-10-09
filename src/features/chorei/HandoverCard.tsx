@@ -6,7 +6,7 @@ export function HandoverCard({ handover }: { handover: HandoverSummary | null })
   const { t } = useTranslation('chorei')
   return (
     <section className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200">
-      <h2 className="mb-2 font-bold text-amber-900">📋 {t('previous.title')}</h2>
+      <h2 className="mb-2 font-bold text-amber-900">{t('previous.title')}</h2>
       {!handover ? (
         <p className="text-sm text-slate-600">{t('previous.none')}</p>
       ) : (

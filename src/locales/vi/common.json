@@ -95,7 +95,12 @@
     "managerButton": "Quản lý",
     "philosophy": "Triết lý kinh doanh",
     "phrases": "Câu chào khách",
-    "installHint": "Chọn \"Thêm vào màn hình chính\" trên điện thoại để mở như một ứng dụng."
+    "installHint": "Chọn \"Thêm vào màn hình chính\" trên điện thoại để mở như một ứng dụng.",
+    "welcome": "Chào bạn! Đây là ca làm hôm nay.",
+    "menu": "Menu",
+    "patrolSub": "Chấm 5 mục, ảnh và thời gian",
+    "historySub": "Họp ca và tuần tra bạn đã gửi",
+    "managerSub": "Bảng tổng quan, báo cáo, cài đặt"
   },
   "phrase": {
     "philosophy1": "Khách hàng là trên hết",

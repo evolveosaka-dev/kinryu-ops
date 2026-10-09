@@ -10,7 +10,7 @@ import { errorMessage, storeName } from '../../lib/format'
 import { unwrap, useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import type { AttachmentSummary } from '../../lib/types'
-import { Sheet } from './common'
+import { Sheet, Dot } from './common'
 import { fromLocalInput, jstDateTime, toLocalInput, type AdminChorei, type AdminPatrol, JUDGE_STYLE } from './data'
 
 const ITEM_NAME: Record<(typeof ITEM_KEYS)[number], string> = {
@@ -76,7 +76,7 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
   const score = p.total !== null && p.max_total ? Math.round(normalizedTo25(p.total, p.max_total) * 10) / 10 : null
 
   return (
-    <Sheet title={`🔍 ${p.business_date} ${t(`common:shift.${p.shift}`)} ${store}`} onClose={onClose}>
+    <Sheet title={`${p.business_date} ${t(`common:shift.${p.shift}`)} ${store}`} onClose={onClose}>
       <Card className="flex flex-col gap-2">
         {p.status !== 'valid' && <p className="rounded-lg bg-slate-200 p-2 text-sm font-bold">{t(`common:status.${p.status}`)} {p.void_reason && `— ${p.void_reason}`}</p>}
         <Row label={t('detail.patroller')}>{patrollerName}</Row>
@@ -121,7 +121,7 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
 
       {p.judgement === 'coaching' && p.status === 'valid' && (
         <Card className="flex flex-col gap-2 ring-2 ring-red-300">
-          <h3 className="font-bold">🔴 {t('detail.followUp')}</h3>
+          <h3 className="font-bold"><Dot tone="red" /> {t('detail.followUp')}</h3>
           {p.follow_up_done_at ? (
             <p className="text-sm">
               ✓ {t('detail.followUpDone', { at: jstDateTime(p.follow_up_done_at) })} {p.follow_up_note && `— ${p.follow_up_note}`}
@@ -139,7 +139,7 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
 
       {p.needs_time_review && p.status !== 'void' && (
         <Card className="flex flex-col gap-2 ring-2 ring-amber-300">
-          <h3 className="font-bold">🟡 {t('detail.timeReview')}</h3>
+          <h3 className="font-bold"><Dot tone="amber" /> {t('detail.timeReview')}</h3>
           <label className="text-sm font-bold">
             {t('detail.start')}
             <input type="datetime-local" className="min-h-11 w-full rounded-lg border border-slate-300 px-2" value={start} onChange={(e) => setStart(e.target.value)} />
@@ -180,7 +180,7 @@ export function ChoreiDetail({ record: r, leaderName, onClose }: { record: Admin
   const skipped = CHOREI_STEPS.filter((s) => r.steps_done[s] === false)
 
   return (
-    <Sheet title={`📣 ${r.business_date} ${t(`common:shift.${r.shift}`)} ${store}`} onClose={onClose}>
+    <Sheet title={`${r.business_date} ${t(`common:shift.${r.shift}`)} ${store}`} onClose={onClose}>
       <Card className="flex flex-col gap-2">
         {r.status === 'void' && <p className="rounded-lg bg-slate-200 p-2 text-sm font-bold">{t('common:status.void')} — {r.void_reason}</p>}
         <Row label={t('detail.leader')}>{leaderName}</Row>

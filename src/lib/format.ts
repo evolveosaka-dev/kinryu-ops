@@ -14,3 +14,9 @@ export function isNetworkError(err: unknown): boolean {
   const m = errorMessage(err)
   return /Failed to fetch|NetworkError|Load failed|network/i.test(m) || (typeof navigator !== 'undefined' && !navigator.onLine)
 }
+
+/** Two letters for the avatar (people's names are never translated). */
+export function initials(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  return (parts.length > 1 ? parts[0]!.charAt(0) + parts[1]!.charAt(0) : name.trim().slice(0, 2)).toUpperCase() || '?'
+}

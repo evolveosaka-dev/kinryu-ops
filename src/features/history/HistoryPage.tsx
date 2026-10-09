@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 import { useAuth, useMe } from '../../app/auth'
-import { Card, ErrorBox, Segmented, Spinner } from '../../components/ui'
+import { Card, ErrorBox, Segmented, Spinner, PageTitle } from '../../components/ui'
 import { cx } from '../../lib/cx'
 import { formatShortDate, formatTokyoTime } from '../../domain/time'
 import { currentLocale } from '../../i18n'
@@ -25,7 +25,7 @@ function Attachments({ list }: { list?: AttachmentSummary[] }) {
   if (uploaded.length === 0) return null
   return (
     <p className="flex flex-wrap gap-2 text-sm text-slate-700">
-      📎 {t('attach.count', { n: uploaded.length })}
+      {t('attach.count', { n: uploaded.length })}
       {isManager &&
         uploaded.map((a, i) =>
           a.drive_url ? (
@@ -135,7 +135,7 @@ export function HistoryPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-bold">🗂️ {t('history.title')}</h1>
+      <PageTitle title={t('history.title')} />
       {canPatrol && (
         <Segmented<Tab>
           label=""

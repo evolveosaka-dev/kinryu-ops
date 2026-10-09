@@ -1,15 +1,23 @@
 @import 'tailwindcss';
 
+/* Design tokens (clean white UI, blue primary — see docs/app-design reference) */
 @theme {
-  --color-brand: #b91c1c;
-  --color-brand-dark: #7f1d1d;
+  --color-brand: #2563eb;
+  --color-brand-dark: #1d4ed8;
+  --color-brand-soft: #eff4ff;
+  --color-ink: #111827;
+  --color-muted: #6b7280;
+  --color-line: #e5e7eb;
+  --color-surface: #f5f6f8;
+  --font-sans: 'Urbanist', 'Noto Sans JP', 'Noto Sans Sinhala', 'Noto Sans Devanagari', system-ui, sans-serif;
 }
 
 html {
-  font-family: 'Noto Sans JP', 'Noto Sans Sinhala', 'Noto Sans Devanagari', system-ui, sans-serif;
+  font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
 }
 body {
-  background: #f8fafc;
-  color: #0f172a;
+  background: #ffffff;
+  color: var(--color-ink);
 }

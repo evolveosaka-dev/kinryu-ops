@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '../../components/Toast'
-import { Button, Card, ErrorBox, Spinner, TextInput } from '../../components/ui'
+import { Button, Card, ErrorBox, Spinner, TextInput, PageTitle } from '../../components/ui'
 import { currentLocale } from '../../i18n'
 import { errorMessage, storeName } from '../../lib/format'
 import { unwrap, useStores } from '../../lib/queries'
@@ -73,7 +73,7 @@ export function RosterPage() {
   return (
     <div className="flex flex-col gap-4">
       <ManagerTabs />
-      <h1 className="text-xl font-bold">📋 {t('roster.title')}</h1>
+      <PageTitle title={t('roster.title')} />
       <p className="text-sm text-slate-600">{t('roster.body')}</p>
 
       <Card className="flex flex-col gap-2">

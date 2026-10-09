@@ -95,7 +95,12 @@
     "managerButton": "管理画面",
     "philosophy": "経営理念",
     "phrases": "接客用語",
-    "installHint": "スマホの「ホーム画面に追加」をすると、アプリのように使えます。"
+    "installHint": "スマホの「ホーム画面に追加」をすると、アプリのように使えます。",
+    "welcome": "おつかれさまです。今日もよろしくお願いします。",
+    "menu": "メニュー",
+    "patrolSub": "5項目の採点・写真・時間",
+    "historySub": "自分が送った朝礼・巡回",
+    "managerSub": "ダッシュボード・集計・設定"
   },
   "phrase": {
     "philosophy1": "お客様第一",

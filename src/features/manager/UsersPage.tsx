@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
-import { Button, Card, Checkbox, ErrorBox, Spinner } from '../../components/ui'
+import { Button, Card, Checkbox, ErrorBox, Spinner, PageTitle } from '../../components/ui'
 import type { ProfileStatus, Role } from '../../domain/types'
 import { errorMessage } from '../../lib/format'
 import { unwrap } from '../../lib/queries'
@@ -115,7 +115,7 @@ export function UsersPage() {
   return (
     <div className="flex flex-col gap-4">
       <ManagerTabs />
-      <h1 className="text-xl font-bold">🛠️ {t('users.title')}</h1>
+      <PageTitle title={t('users.title')} />
       {save.error && <ErrorBox message={errorMessage(save.error)} />}
       {groups.map(
         (g) =>

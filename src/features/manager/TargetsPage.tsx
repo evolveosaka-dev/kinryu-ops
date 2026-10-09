@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '../../components/Toast'
-import { Button, Card, ErrorBox, Spinner } from '../../components/ui'
+import { Button, Card, ErrorBox, Spinner, PageTitle } from '../../components/ui'
 import { SHIFTS, type DayType } from '../../domain/types'
 import { errorMessage, storeName } from '../../lib/format'
 import { unwrap, useStores } from '../../lib/queries'
@@ -63,12 +63,12 @@ export function TargetsPage() {
   return (
     <div className="flex flex-col gap-3">
       <ManagerTabs />
-      <h1 className="text-xl font-bold">🍜 {t('targets.title')}</h1>
+      <PageTitle title={t('targets.title')} />
       <PeriodBar period={period} allowModes={false} />
       {(current.data ?? []).length === 0 && <p className="rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-900">⚠️ {t('targets.empty')}</p>}
       {(previous.data ?? []).length > 0 && (
         <Button variant="secondary" onClick={copyPrevious}>
-          📋 {t('targets.copyPrevious')}
+          {t('targets.copyPrevious')}
         </Button>
       )}
       {(stores.data ?? []).map((s) => (

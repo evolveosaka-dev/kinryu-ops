@@ -71,10 +71,10 @@ export function GenkoPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col">
-      <header className="sticky top-0 z-20 flex items-center justify-between gap-2 bg-brand px-4 py-2 text-white">
-        <span className="font-bold">📜 {t('title')}</span>
-        <div className="flex items-center gap-2 text-slate-900">
-          <label className="flex items-center gap-1 text-sm text-white">
+      <header className="sticky top-0 z-20 flex items-center justify-between gap-2 border-b border-line bg-white/95 px-4 py-2 backdrop-blur">
+        <span className="font-bold tracking-tight">{t('title')}</span>
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-1 text-sm text-ink">
             <input type="checkbox" className="size-5" checked={furigana} onChange={(e) => toggleFurigana(e.target.checked)} />
             {t('furigana')}
           </label>
@@ -86,11 +86,11 @@ export function GenkoPage() {
         <Card className="flex flex-col gap-1">
           <p className="font-bold">{t('subtitle')}</p>
           <p className="text-sm text-slate-600">{t('leaderBy')}</p>
-          <p className="mt-1 rounded-lg bg-amber-50 p-2 text-sm font-bold text-amber-900">📣 {t('point')}</p>
+          <p className="mt-1 rounded-lg bg-amber-50 p-2 text-sm font-bold text-amber-900">{t('point')}</p>
         </Card>
 
         <Card className="flex flex-col gap-2">
-          <h2 className="font-bold">⏰ {t('before.title')}</h2>
+          <h2 className="font-bold">{t('before.title')}</h2>
           <p className="text-sm">{t('before.stock')}</p>
           <ul className="pl-4">
             <Line line={PREP_QUESTION} furigana={furigana} />
@@ -106,7 +106,7 @@ export function GenkoPage() {
               {step.seconds && <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold">⏱ {duration(step.seconds, t)}</span>}
             </div>
             <section>
-              <h3 className="mb-1 text-xs font-bold text-brand">🎤 {t('leaderSays')}</h3>
+              <h3 className="mb-1 text-xs font-bold text-brand">{t('leaderSays')}</h3>
               <ul className="flex flex-col gap-2">
                 {step.leader.map((l) => (
                   <Line key={l.key} line={l} furigana={furigana} />
@@ -114,7 +114,7 @@ export function GenkoPage() {
               </ul>
             </section>
             <section className="rounded-xl bg-slate-50 p-3">
-              <h3 className="mb-1 text-xs font-bold text-slate-600">👥 {t('allSay')}</h3>
+              <h3 className="mb-1 text-xs font-bold text-slate-600">{t('allSay')}</h3>
               <p className="mb-1 text-sm">{t(`notes.${step.id}`)}</p>
               <ul className="flex flex-col gap-2">
                 {step.all.map((l) => (
@@ -126,7 +126,7 @@ export function GenkoPage() {
         ))}
 
         <Card className="flex flex-col gap-2">
-          <h2 className="font-bold">💡 {t('cautionTitle')}</h2>
+          <h2 className="font-bold">{t('cautionTitle')}</h2>
           <ul className="flex flex-col gap-2">
             {CAUTION_PICKS.map((p) => (
               <li key={p.key} className="flex flex-col">
@@ -145,7 +145,7 @@ export function GenkoPage() {
         </Card>
 
         <Card className="flex flex-col gap-2">
-          <h2 className="font-bold">🚨 {t('situations.title')}</h2>
+          <h2 className="font-bold">{t('situations.title')}</h2>
           <ul className="flex list-disc flex-col gap-2 pl-5 text-sm">
             <li>{t('situations.customer')}</li>
             <li>{t('situations.busy')}</li>
@@ -154,10 +154,10 @@ export function GenkoPage() {
         </Card>
 
         <Card className="flex flex-col gap-3">
-          <h2 className="font-bold">✅ {t('after.title')}</h2>
+          <h2 className="font-bold">{t('after.title')}</h2>
           <p className="text-sm">{t('after.record')}</p>
           <Link to={session ? '/chorei' : '/'} className="flex min-h-12 items-center justify-center rounded-xl bg-brand font-bold text-white">
-            📣 {t('openApp')}
+            {t('openApp')}
           </Link>
         </Card>
       </main>

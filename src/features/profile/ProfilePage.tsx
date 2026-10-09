@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth, useMe } from '../../app/auth'
 import { LanguageSelect } from '../../components/LanguageSelect'
 import { useToast } from '../../components/Toast'
-import { Button, Card, ErrorBox, TextInput } from '../../components/ui'
+import { Button, Card, ErrorBox, TextInput, PageTitle } from '../../components/ui'
 import type { Locale } from '../../domain/types'
 import { supabase } from '../../lib/supabase'
 
@@ -24,7 +24,7 @@ export function ProfilePage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-bold">{t('profile.title')}</h1>
+      <PageTitle title={t('profile.title')} />
       <Card className="flex flex-col gap-3">
         <TextInput label={t('auth.displayName')} value={name} onChange={(e) => setName(e.target.value)} />
         <Button onClick={() => update({ display_name: name.trim() })} disabled={!name.trim() || name === me.display_name}>

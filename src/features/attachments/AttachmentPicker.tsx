@@ -85,7 +85,7 @@ export function AttachmentPicker({
   return (
     <Card className="flex flex-col gap-3">
       <h2 className="text-sm font-bold text-slate-700">
-        📎 {t('attach.title')}
+        {t('attach.title')}
         {requirePhoto && ' *'}
       </h2>
       {hint && <p className="text-sm">{hint}</p>}

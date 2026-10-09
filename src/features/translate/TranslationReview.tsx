@@ -27,10 +27,10 @@ export function TranslationReview({
 
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="translate-title" className="fixed inset-0 z-50 flex justify-center bg-black/50">
-      <div className="flex max-h-dvh w-full max-w-lg flex-col bg-slate-50">
+      <div className="flex max-h-dvh w-full max-w-lg flex-col bg-white">
         <header className="bg-brand px-4 py-3 text-white">
           <h2 id="translate-title" className="font-bold">
-            🌐 {t('translate.title')}
+            {t('translate.title')}
           </h2>
           <p className="text-sm opacity-90">{t('translate.body')}</p>
         </header>
@@ -39,7 +39,7 @@ export function TranslationReview({
           {items.map((item) => {
             const edited = ja[item.key] !== item.ja
             return (
-              <section key={item.key} className="flex flex-col gap-2 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200">
+              <section key={item.key} className="flex flex-col gap-2 rounded-2xl bg-white p-3 border border-line">
                 <h3 className="font-bold">{item.label}</h3>
                 <div>
                   <p className="text-xs font-bold text-slate-500">{t('translate.original')}</p>

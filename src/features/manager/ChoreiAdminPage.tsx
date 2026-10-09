@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Card, ErrorBox, Spinner } from '../../components/ui'
+import { Card, ErrorBox, Spinner, PageTitle } from '../../components/ui'
 import { choreiSlots, completion, dateRange } from '../../domain/stats'
 import { formatShortDate, weekdayOf } from '../../domain/time'
 import { SHIFTS } from '../../domain/types'
@@ -35,7 +35,7 @@ export function ChoreiAdminPage() {
   return (
     <div className="flex flex-col gap-3">
       <ManagerTabs />
-      <h1 className="text-xl font-bold">📣 {t('choreiList.title')}</h1>
+      <PageTitle title={t('choreiList.title')} />
       <PeriodBar period={period} />
       <div className="grid grid-cols-2 gap-2">
         <Stat label={t('dashboard.choreiRate')} value={total.rate === null ? '—' : `${total.rate}%`} sub={`${total.done}/${total.due}`} />

@@ -19,14 +19,14 @@ export function PeriodBar({ period, allowModes = true }: { period: ReturnType<ty
               key={m}
               type="button"
               onClick={() => setMode(m)}
-              className={cx('min-h-10 rounded-xl text-sm font-bold', mode === m ? 'bg-slate-800 text-white' : 'bg-white ring-1 ring-slate-300')}
+              className={cx('min-h-10 rounded-xl text-sm font-bold', mode === m ? 'bg-slate-800 text-white' : 'bg-white border border-line')}
             >
               {t(`period.${m}Mode`)}
             </button>
           ))}
         </div>
       )}
-      <div className="flex items-center justify-between rounded-xl bg-white p-1 ring-1 ring-slate-200">
+      <div className="flex items-center justify-between rounded-xl bg-white p-1 border border-line">
         <Button variant="ghost" onClick={() => move(-1)} aria-label={t('period.prev')}>
           ◀
         </Button>
@@ -41,7 +41,7 @@ export function PeriodBar({ period, allowModes = true }: { period: ReturnType<ty
 
 export function Stat({ label, value, sub, tone }: { label: string; value: ReactNode; sub?: ReactNode; tone?: 'good' | 'warn' | 'bad' }) {
   return (
-    <div className="rounded-2xl bg-white p-3 ring-1 ring-slate-200">
+    <div className="rounded-2xl bg-white p-3 border border-line">
       <p className="text-xs font-bold text-slate-500">{label}</p>
       <p className={cx('text-2xl font-bold', tone === 'good' && 'text-green-700', tone === 'warn' && 'text-amber-700', tone === 'bad' && 'text-red-700')}>
         {value}
@@ -56,8 +56,8 @@ export function Sheet({ title, onClose, children }: { title: ReactNode; onClose:
   const { t } = useTranslation()
   return (
     <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex justify-center bg-black/50">
-      <div className="flex max-h-dvh w-full max-w-lg flex-col bg-slate-50">
-        <header className="flex items-center justify-between bg-slate-800 px-4 py-3 text-white">
+      <div className="flex max-h-dvh w-full max-w-lg flex-col bg-white">
+        <header className="flex items-center justify-between border-b border-line bg-white px-4 py-3">
           <h2 className="font-bold">{title}</h2>
           <button type="button" onClick={onClose} className="min-h-11 min-w-11 text-xl" aria-label={t('action.close')}>
             ✕
@@ -78,4 +78,10 @@ export function Bar({ value, max, target }: { value: number | null; max: number;
       {target !== undefined && <div className="absolute top-0 h-full w-0.5 bg-slate-700" style={{ left: `${(target / max) * 100}%` }} />}
     </div>
   )
+}
+
+/** Flat status dot (instead of emoji). */
+export function Dot({ tone }: { tone: 'red' | 'amber' | 'blue' }) {
+  const color = tone === 'red' ? 'bg-red-500' : tone === 'amber' ? 'bg-amber-500' : 'bg-blue-500'
+  return <span aria-hidden className={cx('inline-block size-2 shrink-0 rounded-full', color)} />
 }

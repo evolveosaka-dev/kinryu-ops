@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
-import { Card } from '../../components/ui'
+import { Icon, type IconName } from '../../components/Icon'
+import { Card, PageTitle } from '../../components/ui'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import { monthOf, today } from './data'
@@ -29,33 +30,34 @@ function useTranslationUsage() {
 export function SettingsPage() {
   const { t } = useTranslation('manager')
   const usage = useTranslationUsage()
-  const links = [
-    { to: '/manager/users', icon: '👥', label: t('users.title'), sub: t('settings.usersSub') },
-    { to: '/manager/roster', icon: '📋', label: t('roster.title'), sub: t('settings.rosterSub') },
-    { to: '/manager/targets', icon: '🍜', label: t('targets.title'), sub: t('settings.targetsSub') },
-    { to: '/manager/sync', icon: '📊', label: t('sync.title'), sub: t('settings.syncSub') },
+  const links: { to: string; icon: IconName; label: string; sub: string }[] = [
+    { to: '/manager/users', icon: 'users', label: t('users.title'), sub: t('settings.usersSub') },
+    { to: '/manager/roster', icon: 'clipboard', label: t('roster.title'), sub: t('settings.rosterSub') },
+    { to: '/manager/targets', icon: 'chart', label: t('targets.title'), sub: t('settings.targetsSub') },
+    { to: '/manager/sync', icon: 'calendar', label: t('sync.title'), sub: t('settings.syncSub') },
   ]
   return (
     <div className="flex flex-col gap-3">
       <ManagerTabs />
-      <h1 className="text-xl font-bold">⚙️ {t('tabs.settings')}</h1>
+      <PageTitle title={t('tabs.settings')} />
       <ul className="flex flex-col gap-2">
         {links.map((l) => (
           <li key={l.to}>
-            <Link to={l.to} className="flex min-h-14 items-center gap-3 rounded-2xl bg-white px-4 ring-1 ring-slate-200">
-              <span aria-hidden className="text-2xl">
-                {l.icon}
+            <Link to={l.to} className="flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-white px-3 hover:bg-surface">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
+                <Icon name={l.icon} size={22} />
               </span>
-              <span className="flex flex-col">
-                <b>{l.label}</b>
-                <span className="text-xs text-slate-500">{l.sub}</span>
+              <span className="flex flex-1 flex-col">
+                <span className="font-semibold">{l.label}</span>
+                <span className="text-xs text-muted">{l.sub}</span>
               </span>
+              <Icon name="chevronRight" size={18} className="text-slate-400" />
             </Link>
           </li>
         ))}
       </ul>
       <Card className="flex flex-col gap-1 text-sm">
-        <h2 className="font-bold">🌐 {t('settings.translation')}</h2>
+        <h2 className="font-bold">{t('settings.translation')}</h2>
         {usage.data ? (
           <>
             <p>{t('settings.translationCalls', { n: usage.data.calls })}</p>

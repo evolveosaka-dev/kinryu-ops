@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
-import { Card, ErrorBox, Spinner } from '../../components/ui'
+import { Card, ErrorBox, Spinner, PageTitle } from '../../components/ui'
 import { PATROL_TARGET_25 } from '../../domain/patrol'
 import { choreiSlots, completion, dateRange, patrolSummary } from '../../domain/stats'
 import { addDays, formatShortDate, formatTokyoTime } from '../../domain/time'
@@ -12,7 +12,7 @@ import { cx } from '../../lib/cx'
 import { errorMessage, storeName } from '../../lib/format'
 import { unwrap, useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
-import { Stat } from './common'
+import { Stat, Dot } from './common'
 import { today, usePeople, useRecords, weekOf, type AdminPatrol } from './data'
 import { PatrolDetail } from './details'
 import { ManagerTabs } from './ManagerTabs'
@@ -67,7 +67,7 @@ export function DashboardPage() {
   return (
     <div className="flex flex-col gap-4">
       <ManagerTabs />
-      <h1 className="text-xl font-bold">📊 {t('dashboard.title')}</h1>
+      <PageTitle title={t('dashboard.title')} />
 
       <Card className="flex flex-col gap-2">
         <h2 className="font-bold">{t('dashboard.today', { date: formatShortDate(day) })}</h2>
@@ -104,23 +104,32 @@ export function DashboardPage() {
         <h2 className="font-bold">{t('dashboard.todo')}</h2>
         <ul className="flex flex-col gap-1 text-sm">
           <li>
-            <Link to="/manager/patrol?filter=coaching" className="flex min-h-11 items-center justify-between rounded-xl bg-red-50 px-3 font-bold text-red-900">
-              🔴 {t('dashboard.coaching')} <span>{coaching.length}</span>
+            <Link to="/manager/patrol?filter=coaching" className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-red-50 px-3 font-semibold text-red-900">
+              <span className="flex items-center gap-2">
+                <Dot tone="red" /> {t('dashboard.coaching')}
+              </span>
+              <span>{coaching.length}</span>
             </Link>
           </li>
           <li>
-            <Link to="/manager/patrol?filter=time" className="flex min-h-11 items-center justify-between rounded-xl bg-amber-50 px-3 font-bold text-amber-900">
-              🟡 {t('dashboard.timeReview')} <span>{timeReview.length}</span>
+            <Link to="/manager/patrol?filter=time" className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-amber-50 px-3 font-semibold text-amber-900">
+              <span className="flex items-center gap-2">
+                <Dot tone="amber" /> {t('dashboard.timeReview')}
+              </span>
+              <span>{timeReview.length}</span>
             </Link>
           </li>
           <li>
-            <Link to="/manager/chorei" className="flex min-h-11 items-center justify-between rounded-xl bg-amber-50 px-3 font-bold text-amber-900">
-              🟡 {t('dashboard.missingChorei')} <span>{missingSlots.length}</span>
+            <Link to="/manager/chorei" className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-amber-50 px-3 font-semibold text-amber-900">
+              <span className="flex items-center gap-2">
+                <Dot tone="amber" /> {t('dashboard.missingChorei')}
+              </span>
+              <span>{missingSlots.length}</span>
             </Link>
           </li>
           <li>
-            <Link to="/manager/users" className="flex min-h-11 items-center justify-between rounded-xl bg-blue-50 px-3 font-bold text-blue-900">
-              🔵 {t('dashboard.pendingUsers')} <span>{pending}</span>
+            <Link to="/manager/users" className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-blue-50 px-3 font-semibold text-blue-900">
+              {t('dashboard.pendingUsers')} <span>{pending}</span>
             </Link>
           </li>
         </ul>
