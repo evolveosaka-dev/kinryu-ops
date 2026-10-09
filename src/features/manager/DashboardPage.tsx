@@ -27,6 +27,7 @@ function useOpenItems() {
           .from('patrol_checks')
           .select('*, attachments(id, kind, status, drive_url)')
           .neq('status', 'void')
+          .eq('is_test', false)
           .or('needs_time_review.eq.true,and(judgement.eq.coaching,follow_up_done_at.is.null,status.eq.valid)')
           .order('started_at', { ascending: false }),
       ),

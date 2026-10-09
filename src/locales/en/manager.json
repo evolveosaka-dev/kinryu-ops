@@ -176,5 +176,7 @@
     "copyPrevious": "Copy last month",
     "save": "Save",
     "fillAll": "Enter a number (0 or more) in every box."
-  }
+  },
+  "testPeriod": "Before 10/12 is the test period and is not counted",
+  "countNote": "Counting starts on 10/12 (operation start). Earlier records are test data and excluded."
 }

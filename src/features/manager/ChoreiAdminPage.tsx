@@ -80,7 +80,7 @@ export function ChoreiAdminPage() {
                             ✓
                           </button>
                         ) : (
-                          <span className={slot.state === 'missing' ? 'font-bold text-red-700' : 'text-slate-300'}>{slot.state === 'missing' ? '✗' : '―'}</span>
+                          <span className={slot.state === 'missing' ? 'font-bold text-red-700' : 'text-slate-300'} title={slot.state === 'off' ? t('testPeriod') : undefined}>{slot.state === 'missing' ? '✗' : '―'}</span>
                         )}
                       </td>
                     )

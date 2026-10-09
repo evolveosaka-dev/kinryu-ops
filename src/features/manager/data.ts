@@ -54,6 +54,7 @@ export function useRecords(range: Range) {
         await supabase
           .from('chorei_records')
           .select(`*, ${ATT}, notes:chorei_notes(body, created_at)`)
+          .eq('is_test', false)
           .gte('business_date', range.from)
           .lte('business_date', range.to)
           .order('business_date', { ascending: false }),
@@ -66,6 +67,7 @@ export function useRecords(range: Range) {
         await supabase
           .from('patrol_checks')
           .select(`*, ${ATT}`)
+          .eq('is_test', false)
           .gte('business_date', range.from)
           .lte('business_date', range.to)
           .order('started_at', { ascending: false }),

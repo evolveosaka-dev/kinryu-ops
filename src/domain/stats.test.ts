@@ -69,6 +69,11 @@ describe('weeks and slots', () => {
     expect(slotDue('2026-10-12', 'middle', jst('2026-10-12T17:30:00'))).toBe(true)
     expect(slotDue('2026-10-11', 'late', jst('2026-10-12T01:00:00'))).toBe(true)
   })
+  it('days before the operation start (10/12) are off and not counted', () => {
+    const slots = choreiSlots([], ['2026-10-11'], ['M'], jst('2026-10-13T12:00:00'))
+    expect(slots.every((s) => s.state === 'off')).toBe(true)
+    expect(completion(slots)).toEqual({ done: 0, due: 0, rate: null })
+  })
   it('completion counts only due slots', () => {
     const slots = choreiSlots([chorei({})], ['2026-10-12'], ['M', 'S'], jst('2026-10-12T18:00:00'))
     expect(slots).toHaveLength(6)

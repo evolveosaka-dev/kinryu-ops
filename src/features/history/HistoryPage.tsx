@@ -13,6 +13,11 @@ import type { AttachmentSummary, ChoreiRecord, PatrolCheck } from '../../lib/typ
 
 type Tab = 'chorei' | 'patrol'
 
+function TestBadge() {
+  const { t } = useTranslation()
+  return <span className="ml-2 rounded bg-slate-200 px-1 text-xs font-bold text-slate-700">{t('history.test')}</span>
+}
+
 function Attachments({ list }: { list?: AttachmentSummary[] }) {
   const { t } = useTranslation()
   const { isManager } = useAuth()
@@ -56,6 +61,7 @@ function ChoreiList() {
             <p className="font-bold">
               {formatShortDate(r.business_date)} {t(`common:shift.${r.shift}`)} ・ {storeName(stores.data?.find((s) => s.id === r.store_id), currentLocale())}
               {r.status === 'void' && ` (${t('common:status.void')})`}
+              {r.is_test && <TestBadge />}
             </p>
             <p className="text-sm text-slate-600">
               {formatTokyoTime(new Date(r.submitted_at))} ・ {t('previous.target')} {r.target_bowls ?? '—'} ・ {t('participants.label')}{' '}
@@ -102,6 +108,7 @@ function PatrolList() {
             <div className="flex items-baseline justify-between">
               <p className="font-bold">
                 {formatShortDate(r.business_date)} {t(`common:shift.${r.shift}`)} ・ {storeName(stores.data?.find((s) => s.id === r.store_id), currentLocale())}
+                {r.is_test && <TestBadge />}
               </p>
               <p className="font-bold text-brand">
                 {r.total}/{r.max_total}

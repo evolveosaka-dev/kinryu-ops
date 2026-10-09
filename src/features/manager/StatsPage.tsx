@@ -15,6 +15,7 @@ import {
   staffRanking,
   weeklyTrend,
 } from '../../domain/stats'
+import { countFrom } from '../../domain/operation'
 import { formatShortDate } from '../../domain/time'
 import { cx } from '../../lib/cx'
 import { errorMessage, storeName } from '../../lib/format'
@@ -38,7 +39,9 @@ export function StatsPage() {
   if (error) return <ErrorBox message={errorMessage(error)} />
 
   const now = new Date()
-  const { from, to } = period.range
+  // statistics start on the operation day (10/12); earlier days are the test period
+  const from = countFrom(period.range.from)
+  const { to } = period.range
   const storeIds = (stores.data ?? []).map((s) => s.id)
   const ps = patrols.data ?? []
   const rs = chorei.data ?? []
@@ -132,6 +135,7 @@ export function StatsPage() {
       <ManagerTabs />
       <h1 className="text-xl font-bold">📈 {t('stats.title')}</h1>
       <PeriodBar period={period} />
+      <p className="text-xs text-slate-500">{t('countNote')}</p>
       <Button variant="secondary" onClick={() => void doExport()} disabled={exporting}>
         ⬇️ {exporting ? t('common:action.loading') : t('stats.export')}
       </Button>

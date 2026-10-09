@@ -55,6 +55,7 @@ export function HoursPage() {
       <ManagerTabs />
       <h1 className="text-xl font-bold">⏱️ {t('hours.title')}</h1>
       <PeriodBar period={period} allowModes={false} />
+      <p className="text-xs text-slate-500">{t('countNote')}</p>
       <div className="grid grid-cols-2 gap-2">
         <Button variant="secondary" onClick={() => void exportXlsx(`金龍_巡回時間_${month}.xlsx`, [{ name: '集計', rows: summaryRows }, { name: '明細', rows: detailRows }])}>
           ⬇️ Excel

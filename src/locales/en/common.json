@@ -130,7 +130,8 @@
     "title": "My history",
     "chorei": "Meeting",
     "patrol": "Patrol",
-    "empty": "No records yet."
+    "empty": "No records yet.",
+    "test": "Test"
   },
   "profile": {
     "title": "Settings",

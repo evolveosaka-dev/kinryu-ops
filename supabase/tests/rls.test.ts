@@ -305,3 +305,18 @@ describe('15-minute patrol limit', () => {
     ).rejects.toThrow(/end time already recorded/)
   })
 })
+
+describe('test data before the operation start (2026-10-12)', () => {
+  it('records with an earlier business date are labelled is_test, later ones are not', async () => {
+    const rows = await t.admin<{ business_date: string; is_test: boolean }>('select business_date::text, is_test from public.patrol_checks')
+    for (const r of rows) expect(r.is_test).toBe(r.business_date < '2026-10-12')
+    await t.admin(
+      `insert into public.chorei_records (store_id, business_date, shift, leader_id, stock_none)
+       values ($1, '2026-10-11', 'late', $2, true), ($1, '2026-10-12', 'late', $2, true)`,
+      [sennichimae, manager],
+    )
+    const flags = await t.admin<{ d: string; is_test: boolean }>(`select business_date::text as d, is_test from public.chorei_records where business_date in ('2026-10-11', '2026-10-12')`)
+    expect(flags.find((f) => f.d === '2026-10-11')?.is_test).toBe(true)
+    expect(flags.find((f) => f.d === '2026-10-12')?.is_test).toBe(false)
+  })
+})

@@ -1,4 +1,5 @@
 // Pure aggregation for the manager screens (unit-tested). Business dates are Tokyo dates.
+import { isBeforeOperation } from './operation'
 import { normalizedTo25, PATROL_WARN_MINUTES } from './patrol'
 import { addDays, MEETING_TIME, tokyoParts, weekdayOf } from './time'
 import { CHOREI_STEPS, SHIFTS, type ChoreiStep, type PatrolType, type Shift } from './types'
@@ -70,7 +71,8 @@ export function slotDue(date: string, shift: Shift, now: Date): boolean {
   return hour * 60 + minute >= h * 60 + m + 30
 }
 
-export type SlotState = 'done' | 'missing' | 'upcoming'
+/** off = before the operation start (test period), not counted */
+export type SlotState = 'done' | 'missing' | 'upcoming' | 'off'
 
 export function choreiSlots<T extends StatChorei>(records: T[], dates: string[], storeIds: string[], now: Date) {
   const byKey = new Map(records.filter((r) => r.status === 'valid').map((r) => [slotKey(r.business_date, r.store_id, r.shift), r]))
@@ -79,14 +81,15 @@ export function choreiSlots<T extends StatChorei>(records: T[], dates: string[],
     for (const storeId of storeIds)
       for (const shift of SHIFTS) {
         const record = byKey.get(slotKey(date, storeId, shift))
-        slots.push({ date, storeId, shift, record, state: record ? 'done' : slotDue(date, shift, now) ? 'missing' : 'upcoming' })
+        const state: SlotState = isBeforeOperation(date) ? 'off' : record ? 'done' : slotDue(date, shift, now) ? 'missing' : 'upcoming'
+        slots.push({ date, storeId, shift, record, state })
       }
   return slots
 }
 
 /** Completion over the slots that are already due. */
 export function completion(slots: { state: SlotState }[]): { done: number; due: number; rate: number | null } {
-  const due = slots.filter((s) => s.state !== 'upcoming').length
+  const due = slots.filter((s) => s.state === 'done' || s.state === 'missing').length
   const done = slots.filter((s) => s.state === 'done').length
   return { done, due, rate: due ? Math.round((done / due) * 100) : null }
 }
