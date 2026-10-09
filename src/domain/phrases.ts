@@ -15,6 +15,7 @@ export const PHILOSOPHY: Phrase[] = [
 
 export const SERVICE_PHRASES: Phrase[] = [
   { ja: 'いらっしゃい！', romaji: 'Irasshai!', key: 'phrase.irasshai' },
+  { ja: 'まいど！', romaji: 'Maido!', key: 'phrase.maido' },
   { ja: 'お待たせしました！', romaji: 'Omatase shimashita!', key: 'phrase.omatase' },
   { ja: 'おおきに！', romaji: 'Ōkini!', key: 'phrase.ookini' },
 ]
@@ -23,6 +24,7 @@ export const SERVICE_PHRASES: Phrase[] = [
 export const CAUTION_PICKS: Phrase[] = [
   { ja: 'いらっしゃいは3秒以内に、全員で言いましょう。', romaji: 'Irasshai wa san-byō inai ni, zen-in de iimashō.', key: 'pick.0' },
   { ja: 'お客様が帰るとき、全員で『おおきに』を言いましょう。', romaji: "Okyakusama ga kaeru toki, zen-in de 'ōkini' o iimashō.", key: 'pick.1' },
+  { ja: '食券を受け取ったら、『まいど！』と言いましょう。', romaji: "Shokken o uketottara, 'maido!' to iimashō.", key: 'pick.8' },
   { ja: 'お客様の目を見て、笑顔で話しましょう。', romaji: 'Okyakusama no me o mite, egao de hanashimashō.', key: 'pick.2' },
   { ja: '海外のお客様には『Thank you』も言いましょう。', romaji: "Kaigai no okyakusama ni wa 'Thank you' mo iimashō.", key: 'pick.3' },
   { ja: 'スープの量を見本の線までそろえましょう。', romaji: 'Sūpu no ryō o mihon no sen made soroemashō.', key: 'pick.4' },

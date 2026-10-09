@@ -102,9 +102,10 @@
     "philosophy1": "お客様第一",
     "philosophy2": "笑顔で元気に",
     "philosophy3": "お客様に最高の思い出を",
-    "irasshai": "いらっしゃいませ",
     "omatase": "お待たせしました",
-    "ookini": "ありがとうございます（大阪弁）"
+    "ookini": "ありがとうございます（大阪弁）",
+    "irasshai": "いらっしゃいませ",
+    "maido": "毎度ありがとうございます（食券を受け取ったとき）"
   },
   "judgement": {
     "good": "良好",

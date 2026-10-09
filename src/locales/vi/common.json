@@ -102,9 +102,10 @@
     "philosophy1": "Khách hàng là trên hết",
     "philosophy2": "Tươi cười và đầy năng lượng",
     "philosophy3": "Mang lại kỷ niệm đẹp nhất cho khách",
-    "irasshai": "Xin mời vào!",
     "omatase": "Xin lỗi đã để quý khách chờ!",
-    "ookini": "Cảm ơn! (tiếng Osaka)"
+    "ookini": "Cảm ơn! (tiếng Osaka)",
+    "irasshai": "Xin mời vào!",
+    "maido": "Cảm ơn! (khi nhận vé ăn, tiếng Osaka)"
   },
   "judgement": {
     "good": "Tốt",

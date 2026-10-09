@@ -102,9 +102,10 @@
     "philosophy1": "Customers come first",
     "philosophy2": "Smile and be energetic",
     "philosophy3": "Give customers the best memories",
-    "irasshai": "Welcome!",
     "omatase": "Thank you for waiting!",
-    "ookini": "Thank you! (Osaka dialect)"
+    "ookini": "Thank you! (Osaka dialect)",
+    "irasshai": "Welcome!",
+    "maido": "Thank you! (when taking the meal ticket, Osaka dialect)"
   },
   "judgement": {
     "good": "Good",

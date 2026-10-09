@@ -25,6 +25,7 @@ export const PREP_QUESTION: SpokenLine = {
 
 const PHRASES: SpokenLine[] = [
   { ja: 'いらっしゃい！', romaji: 'Irasshai!', key: 'lines.irasshai' },
+  { ja: 'まいど！', romaji: 'Maido!', key: 'lines.maido' },
   { ja: 'お{待|ま}たせしました！', romaji: 'Omatase shimashita!', key: 'lines.omatase' },
   { ja: 'おおきに！', romaji: 'Ōkini!', key: 'lines.ookini' },
 ]
