@@ -29,9 +29,9 @@
     "voice": {
       "1": "No greeting",
       "2": "Too quiet to reach customers",
-      "3": "Only on entry or only on leaving",
-      "4": "Both greetings, but only by 1 person",
-      "5": "Everyone says \"Irasshai\" within 3 s of entry and \"Ōkini\" on leaving; audible outside",
+      "3": "3 or fewer of the 4 greetings",
+      "4": "Greetings are said, but only by the person in charge (not everyone)",
+      "5": "Everyone says \"Irasshai\" within 3 s of entry, \"Maido\" when taking the meal ticket, \"Omatase shimashita\" when serving, and everyone says \"Ōkini\" on leaving; audible outside",
       "name": "② Greeting voice"
     },
     "grooming": {

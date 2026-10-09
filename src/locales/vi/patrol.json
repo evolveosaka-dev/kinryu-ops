@@ -29,9 +29,9 @@
     "voice": {
       "1": "Không chào",
       "2": "Nói nhỏ, khách không nghe thấy",
-      "3": "Chỉ chào lúc vào hoặc chỉ lúc về",
-      "4": "Có chào cả khi vào và khi về, nhưng chỉ 1 người",
-      "5": "Mọi người nói \"Irasshai\" trong 3 giây khi khách vào và \"Ōkini\" khi khách về; nghe được từ ngoài cửa",
+      "3": "Chỉ có 3 lời chào trở xuống trong 4 lời chào",
+      "4": "Có chào, nhưng chỉ 1 người phụ trách (không phải mọi người)",
+      "5": "Mọi người nói \"Irasshai\" trong 3 giây khi khách vào, \"Maido\" khi nhận vé ăn, \"Omatase shimashita\" khi mang món ra, mọi người nói \"Ōkini\" khi khách về; nghe được từ ngoài cửa",
       "name": "② Lời chào"
     },
     "grooming": {
