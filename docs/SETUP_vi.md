@@ -28,7 +28,7 @@ Thứ tự: **1 Supabase → 2 Google OAuth → 3 Resend → 4 GitHub**. Mất k
 ## 2. Google OAuth
 
 1. https://console.cloud.google.com → tạo project `kinryu-ops`.
-2. **APIs & Services → OAuth consent screen**: User type *External*, app name `金龍 朝礼・巡回`, support email = email của công ty → **Publish app** (để không bị giới hạn 100 người test).
+2. **APIs & Services → OAuth consent screen**: User type *External*, app name `金龍ラーメン専用アプリ`, support email = email của công ty → **Publish app** (để không bị giới hạn 100 người test).
 3. **Credentials → Create credentials → OAuth client ID** → *Web application*
    - Authorized JavaScript origins: `https://<github-user>.github.io`, `http://localhost:5173`
    - Authorized redirect URIs: `https://<PROJECT_REF>.supabase.co/auth/v1/callback`
@@ -41,7 +41,7 @@ Thứ tự: **1 Supabase → 2 Google OAuth → 3 Resend → 4 GitHub**. Mất k
 3. **API Keys → Create** (quyền *Sending access*). Không lưu key vào repo.
 4. Supabase **Project Settings → Authentication → SMTP Settings** → Enable custom SMTP:
    - Host `smtp.resend.com` ・ Port `465` ・ Username `resend` ・ Password = API key
-   - Sender email `support@avecvous-evolve.com` ・ Sender name `金龍 朝礼・巡回`
+   - Sender email `support@avecvous-evolve.com` ・ Sender name `金龍ラーメン専用アプリ`
 5. (Tuỳ chọn) Authentication → Email Templates: sửa tiêu đề/nội dung sang tiếng Nhật.
 
 ## 4. GitHub Pages

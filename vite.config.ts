@@ -16,8 +16,8 @@ export default defineConfig({
       registerType: 'prompt',
       includeAssets: ['icon.svg'],
       manifest: {
-        name: '金龍ラーメン 朝礼・巡回',
-        short_name: '金龍 朝礼',
+        name: '金龍ラーメン専用アプリ',
+        short_name: '金龍ラーメン専用アプリ',
         description: '朝礼記録・店舗巡回チェック',
         lang: 'ja',
         theme_color: '#1d4ed8',

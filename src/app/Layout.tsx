@@ -21,16 +21,16 @@ export function Layout() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col bg-surface">
-      <header className="sticky top-0 z-20 flex items-center justify-between bg-brand px-4 py-3 text-white">
-        <Link to="/" className="flex items-center gap-2.5">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-white text-[15px] font-bold text-brand" aria-hidden>
+      <header className="sticky top-0 z-20 flex items-center justify-between gap-2 bg-brand px-4 py-3 text-white">
+        <Link to="/" className="flex min-w-0 items-center gap-2.5">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-[15px] font-bold text-brand" aria-hidden>
             金
           </span>
-          <span className="text-[17px] font-bold">{t('app.title')}</span>
+          <span className="truncate text-[17px] font-bold">{t('app.title')}</span>
         </Link>
         <Link
           to="/profile"
-          className="flex h-9 max-w-[9rem] items-center rounded-full bg-white/20 px-3.5 text-[15px] font-bold text-white"
+          className="flex h-9 max-w-[7.5rem] shrink-0 items-center rounded-full bg-white/20 px-3.5 text-[15px] font-bold text-white"
           aria-label={t('nav.profile')}
         >
           <span className="truncate">{familyName(profile?.full_name, profile?.display_name)}</span>
