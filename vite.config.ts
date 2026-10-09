@@ -13,7 +13,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['icon.svg'],
       manifest: {
         name: '金龍ラーメン 朝礼・巡回',

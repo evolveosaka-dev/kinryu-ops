@@ -208,5 +208,9 @@
     "4": "T5",
     "5": "T6",
     "6": "T7"
+  },
+  "update": {
+    "available": "Đã có phiên bản mới",
+    "button": "Cập nhật"
   }
 }

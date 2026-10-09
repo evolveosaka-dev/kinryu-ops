@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { App } from './app/App'
 import { AuthProvider } from './app/auth'
 import { ToastProvider } from './components/Toast'
+import { UpdateBanner } from './components/UpdateBanner'
 import { UploadQueueProvider } from './features/attachments/uploadQueue'
 import './i18n'
 import './index.css'
@@ -19,6 +20,7 @@ createRoot(document.getElementById('root')!).render(
         <AuthProvider>
           <UploadQueueProvider>
             <App />
+            <UpdateBanner />
           </UploadQueueProvider>
         </AuthProvider>
       </ToastProvider>

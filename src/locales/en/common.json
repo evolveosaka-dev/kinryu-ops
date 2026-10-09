@@ -208,5 +208,9 @@
     "4": "Thu",
     "5": "Fri",
     "6": "Sat"
+  },
+  "update": {
+    "available": "A new version is available",
+    "button": "Update"
   }
 }
