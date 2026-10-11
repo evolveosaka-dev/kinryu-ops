@@ -10,7 +10,7 @@
 // Re-importing the month's shift workbook (設定 → シフト表の読み込み) resets the extended
 // shifts; run this again afterwards. Requires `unzip` on PATH (Git for Windows ships it).
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -29,7 +29,11 @@ if (!file) {
 const fail = (msg) => {
   throw new Error(msg)
 }
-const decode = (s) => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&')
+const decode = (s) =>
+  s
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&')
 const serialToDate = (v) => new Date(Date.UTC(1899, 11, 30) + Math.floor(Number(v)) * 86400000).toISOString().slice(0, 10)
 const addDays = (date, n) => new Date(Date.parse(`${date}T00:00:00Z`) + n * 86400000).toISOString().slice(0, 10)
 const dayDiff = (a, b) => Math.round((Date.parse(`${a}T00:00:00Z`) - Date.parse(`${b}T00:00:00Z`)) / 86400000)
@@ -59,9 +63,11 @@ function methodOf(text) {
 
 const dir = mkdtempSync(join(tmpdir(), 'duties-'))
 try {
-  execFileSync('unzip', ['-o', '-q', file, 'xl/workbook.xml', 'xl/_rels/workbook.xml.rels', 'xl/sharedStrings.xml', 'xl/worksheets/*', '-d', dir])
+  // files saved by other tools (openpyxl) may have no sharedStrings.xml: strings are inline then
+  execFileSync('unzip', ['-o', '-q', file, '-d', dir])
   const read = (p) => readFileSync(join(dir, p), 'utf8')
-  const strings = [...read('xl/sharedStrings.xml').matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) =>
+  const shared = existsSync(join(dir, 'xl/sharedStrings.xml')) ? read('xl/sharedStrings.xml') : ''
+  const strings = [...shared.matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) =>
     [...m[1].replace(/<rPh[\s\S]*?<\/rPh>/g, '').matchAll(/<t[^>]*>([^<]*)<\/t>/g)].map((x) => decode(x[1])).join(''),
   )
   const workbook = read('xl/workbook.xml')
@@ -87,7 +93,7 @@ try {
   const extensions = new Map() // own shift key → { own, roster, end }
   const seen = new Set()
   for (const [r, c] of Object.entries(rows)) {
-    if (Number(r) < 5 || !/^\d{5}$/.test(c.A ?? '')) continue
+    if (Number(r) < 5 || !/^\d{5}(\.0+)?$/.test(c.A ?? '')) continue
     const date = serialToDate(c.A)
     if (date < from || date > to) continue
     const roster = c.C
