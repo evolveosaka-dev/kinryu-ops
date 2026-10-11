@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { SpokenPhrase } from '../components/SpokenPhrase'
 import { Card, SectionTitle } from '../components/ui'
+import { DutyCard } from '../features/schedule/DutyCard'
 import { NextShiftCard } from '../features/schedule/NextShiftCard'
 import { PHILOSOPHY, SERVICE_PHRASES } from '../domain/phrases'
 import { currentSlot, formatShortDate, MEETING_TIME } from '../domain/time'
@@ -50,6 +51,8 @@ export function HomePage() {
         <h1 className="text-[23px] leading-tight font-bold">{t('home.name', { name: me.display_name || me.full_name })}</h1>
         <p className="mt-1 text-muted">{t('home.welcome')}</p>
       </div>
+
+      <DutyCard />
 
       <NextShiftCard />
 

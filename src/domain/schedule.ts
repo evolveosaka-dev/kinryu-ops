@@ -32,8 +32,9 @@ export const formatMin = (min: number) => `${Math.floor(min / 60) % 24}:${String
 export const formatRange = (a: Pick<Assignment, 'start_min' | 'end_min'>) => `${formatMin(a.start_min)}–${formatMin(a.end_min)}`
 
 const JST = 9 * 3600_000
-export const startAt = (a: Assignment) => new Date(Date.parse(`${a.business_date}T00:00:00Z`) - JST + a.start_min * 60_000)
-export const endAt = (a: Assignment) => new Date(Date.parse(`${a.business_date}T00:00:00Z`) - JST + a.end_min * 60_000)
+type Timed = Pick<Assignment, 'business_date' | 'start_min' | 'end_min'>
+export const startAt = (a: Timed) => new Date(Date.parse(`${a.business_date}T00:00:00Z`) - JST + a.start_min * 60_000)
+export const endAt = (a: Timed) => new Date(Date.parse(`${a.business_date}T00:00:00Z`) - JST + a.end_min * 60_000)
 
 export const sortAssignments = <T extends Assignment>(xs: T[]) => [...xs].sort((a, b) => startAt(a).getTime() - startAt(b).getTime())
 

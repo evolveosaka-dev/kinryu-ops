@@ -81,5 +81,34 @@
     "prevMonth": "前の月",
     "nextMonth": "次の月",
     "off": "休み"
+  },
+  "duty": {
+    "title": "朝礼・巡回の担当",
+    "open": "未実施 {{n}}件",
+    "chorei": "朝礼の誘導",
+    "patrol": "巡回チェック",
+    "about": "{{time}}ごろ",
+    "during": "勤務中の空いている時間（{{range}}）",
+    "method": {
+      "own": "勤務している店舗で",
+      "arrival": "出勤したらすぐ（定時にいないため）",
+      "move": "もう一方の店舗から移動して",
+      "continue": "勤務の最後に続けて",
+      "extend": "勤務を延長して"
+    },
+    "status": {
+      "done": "済み",
+      "now": "今です",
+      "soon": "これから",
+      "missed": "まだです"
+    },
+    "staff": {
+      "chorei": "参加予定",
+      "patrol": "確認する人"
+    },
+    "doChorei": "朝礼を記録する",
+    "doPatrol": "巡回チェックを始める",
+    "next": "次の担当",
+    "noneToday": "今日の担当はありません。"
   }
 }

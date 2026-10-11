@@ -81,5 +81,34 @@
     "prevMonth": "Tháng trước",
     "nextMonth": "Tháng sau",
     "off": "Nghỉ"
+  },
+  "duty": {
+    "title": "Nhiệm vụ họp ca・tuần tra",
+    "open": "Còn {{n}} việc",
+    "chorei": "Dẫn buổi họp đầu ca",
+    "patrol": "Kiểm tra tuần tra",
+    "about": "khoảng {{time}}",
+    "during": "Lúc rảnh trong ca làm ({{range}})",
+    "method": {
+      "own": "Tại cửa hàng bạn đang làm",
+      "arrival": "Ngay khi bạn đến làm (vì không có mặt đúng giờ họp)",
+      "move": "Di chuyển sang từ cửa hàng còn lại",
+      "continue": "Tiếp ngay cuối ca làm của bạn",
+      "extend": "Làm thêm giờ sau ca"
+    },
+    "status": {
+      "done": "Đã xong",
+      "now": "Bây giờ",
+      "soon": "Sắp tới",
+      "missed": "Chưa làm"
+    },
+    "staff": {
+      "chorei": "Dự kiến tham gia",
+      "patrol": "Người cần kiểm tra"
+    },
+    "doChorei": "Ghi biên bản họp ca",
+    "doPatrol": "Bắt đầu kiểm tra tuần tra",
+    "next": "Nhiệm vụ tiếp theo",
+    "noneToday": "Hôm nay không có nhiệm vụ."
   }
 }

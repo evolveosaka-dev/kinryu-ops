@@ -377,6 +377,39 @@ describe('shift schedule', () => {
   it('staff cannot link themselves to another shift-table name', async () => {
     await expect(t.as(staffS, "update public.profiles set roster_name = 'ミナミ' where id = auth.uid()")).rejects.toThrow(/only managers/)
   })
+  it('duties: members see only their own; done follows the 朝礼 record and their own patrol check', async () => {
+    // staffM is linked to ミナミ above; patroller gets キタ. A day no other test uses:
+    const DAY = `${TODAY} - 3`
+    await t.admin(`update public.profiles set roster_name = 'キタ' where id = $1`, [patroller])
+    const insertDuty = `insert into public.duty_assignments (business_date, shift, store_id, roster_name, kind, time_mode, start_min, end_min, method)
+      values (${DAY}, 'late', $1, $2, $3, 'at', 1380, 1410, 'own')`
+    await expect(t.as(staffM, insertDuty, [midosuji, 'ミナミ', 'chorei'])).rejects.toThrow(/row-level security/)
+    await t.as(manager, insertDuty, [midosuji, 'ミナミ', 'chorei'])
+    await t.admin(insertDuty, [sennichimae, 'キタ', 'patrol'])
+    await t.admin(insertDuty, [sennichimae, 'キタ', 'chorei'])
+
+    expect(await t.as(staffM, 'select roster_name from public.duty_assignments')).toEqual([{ roster_name: 'ミナミ' }])
+    expect(await t.as(staffS, 'select id from public.duty_assignments')).toHaveLength(0)
+    expect((await t.as(manager, 'select id from public.duty_assignments')).length).toBe(3)
+
+    const mine = (who: string) =>
+      t.as<{ kind: string; done: boolean }>(who, `select kind, done from public.my_duties(${DAY}, ${TODAY}) order by kind`)
+    expect(await mine(patroller)).toEqual([
+      { kind: 'chorei', done: false },
+      { kind: 'patrol', done: false },
+    ])
+    await t.admin(`insert into public.chorei_records (store_id, business_date, shift, leader_id, stock_none) values ($1, ${DAY}, 'late', $2, true)`, [sennichimae, staffS])
+    await t.admin(`
+      insert into public.patrol_checks (patroller_id, store_id, business_date, shift, patrol_type, started_at, ended_at,
+        score_smile, score_voice, score_grooming, score_clean, score_quality, good_points, improvements, status)
+      values ($2, $1, ${DAY}, 'late', 'in_shift', now() - interval '10 minutes', now() - interval '2 minutes', 4, 4, 4, 4, null, '笑顔', '声', 'valid')`, [sennichimae, patroller])
+    expect(await mine(patroller)).toEqual([
+      { kind: 'chorei', done: true },
+      { kind: 'patrol', done: true },
+    ])
+    expect(await mine(staffM)).toEqual([{ kind: 'chorei', done: false }]) // other store's 朝礼 does not count
+    expect(await t.as(pending, `select * from public.my_duties(${DAY}, ${TODAY})`)).toHaveLength(0)
+  })
   it('re-import replaces the month', async () => {
     await t.as(manager, 'select public.import_shift_month($1, $2)', ['2026-10-01', JSON.stringify([JSON.parse(rows)[0]])])
     expect((await t.admin(`select id from public.shift_assignments where month = '2026-10-01'`)).length).toBe(1)

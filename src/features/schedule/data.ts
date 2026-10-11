@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import type { Duty } from '../../domain/duty'
 import type { Assignment } from '../../domain/schedule'
 import { addDays, tokyoParts } from '../../domain/time'
 import { unwrap } from '../../lib/queries'
@@ -33,6 +34,18 @@ export function useMySchedule(rosterName: string | null) {
           .order('business_date')
           .order('start_min'),
       ),
+  })
+}
+
+/** My 朝礼・巡回 duties from yesterday (遅番 runs past midnight) to a week ahead, with done flags. */
+export function useMyDuties(rosterName: string | null) {
+  const today = tokyoParts(new Date()).date
+  return useQuery({
+    queryKey: ['my_duties', rosterName, today],
+    enabled: Boolean(rosterName),
+    staleTime: 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    queryFn: async () => unwrap<Duty[]>(await supabase.rpc('my_duties', { p_from: addDays(today, -1), p_to: addDays(today, 7) })),
   })
 }
 

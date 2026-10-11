@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
 import { StaffPicker } from '../../components/StaffPicker'
 import { Button, Card, Checkbox, ErrorBox, Segmented, Spinner, StickyActions, TextArea, TextInput, PageTitle } from '../../components/ui'
+import { readSlotPreset } from '../../domain/duty'
 import { CAUTION_PICKS } from '../../domain/phrases'
 import { currentSlot, dayType, formatTokyoTime, MEETING_TIME, monthOf } from '../../domain/time'
 import { ALL_STEPS_DONE, CHOREI_STEPS, SHIFTS, type Shift, type StepsDone } from '../../domain/types'
@@ -34,8 +35,14 @@ export function ChoreiFormPage() {
   const holidays = useHolidays()
   const targets = useTargets()
 
-  const initial = useMemo(() => currentSlot(new Date()), [])
-  const [storeId, setStoreId] = useState(getLastStore() ?? '')
+  // opened from the 担当 card on ホーム: that store, date and shift
+  const [params] = useSearchParams()
+  const [preset] = useState(() => readSlotPreset(params))
+  const initial = useMemo(
+    () => (preset.date && preset.shift ? { businessDate: preset.date, shift: preset.shift } : currentSlot(new Date())),
+    [preset],
+  )
+  const [storeId, setStoreId] = useState(preset.storeCode ? '' : (getLastStore() ?? ''))
   const [businessDate, setBusinessDate] = useState(initial.businessDate)
   const [shift, setShift] = useState<Shift>(initial.shift)
   const [participantNames, setParticipantNames] = useState<string[]>([])
@@ -52,7 +59,7 @@ export function ChoreiFormPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const effectiveStore = storeId || stores.data?.[0]?.id || ''
+  const effectiveStore = storeId || stores.data?.find((s) => s.code === preset.storeCode)?.id || stores.data?.[0]?.id || ''
 
   const slot = useQuery({
     queryKey: ['chorei_slot', effectiveStore, businessDate, shift],

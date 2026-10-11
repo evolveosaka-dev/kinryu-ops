@@ -81,5 +81,34 @@
     "prevMonth": "Previous month",
     "nextMonth": "Next month",
     "off": "Day off"
+  },
+  "duty": {
+    "title": "Your meeting & patrol duties",
+    "open": "{{n}} to do",
+    "chorei": "Lead the shift-start meeting",
+    "patrol": "Patrol check",
+    "about": "around {{time}}",
+    "during": "Any free time during your shift ({{range}})",
+    "method": {
+      "own": "At the store where you work",
+      "arrival": "As soon as you arrive (you are not there at the set time)",
+      "move": "Walk over from the other store",
+      "continue": "Right at the end of your shift",
+      "extend": "Work a little longer than your shift"
+    },
+    "status": {
+      "done": "Done",
+      "now": "Now",
+      "soon": "Upcoming",
+      "missed": "Not done yet"
+    },
+    "staff": {
+      "chorei": "Expected",
+      "patrol": "Staff to check"
+    },
+    "doChorei": "Record the meeting",
+    "doPatrol": "Start the patrol check",
+    "next": "Next duty",
+    "noneToday": "No duties today."
   }
 }

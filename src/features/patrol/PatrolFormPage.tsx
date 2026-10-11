@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import { useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
 import { StaffPicker } from '../../components/StaffPicker'
@@ -14,6 +14,7 @@ import {
   suggestPatrol,
   type PatrolScores,
 } from '../../domain/patrol'
+import { readSlotPreset, type SlotPreset } from '../../domain/duty'
 import { formatTokyoTime } from '../../domain/time'
 import { PATROL_TYPES, SHIFTS, type PatrolType } from '../../domain/types'
 import { currentLocale } from '../../i18n'
@@ -41,17 +42,19 @@ function completeScores(s: PatrolFormState['scores']): PatrolScores | null {
   return { smile, voice, grooming, clean, quality }
 }
 
-function newForm(stores: Store[]): PatrolFormState {
+function newForm(stores: Store[], preset: SlotPreset): PatrolFormState {
   // "own store" = the store used last time (staff work at both stores)
   const home = initialStore(stores.map((s) => s.id))
   const other = stores.find((s) => s.id !== home)?.id ?? home
   const s = suggestPatrol(new Date(), home, other)
+  // opened from the 担当 card on ホーム: that store, date, shift and type
+  const presetStore = stores.find((x) => x.code === preset.storeCode)?.id
   return {
     draftId: null,
-    patrolType: s.patrolType,
-    storeId: s.storeId,
-    businessDate: s.businessDate,
-    shift: s.shift,
+    patrolType: preset.patrolType ?? s.patrolType,
+    storeId: presetStore ?? s.storeId,
+    businessDate: preset.date ?? s.businessDate,
+    shift: preset.shift ?? s.shift,
     startedAt: null,
     endedAt: null,
     scores: {},
@@ -72,13 +75,14 @@ export function PatrolFormPage() {
 
 function PatrolForm({ stores }: { stores: Store[] }) {
   const { t } = useTranslation('patrol')
+  const [params] = useSearchParams()
   const me = useMe()
   const toast = useToast()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const locale = currentLocale()
 
-  const [form, setForm] = useState<PatrolFormState>(() => loadLocalDraft(me.id) ?? newForm(stores))
+  const [form, setForm] = useState<PatrolFormState>(() => loadLocalDraft(me.id) ?? newForm(stores, readSlotPreset(params)))
   const [resumed] = useState(() => Boolean(form.startedAt))
   const [now, setNow] = useState(() => new Date())
   const [error, setError] = useState<string | null>(null)
