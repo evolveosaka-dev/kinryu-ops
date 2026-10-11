@@ -8,7 +8,7 @@ import { addDays, tokyoParts } from '../../domain/time'
 import { errorMessage } from '../../lib/format'
 import { cx } from '../../lib/cx'
 import { useMySchedule, type AssignmentRow } from './data'
-import { Coworkers, ShiftChip, StoreLabel, TimeRange } from './parts'
+import { Coworkers, ExtensionNote, ShiftChip, StoreLabel, TimeRange } from './parts'
 import { hours, SHIFT_STYLE, useDayLabel } from './style'
 
 type View = 'list' | 'calendar'
@@ -42,6 +42,7 @@ function DayDetail({ date, rows, chains, onClose }: { date: string; rows: Assign
             <span className="text-sm font-normal text-muted">{t('schedule.hours', { h: hours(a.end_min - a.start_min) })}</span>
           </p>
           <StoreLabel mark={a.store_mark} />
+          <ExtensionNote a={a} />
           {(chains.get(a) ?? 0) >= LONG_CHAIN_MIN && (
             <p className="rounded-lg bg-amber-100 px-3 py-2 text-sm font-bold text-amber-900">⚠️ {t('schedule.long', { h: hours(chains.get(a)!) })}</p>
           )}
@@ -166,6 +167,7 @@ export function SchedulePage() {
                     <span className="text-sm">
                       <StoreLabel mark={a.store_mark} />
                     </span>
+                    <ExtensionNote a={a} short />
                     {chain >= LONG_CHAIN_MIN && <span className="text-sm font-bold text-amber-800">⚠️ {t('schedule.longShort', { h: hours(chain) })}</span>}
                   </span>
                   <span aria-hidden className="text-xl text-slate-500">

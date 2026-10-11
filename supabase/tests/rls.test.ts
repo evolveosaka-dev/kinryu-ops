@@ -377,6 +377,15 @@ describe('shift schedule', () => {
   it('staff cannot link themselves to another shift-table name', async () => {
     await expect(t.as(staffS, "update public.profiles set roster_name = 'ミナミ' where id = auth.uid()")).rejects.toThrow(/only managers/)
   })
+  it('勤務延長 keeps the shift-table end, which must be before the new end', async () => {
+    await t.admin(`update public.shift_assignments set end_min = 1410, original_end_min = 1380 where raw = '⑤17-23' and roster_name = 'ミナミ'`)
+    expect(await t.as(staffM, `select end_min, original_end_min from public.shift_assignments where shift = 'middle'`)).toEqual([
+      { end_min: 1410, original_end_min: 1380 },
+    ])
+    await expect(t.admin(`update public.shift_assignments set original_end_min = 1500 where raw = '⑤17-23' and roster_name = 'ミナミ'`)).rejects.toThrow(
+      /shift_assignments_extension/,
+    )
+  })
   it('duties: members see only their own; done follows the 朝礼 record and their own patrol check', async () => {
     // staffM is linked to ミナミ above; patroller gets キタ. A day no other test uses:
     const DAY = `${TODAY} - 3`

@@ -8,6 +8,8 @@ export interface Assignment {
   store_mark: string
   start_min: number // minutes from 00:00 of business_date (may exceed 1440)
   end_min: number
+  /** set when the shift was extended (勤務延長): the end in the shift table */
+  original_end_min?: number | null
 }
 
 export const STORE_BY_MARK: Record<string, { ja: string; short: string; code?: 'midosuji' | 'sennichimae' }> = {

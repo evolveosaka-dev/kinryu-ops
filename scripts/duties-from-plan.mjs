@@ -1,7 +1,8 @@
 // Load the 朝礼・巡回 duty plan of the patrol members from the 担当表 workbook (.xlsx), sheet
 // ⑦日別スケジュール (調整後 = the original shifts plus the ②案 extensions). Prints SQL that
 //   1. replaces public.duty_assignments for the chosen dates (shown to each member on ホーム), and
-//   2. extends the shifts in public.shift_assignments where a ②案 row works past the shift end.
+//   2. extends the shifts in public.shift_assignments where a ②案 row works past the shift end
+//      (original_end_min keeps the shift-table end; the app shows 「延長」 to the staff member).
 // Names never go into the repository:
 //
 //   node scripts/duties-from-plan.mjs "<担当表>.xlsx" 2026-10-12 2026-10-19 > duties.sql
@@ -141,7 +142,7 @@ try {
     )
   const updates = [...extensions.values()].map(
     ({ own, roster, end }) =>
-      `update public.shift_assignments set end_min = ${end}, raw = '${own.store.mark}${hours(own.start)}-${hours(end)}'\n` +
+      `update public.shift_assignments set end_min = ${end}, original_end_min = ${own.end}, raw ='${own.store.mark}${hours(own.start)}-${hours(end)}'\n` +
       ` where roster_name = '${esc(roster)}' and business_date = '${own.date}' and shift = '${own.shift}' and end_min in (${own.end}, ${end});`,
   )
   const period = `business_date between '${from === '0000-01-01' ? duties[0].date : from}' and '${to === '9999-12-31' ? duties.at(-1).date : to}'`
@@ -156,7 +157,7 @@ ${values.join(',\n')};
 ${updates.join('\n')}
 commit;
 select roster_name, kind, count(*) as duties from public.duty_assignments where ${period} group by 1, 2 order by 1, 2;
-select roster_name, business_date, shift, raw from public.shift_assignments
+select roster_name, business_date, shift, raw, original_end_min from public.shift_assignments
  where (roster_name, business_date, shift) in (${[...extensions.values()].map(({ own, roster }) => `('${esc(roster)}', '${own.date}'::date, '${own.shift}')`).join(', ') || "(null, null::date, null)"})
  order by business_date;`)
   console.error(`duties: ${duties.length} rows (${from} – ${to}); extended shifts: ${[...extensions.values()].map(({ own, roster, end }) => `${roster} ${own.date} ${own.shift} → ${hours(end)}:00`).join(', ') || 'none'}`)

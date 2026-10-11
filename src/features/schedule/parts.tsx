@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { formatRange, STORE_BY_MARK, type Assignment } from '../../domain/schedule'
+import { formatMin, formatRange, STORE_BY_MARK, type Assignment } from '../../domain/schedule'
 import type { Shift } from '../../domain/types'
 import { cx } from '../../lib/cx'
 import { useCoworkers } from './data'
@@ -22,6 +22,18 @@ export function StoreLabel({ mark }: { mark: string }) {
 
 export function TimeRange({ a }: { a: Pick<Assignment, 'start_min' | 'end_min'> }) {
   return <span className="tabular-nums">{formatRange(a)}</span>
+}
+
+/** 勤務延長: 「17:30 → 18:00 まで延長」 when the shift was extended for 朝礼・巡回. */
+export function ExtensionNote({ a, short }: { a: Pick<Assignment, 'original_end_min' | 'end_min'>; short?: boolean }) {
+  const { t } = useTranslation('shift')
+  if (a.original_end_min == null) return null
+  const args = { from: formatMin(a.original_end_min), to: formatMin(a.end_min) }
+  return short ? (
+    <span className="text-sm font-bold text-violet-800">⏱ {t('schedule.extendedShort', args)}</span>
+  ) : (
+    <p className="rounded-lg bg-violet-50 px-3 py-2 text-sm font-bold text-violet-900">⏱ {t('schedule.extended', args)}</p>
+  )
 }
 
 /** Coworkers in the same shift at the same store. */

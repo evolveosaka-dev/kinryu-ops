@@ -80,7 +80,9 @@
     "open": "Xem lịch làm việc",
     "prevMonth": "Tháng trước",
     "nextMonth": "Tháng sau",
-    "off": "Nghỉ"
+    "off": "Nghỉ",
+    "extended": "Kéo dài ca: đến {{to}} thay vì {{from}} (để họp ca và tuần tra)",
+    "extendedShort": "Kéo dài {{from}}→{{to}}"
   },
   "duty": {
     "title": "Nhiệm vụ họp ca・tuần tra",

@@ -6,7 +6,7 @@ import { chainMinutes, daysUntil, LONG_CHAIN_MIN, nextShift, weekDates } from '.
 import { formatShortDate, tokyoParts } from '../../domain/time'
 import { cx } from '../../lib/cx'
 import { useMySchedule } from './data'
-import { ShiftChip, StoreLabel, TimeRange } from './parts'
+import { ExtensionNote, ShiftChip, StoreLabel, TimeRange } from './parts'
 import { hours, SHIFT_STYLE, useDayLabel } from './style'
 
 /** Home: the shift in progress or the next one, plus this week's strip. */
@@ -49,6 +49,7 @@ export function NextShiftCard() {
             </span>
             <StoreLabel mark={next.assignment.store_mark} />
           </p>
+          <ExtensionNote a={next.assignment} />
           {chain >= LONG_CHAIN_MIN && (
             <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm font-bold text-amber-900">⚠️ {t('schedule.long', { h: hours(chain) })}</p>
           )}

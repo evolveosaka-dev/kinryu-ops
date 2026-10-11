@@ -28,7 +28,7 @@ export function useMySchedule(rosterName: string | null) {
       unwrap<AssignmentRow[]>(
         await supabase
           .from('shift_assignments')
-          .select('id, roster_name, business_date, shift, store_mark, start_min, end_min')
+          .select('id, roster_name, business_date, shift, store_mark, start_min, end_min, original_end_min')
           .eq('roster_name', rosterName!)
           .gte('business_date', from)
           .order('business_date')

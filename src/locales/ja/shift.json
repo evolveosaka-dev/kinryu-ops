@@ -80,7 +80,9 @@
     "open": "シフトスケジュールを見る",
     "prevMonth": "前の月",
     "nextMonth": "次の月",
-    "off": "休み"
+    "off": "休み",
+    "extended": "勤務延長：{{from}}まで → {{to}}まで（朝礼・巡回のため）",
+    "extendedShort": "{{from}}→{{to}} 延長"
   },
   "duty": {
     "title": "朝礼・巡回の担当",

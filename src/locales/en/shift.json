@@ -80,7 +80,9 @@
     "open": "See shift schedule",
     "prevMonth": "Previous month",
     "nextMonth": "Next month",
-    "off": "Day off"
+    "off": "Day off",
+    "extended": "Extended shift: until {{to}} instead of {{from}} (for the meeting and patrol)",
+    "extendedShort": "Extended {{from}}→{{to}}"
   },
   "duty": {
     "title": "Your meeting & patrol duties",
