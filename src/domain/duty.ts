@@ -33,6 +33,15 @@ export function dutyStatus(d: Duty, now: Date): DutyStatus {
   return startAt(d) <= now ? 'now' : 'soon'
 }
 
+/** Shown in full (with the form button) from this many minutes before the start. */
+export const DETAIL_BEFORE_MIN = 60
+
+/** In progress, missed, or starting within the hour: shown in full and counted in the red badge. */
+export function isUrgent(d: Duty, now: Date): boolean {
+  const s = dutyStatus(d, now)
+  return s === 'now' || s === 'missed' || (s === 'soon' && startAt(d).getTime() - now.getTime() <= DETAIL_BEFORE_MIN * 60_000)
+}
+
 /**
  * Duties to show on ホーム: those starting within the next 24 h, those in progress, and those
  * whose window ended less than an hour ago (done ✓ or still missing).

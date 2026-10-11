@@ -84,7 +84,7 @@
   },
   "duty": {
     "title": "Your meeting & patrol duties",
-    "open": "{{n}} to do",
+    "open": "{{n}} to do now",
     "chorei": "Lead the shift-start meeting",
     "patrol": "Patrol check",
     "about": "around {{time}}",

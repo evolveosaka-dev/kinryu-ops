@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { useAuth, useMe } from '../../app/auth'
 import { Card } from '../../components/ui'
-import { dutyFormLink, dutyStatus, homeDuties, nextDuty, type Duty, type DutyStatus } from '../../domain/duty'
+import { dutyFormLink, dutyStatus, homeDuties, isUrgent, nextDuty, type Duty, type DutyStatus } from '../../domain/duty'
 import { formatMin, formatRange, STORE_BY_MARK } from '../../domain/schedule'
 import { tokyoParts } from '../../domain/time'
 import { cx } from '../../lib/cx'
@@ -28,6 +28,33 @@ function DutyTime({ d }: { d: Duty }) {
   return <>{t('duty.during', { range: formatRange(d) })}</>
 }
 
+/** Later today / tomorrow, or already done: one line, no button. */
+function DutyLine({ d, status, storeCode }: { d: Duty; status: DutyStatus; storeCode: string }) {
+  const { t } = useTranslation('shift')
+  const dayLabel = useDayLabel()
+  const today = tokyoParts(new Date()).date
+  return (
+    <li className="flex items-center gap-2 rounded-xl border border-line bg-white px-3 py-2">
+      <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-0.5">
+        <span className="font-bold">
+          <span aria-hidden>{d.kind === 'chorei' ? '📣 ' : '🔍 '}</span>
+          {t(`duty.${d.kind}`)}
+        </span>
+        <span className="tabular-nums">
+          {d.business_date !== today && `${dayLabel(d.business_date)} `}
+          {d.time_mode === 'during' ? formatRange(d) : <DutyTime d={d} />}
+        </span>
+        <StoreLabel mark={MARK_BY_CODE[storeCode] ?? ''} />
+      </span>
+      <span className={cx('shrink-0 rounded-full px-2.5 py-0.5 text-sm font-bold', STATUS_STYLE[status])}>
+        {status === 'done' ? '✓ ' : ''}
+        {t(`duty.status.${status}`)}
+      </span>
+    </li>
+  )
+}
+
+/** Now, missed or starting within the hour: details and the button to the form. */
 function DutyRow({ d, status, storeCode }: { d: Duty; status: DutyStatus; storeCode: string }) {
   const { t } = useTranslation('shift')
   const dayLabel = useDayLabel()
@@ -92,7 +119,7 @@ export function DutyCard() {
   const list = homeDuties(mine, now)
   const next = nextDuty(mine, now)
   if (!list.length && !next) return null
-  const open = list.filter((d) => dutyStatus(d, now) !== 'done').length
+  const open = list.filter((d) => isUrgent(d, now)).length
 
   return (
     <Card className={open ? 'border-red-300' : 'border-blue-200'}>
@@ -102,9 +129,13 @@ export function DutyCard() {
       </div>
       {list.length > 0 ? (
         <ul className="flex flex-col gap-2">
-          {list.map((d) => (
-            <DutyRow key={d.id} d={d} status={dutyStatus(d, now)} storeCode={codeOf(d)} />
-          ))}
+          {list.map((d) =>
+            isUrgent(d, now) ? (
+              <DutyRow key={d.id} d={d} status={dutyStatus(d, now)} storeCode={codeOf(d)} />
+            ) : (
+              <DutyLine key={d.id} d={d} status={dutyStatus(d, now)} storeCode={codeOf(d)} />
+            ),
+          )}
         </ul>
       ) : (
         <p className="text-muted">{t('duty.noneToday')}</p>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dutyFormLink, dutyStatus, homeDuties, nextDuty, readSlotPreset, type Duty } from './duty'
+import { dutyFormLink, dutyStatus, homeDuties, isUrgent, nextDuty, readSlotPreset, type Duty } from './duty'
 
 const duty = (over: Partial<Duty>): Duty => ({
   id: 'd',
@@ -68,5 +68,15 @@ describe('form links', () => {
       shift: undefined,
       patrolType: undefined,
     })
+  })
+})
+
+describe('isUrgent', () => {
+  it('in progress, missed, or starting within the hour', () => {
+    const d = duty({}) // 17:30–18:00
+    expect(isUrgent(d, jst('2026-10-14T16:20'))).toBe(false)
+    expect(isUrgent(d, jst('2026-10-14T16:30'))).toBe(true)
+    expect(isUrgent(d, jst('2026-10-14T18:10'))).toBe(true)
+    expect(isUrgent({ ...d, done: true }, jst('2026-10-14T17:40'))).toBe(false)
   })
 })

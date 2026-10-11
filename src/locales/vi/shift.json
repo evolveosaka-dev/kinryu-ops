@@ -84,7 +84,7 @@
   },
   "duty": {
     "title": "Nhiệm vụ họp ca・tuần tra",
-    "open": "Còn {{n}} việc",
+    "open": "Cần làm ngay: {{n}}",
     "chorei": "Dẫn buổi họp đầu ca",
     "patrol": "Kiểm tra tuần tra",
     "about": "khoảng {{time}}",
