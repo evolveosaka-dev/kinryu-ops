@@ -105,7 +105,8 @@
     "shiftRequest": "Shift requests",
     "shiftRequestSub": "Days and hours you can work next month",
     "schedule": "Shift schedule",
-    "scheduleSub": "My work days, times and store"
+    "scheduleSub": "My work days, times and store",
+    "testAccount": "This is a test account. Its records are deleted every day at 4:00 (Japan time); photos and videos are not uploaded."
   },
   "phrase": {
     "philosophy1": "Customers come first",

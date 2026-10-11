@@ -7,6 +7,10 @@ import { appBaseUrl, supabase } from '../../lib/supabase'
 
 type Mode = 'login' | 'signup' | 'forgot'
 
+/** Test accounts sign in with a user name (e.g. jimnguyen2211) = an address on example.com. */
+const TEST_LOGIN_DOMAIN = 'example.com'
+const loginEmail = (v: string) => (v.includes('@') ? v.trim() : `${v.trim()}@${TEST_LOGIN_DOMAIN}`)
+
 export function LoginPage() {
   const { t } = useTranslation()
   const [mode, setMode] = useState<Mode>('login')
@@ -34,7 +38,7 @@ export function LoginPage() {
     setInfo(null)
     try {
       if (mode === 'login') {
-        const { error: e } = await supabase.auth.signInWithPassword({ email, password })
+        const { error: e } = await supabase.auth.signInWithPassword({ email: loginEmail(email), password })
         if (e) setError(t('auth.invalid'))
       } else if (mode === 'signup') {
         const { error: e } = await supabase.auth.signUp({
@@ -107,7 +111,7 @@ export function LoginPage() {
           )}
           <TextInput
             label={t('auth.email')}
-            type="email"
+            type={mode === 'login' ? 'text' : 'email'}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required

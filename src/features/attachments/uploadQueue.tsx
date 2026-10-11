@@ -46,8 +46,10 @@ async function persist(item: UploadItem) {
 }
 
 export function UploadQueueProvider({ children }: { children: ReactNode }) {
-  const { session } = useAuth()
+  const { session, profile } = useAuth()
   const userId = session?.user.id
+  // test accounts upload nothing to Google Drive (their records are deleted every night)
+  const isTestAccount = Boolean(profile?.is_test_account)
   const queryClient = useQueryClient()
   const [items, setItems] = useState<UploadItem[]>([])
   const running = useRef(false)
@@ -157,7 +159,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
 
   const enqueue = useCallback<QueueApi['enqueue']>(
     async (parentType, parentId, media) => {
-      if (!userId || media.length === 0) return
+      if (!userId || media.length === 0 || isTestAccount) return
       const added = media.map<UploadItem>((m) => ({
         id: m.id,
         ownerId: userId,
@@ -177,7 +179,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
       setItems(itemsRef.current)
       void run()
     },
-    [userId, run],
+    [userId, run, isTestAccount],
   )
 
   const retry = useCallback(() => {

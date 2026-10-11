@@ -424,3 +424,59 @@ describe('shift schedule', () => {
     expect((await t.admin(`select id from public.shift_assignments where month = '2026-10-01'`)).length).toBe(1)
   })
 })
+
+describe('test accounts', () => {
+  const DAY = `(${TODAY} - 5)`
+  let tester: string
+  let real: string
+  const steps = `'{"greeting":true,"philosophy":true,"phrases":true,"handover":true,"grooming":true,"closing":true}'`
+  const insertChorei = (shift: string) =>
+    `insert into public.chorei_records (store_id, business_date, shift, leader_id, stock_none, steps_done) values ($1, ${DAY}, '${shift}', $2, true, ${steps}) returning id, is_test, by_test_account`
+
+  beforeAll(async () => {
+    tester = await t.createUser('tester@example.com', { display_name: 'テスト' })
+    real = await t.createUser('real@example.com', { display_name: 'リアル' })
+    await activate(tester, midosuji, `, can_patrol = true, is_test_account = true, roster_name = 'テスト野口'`)
+    await activate(real, midosuji, `, roster_name = 'ノグチ'`)
+    await t.admin(`insert into public.shift_assignments (month, business_date, shift, roster_name, store_mark, start_min, end_min, raw) values
+      (date_trunc('month', ${DAY})::date, ${DAY}, 'late', 'ノグチ', '①', 1380, 1860, '①23-7'),
+      (date_trunc('month', ${DAY})::date, ${DAY}, 'late', 'テスト野口', '①', 1380, 1860, '①23-7')`)
+    await t.admin(`insert into public.duty_assignments (business_date, shift, store_id, roster_name, kind, time_mode, start_min, end_min, method) values
+      (${DAY}, 'late', $1, 'ノグチ', 'chorei', 'at', 1380, 1410, 'own'), (${DAY}, 'late', $1, 'テスト野口', 'chorei', 'at', 1380, 1410, 'own')`, [midosuji])
+  })
+
+  it('records of a test account are test data and never take the real slot', async () => {
+    const [mine] = await t.admin<{ id: string; is_test: boolean; by_test_account: boolean }>(insertChorei('late'), [midosuji, tester])
+    expect(mine).toMatchObject({ is_test: true, by_test_account: true })
+    const [theirs] = await t.admin<{ by_test_account: boolean }>(insertChorei('late'), [midosuji, real])
+    expect(theirs!.by_test_account).toBe(false)
+    const slot = (who: string) =>
+      t.as<{ s: { existing: { leader: string } | null } }>(who, `select public.chorei_slot($1, ${DAY}, 'late') as s`, [midosuji])
+    expect((await slot(real))[0]!.s.existing!.leader).toBe('リアル')
+    expect((await slot(tester))[0]!.s.existing!.leader).toBe('テスト')
+    // the test record is not the handover the next (early) shift sees
+    const [next] = await t.as<{ s: { previous: { leader: string } } }>(real, `select public.chorei_slot($1, ${DAY} + 1, 'early') as s`, [midosuji])
+    expect(next!.s.previous.leader).toBe('リアル')
+    // notes only on own test records
+    await expect(t.as(tester, 'select public.add_chorei_note($1, $2)', [(await t.admin<{ id: string }>(`select id from public.chorei_records where leader_id = $1`, [real]))[0]!.id, 'x'])).rejects.toThrow(/record not found/)
+    await t.as(tester, 'select public.add_chorei_note($1, $2)', [mine!.id, 'テストのメモ'])
+  })
+  it('担当 done flags do not mix; coworkers never list a test account', async () => {
+    const done = (who: string) => t.as<{ done: boolean }>(who, `select done from public.my_duties(${DAY}, ${DAY})`)
+    expect(await done(real)).toEqual([{ done: true }])
+    expect(await done(tester)).toEqual([{ done: true }])
+    await t.admin(`update public.chorei_records set status = 'void', void_reason = 'x' where leader_id = $1`, [real])
+    expect(await done(real)).toEqual([{ done: false }]) // the test record does not count
+    expect(await t.as(real, `select roster_name from public.shift_coworkers(${DAY}, 'late')`)).toEqual([])
+  })
+  it('a test account cannot clear its own flag; the nightly purge removes only its records', async () => {
+    await expect(t.as(tester, 'update public.profiles set is_test_account = false where id = auth.uid()')).rejects.toThrow(/only managers/)
+    const before = await t.admin<{ n: number }>(`select count(*)::int as n from public.chorei_records where leader_id = $1`, [real])
+    const [r] = await t.admin<{ n: number }>('select public.purge_test_account_data() as n')
+    expect(r!.n).toBeGreaterThan(0)
+    expect(await t.admin(`select id from public.chorei_records where leader_id = $1`, [tester])).toHaveLength(0)
+    expect(await t.admin(`select id from public.chorei_notes where author_id = $1`, [tester])).toHaveLength(0)
+    expect(await t.admin<{ n: number }>(`select count(*)::int as n from public.chorei_records where leader_id = $1`, [real])).toEqual(before)
+    expect(await t.admin(`select id from public.profiles where id = $1 and is_test_account`, [tester])).toHaveLength(1)
+  })
+})

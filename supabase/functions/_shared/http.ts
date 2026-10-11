@@ -66,6 +66,8 @@ export interface Caller {
   role: 'staff' | 'manager' | 'admin'
   canPatrol: boolean
   isManager: boolean
+  /** test account: its records are deleted every night; nothing goes to Drive / Sheets */
+  isTestAccount: boolean
 }
 
 /** Validate the user's access token and require an active profile. */
@@ -74,8 +76,8 @@ export async function requireUser(req: Request, admin: SupabaseClient): Promise<
   if (!token) throw new HttpError(401, 'not signed in')
   const { data, error } = await admin.auth.getUser(token)
   if (error || !data.user) throw new HttpError(401, 'invalid session')
-  const { data: p } = await admin.from('profiles').select('role, status, can_patrol').eq('id', data.user.id).single()
+  const { data: p } = await admin.from('profiles').select('role, status, can_patrol, is_test_account').eq('id', data.user.id).single()
   if (!p || p.status !== 'active') throw new HttpError(403, 'account not active')
   const isManager = p.role === 'manager' || p.role === 'admin'
-  return { id: data.user.id, role: p.role, canPatrol: p.can_patrol, isManager }
+  return { id: data.user.id, role: p.role, canPatrol: p.can_patrol, isManager, isTestAccount: Boolean(p.is_test_account) }
 }

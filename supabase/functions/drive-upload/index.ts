@@ -31,6 +31,7 @@ serve(async (req) => {
 
   if (body.action === 'start') {
     const b = body as StartBody
+    if (caller.isTestAccount) throw new HttpError(403, 'test account: files are not uploaded')
     if (!['chorei', 'patrol'].includes(b.parentType)) throw new HttpError(400, 'bad parentType')
     if (b.kind === 'image' && (!b.mimeType.startsWith('image/') || b.size > MAX_IMAGE_BYTES)) throw new HttpError(400, 'bad image')
     if (b.kind === 'video') {

@@ -23,6 +23,8 @@ export interface Profile {
   home_store_id: string | null
   /** name used in the shift workbook (e.g. バンダラ); set by managers */
   roster_name: string | null
+  /** test account: everything it records is deleted every night (4:00 JST) */
+  is_test_account?: boolean
   locale: Locale
   created_at: string
 }
