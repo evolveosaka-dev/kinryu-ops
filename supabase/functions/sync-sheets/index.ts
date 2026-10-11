@@ -67,6 +67,7 @@ serve(async (req) => {
   } else {
     const caller = await requireUser(req, admin)
     if (!caller.isManager) throw new HttpError(403, 'managers only')
+    if (caller.isTestAccount) throw new HttpError(403, 'test account: read only')
   }
 
   const [stores, profiles, chorei, patrols, attachments] = await Promise.all([

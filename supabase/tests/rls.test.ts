@@ -480,3 +480,30 @@ describe('test accounts', () => {
     expect(await t.admin(`select id from public.profiles where id = $1 and is_test_account`, [tester])).toHaveLength(1)
   })
 })
+
+describe('test account with the manager role is read-only', () => {
+  let viewer: string
+  beforeAll(async () => {
+    viewer = await t.createUser('viewer@example.com', { display_name: 'ビューア' })
+    await activate(viewer, midosuji, `, role = 'manager', can_patrol = true, is_test_account = true`)
+  })
+  it('reads like a manager', async () => {
+    expect((await t.as(viewer, 'select id from public.profiles')).length).toBeGreaterThan(3)
+    expect((await t.as(viewer, 'select id from public.chorei_records')).length).toBeGreaterThan(0)
+  })
+  it('changes nothing: targets, users, its own role, shift import, other records', async () => {
+    const ro = /test account: read only/
+    await expect(t.as(viewer, `update public.target_bowls set bowls = bowls + 1`)).rejects.toThrow(ro)
+    await expect(t.as(viewer, `update public.profiles set status = 'active' where id = $1`, [pending])).rejects.toThrow(ro)
+    await expect(t.as(viewer, `update public.profiles set role = 'admin', is_test_account = false where id = auth.uid()`)).rejects.toThrow(ro)
+    await expect(t.as(viewer, `select public.import_shift_month('2026-10-01', '[]')`)).rejects.toThrow(ro)
+    await expect(t.as(viewer, `update public.chorei_records set status = 'void', void_reason = 'x' where leader_id <> auth.uid()`)).rejects.toThrow(ro)
+    await expect(t.as(viewer, `insert into public.staff_roster (name) values ('ダミー')`)).rejects.toThrow(ro)
+  })
+  it('may still change its language and send its own (purged) test records', async () => {
+    await t.as(viewer, `update public.profiles set locale = 'vi' where id = auth.uid()`)
+    const [c] = await t.as<{ is_test: boolean }>(viewer, `insert into public.chorei_records (store_id, business_date, shift, leader_id, stock_none)
+      values ($1, ${TODAY}, 'middle', auth.uid(), true) returning is_test`, [sennichimae])
+    expect(c!.is_test).toBe(true)
+  })
+})
