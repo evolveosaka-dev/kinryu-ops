@@ -19,11 +19,14 @@ export function ChoreiAdminPage() {
   const stores = useStores()
   const people = usePeople()
   const { chorei, isLoading, error } = useRecords(period.range)
-  const [selected, setSelected] = useState<AdminChorei | null>(null)
+  // by id, so the sheet shows the record again after a refetch (e.g. a new comment)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   if (isLoading || stores.isLoading) return <Spinner />
   if (error) return <ErrorBox message={errorMessage(error)} />
 
+  const selected = (chorei.data ?? []).find((r) => r.id === selectedId) ?? null
+  const setSelected = (r: AdminChorei | null) => setSelectedId(r?.id ?? null)
   const storeIds = (stores.data ?? []).map((s) => s.id)
   const dates = dateRange(period.range.from, period.range.to)
   const slots = choreiSlots(chorei.data ?? [], dates, storeIds, new Date())

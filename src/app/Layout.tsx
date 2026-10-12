@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet } from 'react-router'
 import { UploadStatus } from '../features/attachments/UploadStatus'
+import { useUnreadComments } from '../features/chorei/Comments'
 import { cx } from '../lib/cx'
 import { familyName } from '../lib/format'
 import { useAuth } from './auth'
@@ -8,13 +9,14 @@ import { useAuth } from './auth'
 export function Layout() {
   const { t } = useTranslation()
   const { canPatrol, isManager, profile } = useAuth()
+  const unread = useUnreadComments().data ?? 0
 
   // Coloured icons + text: recognisable at a glance for staff who read Japanese slowly.
   const items = [
     { to: '/', icon: '🏠', label: t('nav.home') },
     { to: '/chorei', icon: '📣', label: t('nav.chorei') },
     ...(canPatrol ? [{ to: '/patrol', icon: '🔍', label: t('nav.patrol') }] : []),
-    { to: '/history', icon: '🗂️', label: t('nav.history') },
+    { to: '/history', icon: '🗂️', label: t('nav.history'), badge: unread },
     ...(isManager ? [{ to: '/manager', icon: '📊', label: t('nav.manager') }] : []),
     { to: '/profile', icon: '⚙️', label: t('nav.profile') },
   ]
@@ -56,8 +58,11 @@ export function Layout() {
               )
             }
           >
-            <span aria-hidden className="text-[21px] leading-none">
+            <span aria-hidden className="relative text-[21px] leading-none">
               {i.icon}
+              {Boolean(i.badge) && (
+                <span className="absolute -top-1.5 -right-3 min-w-5 rounded-full bg-red-600 px-1 text-center text-xs leading-5 font-bold text-white">{i.badge}</span>
+              )}
             </span>
             {i.label}
           </NavLink>

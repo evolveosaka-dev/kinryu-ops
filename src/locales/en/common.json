@@ -246,5 +246,15 @@
     "patrol": "Patrol check",
     "shiftRequest": "Shift request",
     "month": "{{m}}/{{y}}"
+  },
+  "comment": {
+    "title": "Manager comments",
+    "new": "New",
+    "translate": "Show translation",
+    "add": "Write a comment",
+    "send": "Send comment",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this comment?",
+    "homeCard": "You have {{n}} new comment(s) from a manager"
   }
 }

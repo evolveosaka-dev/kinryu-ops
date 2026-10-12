@@ -5,6 +5,7 @@ import { addDays, tokyoParts } from '../../domain/time'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import type { AttachmentSummary } from '../../lib/types'
+import type { ChoreiComment } from '../chorei/Comments'
 
 export type AdminPatrol = StatPatrol & {
   good_points: string | null
@@ -29,6 +30,7 @@ export type AdminChorei = StatChorei & {
   original_texts: Record<string, string> | null
   attachments: AttachmentSummary[]
   notes: { body: string; created_at: string }[]
+  comments: ChoreiComment[]
 }
 
 export interface Person {
@@ -53,11 +55,12 @@ export function useRecords(range: Range) {
       unwrap<AdminChorei[]>(
         await supabase
           .from('chorei_records')
-          .select(`*, ${ATT}, notes:chorei_notes(body, created_at)`)
+          .select(`*, ${ATT}, notes:chorei_notes(body, created_at), comments:chorei_comments(id, body, author_id, author_name, created_at, read_at)`)
           .eq('is_test', false)
           .gte('business_date', range.from)
           .lte('business_date', range.to)
-          .order('business_date', { ascending: false }),
+          .order('business_date', { ascending: false })
+          .order('created_at', { referencedTable: 'comments' }),
       ),
   })
   const patrols = useQuery({

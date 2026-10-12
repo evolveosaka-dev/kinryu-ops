@@ -10,6 +10,7 @@ import { errorMessage, storeName } from '../../lib/format'
 import { unwrap, useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import type { AttachmentSummary } from '../../lib/types'
+import { ChoreiComments } from '../chorei/Comments'
 import { Sheet, Dot } from './common'
 import { fromLocalInput, jstDateTime, toLocalInput, type AdminChorei, type AdminPatrol, JUDGE_STYLE } from './data'
 
@@ -198,6 +199,7 @@ export function ChoreiDetail({ record: r, leaderName, onClose }: { record: Admin
         <Row label={t('detail.skipped')}>{skipped.length ? `${skipped.map((s) => t(`chorei:steps.${s}`)).join('、')}（${r.skip_reason ?? ''}）` : '—'}</Row>
         {r.notes.length > 0 && <Row label={t('chorei:previous.notes')}>{r.notes.map((n) => n.body).join('\n')}</Row>}
         <Attachments list={r.attachments} />
+        <ChoreiComments choreiId={r.id} comments={r.comments ?? []} canWrite={r.status === 'valid'} />
       </Card>
       {r.status === 'valid' && (
         <Card className="flex flex-col gap-2">

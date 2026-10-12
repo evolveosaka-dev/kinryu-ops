@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { SpokenPhrase } from '../components/SpokenPhrase'
 import { Card, SectionTitle } from '../components/ui'
+import { useUnreadComments } from '../features/chorei/Comments'
 import { DutyCard } from '../features/schedule/DutyCard'
 import { NextShiftCard } from '../features/schedule/NextShiftCard'
 import { PHILOSOPHY, SERVICE_PHRASES } from '../domain/phrases'
@@ -44,6 +45,7 @@ export function HomePage() {
   const me = useMe()
   const { canPatrol, isManager } = useAuth()
   const slot = currentSlot(new Date())
+  const unread = useUnreadComments()
 
   return (
     <div className="flex flex-col gap-5">
@@ -54,6 +56,18 @@ export function HomePage() {
 
       {me.is_test_account && (
         <p className="rounded-2xl border-2 border-dashed border-violet-400 bg-violet-50 px-4 py-3 font-bold text-violet-900">🧪 {t('home.testAccount')}</p>
+      )}
+
+      {Boolean(unread.data) && (
+        <Link to="/history" className="flex items-center gap-3 rounded-2xl border-2 border-amber-400 bg-amber-50 px-4 py-3 font-bold text-amber-950">
+          <span aria-hidden className="text-2xl">
+            💬
+          </span>
+          <span className="flex-1">{t('comment.homeCard', { n: unread.data })}</span>
+          <span aria-hidden className="text-xl">
+            ›
+          </span>
+        </Link>
       )}
 
       <DutyCard />

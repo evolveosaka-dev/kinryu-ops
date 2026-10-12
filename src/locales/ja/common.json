@@ -246,5 +246,15 @@
     "patrol": "巡回チェック",
     "shiftRequest": "シフト希望",
     "month": "{{y}}年{{m}}月"
+  },
+  "comment": {
+    "title": "管理者コメント",
+    "new": "新着",
+    "translate": "翻訳を見る",
+    "add": "コメントを書く",
+    "send": "コメントを送る",
+    "delete": "削除",
+    "deleteConfirm": "このコメントを削除しますか？",
+    "homeCard": "管理者からコメントが{{n}}件あります"
   }
 }

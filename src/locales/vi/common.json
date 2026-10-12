@@ -246,5 +246,15 @@
     "patrol": "Phiếu tuần tra",
     "shiftRequest": "Đăng ký ca",
     "month": "Tháng {{m}}/{{y}}"
+  },
+  "comment": {
+    "title": "Nhận xét của quản lý",
+    "new": "Mới",
+    "translate": "Xem bản dịch",
+    "add": "Viết nhận xét",
+    "send": "Gửi nhận xét",
+    "delete": "Xóa",
+    "deleteConfirm": "Xóa nhận xét này?",
+    "homeCard": "Bạn có {{n}} nhận xét mới từ quản lý"
   }
 }
