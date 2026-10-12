@@ -12,6 +12,7 @@ import { FullNamePage, InactivePage, PendingPage, PrivacyPage, RejectedPage } fr
 import { ProfilePage } from '../features/profile/ProfilePage'
 import { errorMessage } from '../lib/format'
 import { isConfigured, supabase } from '../lib/supabase'
+import { STAFF_ISSUES_ENABLED } from '../domain/issues'
 import { useAuth } from './auth'
 import { HomePage } from './HomePage'
 import { Layout } from './Layout'
@@ -83,7 +84,7 @@ function Gate() {
             <Route index element={<DashboardPage />} />
             <Route path="chorei" element={<ChoreiAdminPage />} />
             <Route path="patrol" element={<PatrolAdminPage />} />
-            <Route path="staff" element={<StaffPage />} />
+            {STAFF_ISSUES_ENABLED && <Route path="staff" element={<StaffPage />} />}
             <Route path="stats" element={<StatsPage />} />
             <Route path="hours" element={<HoursPage />} />
             <Route path="settings" element={<SettingsPage />} />

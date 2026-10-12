@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '../../components/Toast'
 import { Button, Card, Checkbox, ErrorBox, Spinner, TextInput, PageTitle } from '../../components/ui'
+import { STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { errorMessage } from '../../lib/format'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
@@ -11,6 +12,7 @@ import { jstDateTime } from './data'
 import { ManagerTabs } from './ManagerTabs'
 
 const NOTIFY_KINDS = ['chorei', 'chorei_note', 'patrol', 'shift_request', 'signup', 'edit', 'staff_alert'] as const
+const SHOWN_KINDS = NOTIFY_KINDS.filter((k) => STAFF_ISSUES_ENABLED || k !== 'staff_alert')
 type Kind = (typeof NOTIFY_KINDS)[number]
 type Mode = 'instant' | 'digest'
 
@@ -61,7 +63,7 @@ function RecipientCard({ r, onSave, onDelete, onTest, testing }: { r: Recipient;
       <fieldset className="flex flex-col gap-1">
         <legend className="text-xs font-bold text-slate-600">{t('notify.kinds')}</legend>
         <div className="grid grid-cols-2 gap-1">
-          {NOTIFY_KINDS.map((k) => (
+          {SHOWN_KINDS.map((k) => (
             <Checkbox key={k} checked={r.kinds.includes(k)} onChange={(on) => toggleKind(k, on)}>
               {t(`notify.kind.${k}`)}
             </Checkbox>

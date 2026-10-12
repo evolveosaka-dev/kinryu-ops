@@ -11,7 +11,7 @@ import { unwrap, useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import type { AttachmentSummary } from '../../lib/types'
 import { RecordComments } from '../comments/Comments'
-import { issueTagsToSave } from '../../domain/issues'
+import { issueTagsToSave, STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { CustomerResult } from '../patrol/CustomerItem'
 import { IssueTagsPicker, IssueTagsView, type IssueValue } from '../patrol/IssueTags'
 import { Sheet, Dot } from './common'
@@ -170,7 +170,7 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
           {p.improvements}
           <Original texts={p.original_texts} field="improvements" />
         </Row>
-        <IssueRow patrol={p} />
+        {STAFF_ISSUES_ENABLED && <IssueRow patrol={p} />}
         {p.remarks && (
           <Row label={t('patrol:remarks.label')}>
             {p.remarks}

@@ -12,6 +12,7 @@ import { adminClient, env, HttpError, requireUser, serve } from '../_shared/http
 const TAG_MODEL = 'claude-haiku-4-5'
 const ADVICE_MODEL = 'claude-sonnet-4-5'
 const CALLS_PER_HOUR = 30
+const PAUSED = true
 const CATEGORIES = ['smile', 'voice', 'grooming', 'clean', 'quality', 'other'] as const
 const CATEGORY_JA: Record<string, string> = {
   smile: '笑顔',
@@ -106,6 +107,8 @@ const textOf = (r: Anthropic.Message) => {
 serve(async (req) => {
   const admin = adminClient()
   const caller = await requireUser(req, admin)
+  // 一時停止中 (2026-10-13). Old app versions get an error and fall back to choosing by hand.
+  if (PAUSED) throw new HttpError(503, 'staff AI is paused')
   const body = (await req.json()) as Body
 
   const since = new Date(Date.now() - 60 * 60 * 1000).toISOString()

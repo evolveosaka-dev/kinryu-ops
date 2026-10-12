@@ -14,6 +14,7 @@ import { unwrap, useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import { Stat, Dot } from './common'
 import { today, useIssueStatus, usePeople, useRecords, weekOf, type AdminPatrol } from './data'
+import { STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { PatrolDetail } from './details'
 import { ManagerTabs } from './ManagerTabs'
 
@@ -143,7 +144,7 @@ export function DashboardPage() {
               <span>{coaching.length}</span>
             </Link>
           </li>
-          <StaffAlerts />
+          {STAFF_ISSUES_ENABLED && <StaffAlerts />}
           <li>
             <Link to="/manager/patrol?filter=time" className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-amber-50 px-3 font-semibold text-amber-900">
               <span className="flex items-center gap-2">

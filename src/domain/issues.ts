@@ -1,6 +1,9 @@
 // 改善点の対象 (who × which kind) and the 面談指導 rules. Keep in sync with
 // public.staff_issue_status() / notify_staff_issues() (migration 20261012000007) and supabase/functions/staff-ai.
 
+/** 一時停止中 (2026-10-13): 改善点の対象・スタッフ別・面談指導の通知・AI候補. true で再開（DB の trigger patrol_staff_issues も enable する）. */
+export const STAFF_ISSUES_ENABLED = false
+
 export const ISSUE_CATEGORIES = ['smile', 'voice', 'grooming', 'clean', 'quality', 'other'] as const
 export type IssueCategory = (typeof ISSUE_CATEGORIES)[number]
 

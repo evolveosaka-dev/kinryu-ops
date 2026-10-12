@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { NavLink, useLocation } from 'react-router'
+import { STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { cx } from '../../lib/cx'
 
 const SETTINGS_PATHS = ['/manager/settings', '/manager/users', '/manager/roster', '/manager/sync', '/manager/targets', '/manager/shift-requests', '/manager/shift-import']
@@ -11,7 +12,7 @@ export function ManagerTabs() {
     { to: '/manager', label: `${t('tabs.dashboard')}`, end: true },
     { to: '/manager/chorei', label: `${t('tabs.chorei')}` },
     { to: '/manager/patrol', label: `${t('tabs.patrol')}` },
-    { to: '/manager/staff', label: `${t('tabs.staff')}` },
+    ...(STAFF_ISSUES_ENABLED ? [{ to: '/manager/staff', label: `${t('tabs.staff')}` }] : []),
     { to: '/manager/stats', label: `${t('tabs.stats')}` },
     { to: '/manager/hours', label: `${t('tabs.hours')}` },
     { to: '/manager/settings', label: `${t('tabs.settings')}`, settings: true },
