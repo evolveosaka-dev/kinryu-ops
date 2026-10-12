@@ -16,3 +16,6 @@ verify_jwt = false
 
 [functions.send-notifications]
 verify_jwt = false
+
+[functions.staff-ai]
+verify_jwt = false

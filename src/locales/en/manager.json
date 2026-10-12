@@ -53,7 +53,8 @@
     "patrol": "Patrols",
     "stats": "Reports",
     "hours": "Patrol time",
-    "settings": "Settings"
+    "settings": "Settings",
+    "staff": "By staff"
   },
   "period": {
     "weekMode": "Week",
@@ -86,7 +87,9 @@
     "vsLastWeek": "vs last week",
     "choreiRate": "Meeting rate",
     "patrols": "Patrols",
-    "mask": "Masks (smile = 1)"
+    "mask": "Masks (smile = 1)",
+    "staffInterview": "Coaching interview needed (by staff)",
+    "staffEscalate": "Recurring after interview (measures)"
   },
   "filter": {
     "store": "Store",
@@ -137,7 +140,10 @@
     "voidButton": "Void this record",
     "leader": "Leader",
     "submitted": "Sent",
-    "skipped": "Steps not done"
+    "skipped": "Steps not done",
+    "issueEdit": "Correct",
+    "issueSave": "Save",
+    "issueCancel": "Cancel"
   },
   "stats": {
     "title": "Reports",
@@ -234,7 +240,8 @@
       "patrol": "Patrol check",
       "shift_request": "Shift request",
       "signup": "New sign-up",
-      "edit": "Edits / voids"
+      "edit": "Edits / voids",
+      "staff_alert": "Coaching alerts"
     },
     "active": "On",
     "delete": "Delete",
@@ -251,5 +258,45 @@
     "retrying": "Will retry",
     "failed": "Failed",
     "superseded": "Merged into a later change"
+  },
+  "staff": {
+    "title": "By staff",
+    "rule": "Same person, same kind of point 3 times in 30 days → interview needed. 3 more times after an interview → measures proposed (also by e-mail).",
+    "alerts": "To do",
+    "noAlerts": "Nobody needs an interview now.",
+    "pick": "Choose a staff member",
+    "pickHint": "Choose a staff member to see their improvement points, good points and interviews.",
+    "levelInterview": "Interview needed",
+    "levelEscalate": "Recurring after interview",
+    "interviewNeeded": "Pointed out {{n}} times in the last 30 days. Please plan a coaching interview.",
+    "escalate": "Recurred {{n}} times after {{interviews}} interview(s).",
+    "nextStep": "Next step (company rule)",
+    "ai": "🤖 See AI measures",
+    "aiLoading": "AI is thinking… (about 20 s)",
+    "ladder": "Steps",
+    "counts": "Times pointed out",
+    "last30": "Last 30 days",
+    "sinceInterview": "Since interview",
+    "total": "All",
+    "lastInterview": "Last interview",
+    "interviews": "Interviews",
+    "noInterviews": "No interview yet.",
+    "addInterview": "Add an interview",
+    "category": "Kind",
+    "heldOn": "Date",
+    "note": "What was discussed",
+    "notePlaceholder": "What you said, the answer, the goal agreed",
+    "measure": "Measure",
+    "measurePlaceholder": "e.g. the manager checks again in 2 weeks",
+    "useStep": "Use the step",
+    "save": "Save",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this interview record?",
+    "by": "by",
+    "patrols": "Patrols ({{n}})",
+    "noPatrols": "No patrol with this staff member yet.",
+    "thisPerson": "For this person",
+    "notTagged": "Not recorded",
+    "times": "{{n}}×"
   }
 }

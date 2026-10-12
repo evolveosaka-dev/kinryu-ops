@@ -115,5 +115,27 @@
     "reason": "Reason for \"No\"",
     "reasonPlaceholder": "e.g. Left without a word. Said the soup was lukewarm",
     "needAnswer": "Please answer ⑥ Customer satisfaction."
+  },
+  "issues": {
+    "title": "Who the improvements are about *",
+    "hint": "Who is each improvement point about, and what kind? Choose for each person.",
+    "none": "Not about a specific person (everyone / nothing to improve)",
+    "needStaff": "Choose the staff on shift above to pick per person.",
+    "ai": "🤖 Fill in with AI",
+    "aiRunning": "AI is thinking…",
+    "aiNote": "AI suggestion. Please correct it if it is wrong.",
+    "aiFailed": "AI could not make a suggestion. Please choose by hand.",
+    "aiEmpty": "AI found no person. Choose by hand or tick \"Not about a specific person\".",
+    "need": "Choose who the improvements are about, or tick \"Not about a specific person\".",
+    "short": "About",
+    "all": "Everyone",
+    "cat": {
+      "smile": "Smile",
+      "voice": "Voice / service phrases",
+      "grooming": "Grooming",
+      "clean": "Cleanliness",
+      "quality": "Serving quality",
+      "other": "Other"
+    }
   }
 }

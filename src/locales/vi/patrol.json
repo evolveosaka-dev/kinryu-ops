@@ -115,5 +115,27 @@
     "reason": "Lý do “Không”",
     "reasonPlaceholder": "Ví dụ: Khách ra về không nói gì. Khách nói súp bị nguội",
     "needAnswer": "Hãy trả lời mục ⑥ Mức độ hài lòng của khách."
+  },
+  "issues": {
+    "title": "Điểm cần cải thiện là của ai *",
+    "hint": "Mỗi điểm cần cải thiện là của ai, thuộc loại nào? Hãy chọn cho từng người.",
+    "none": "Không phải của riêng ai (chung cả nhóm / không có gì cần cải thiện)",
+    "needStaff": "Chọn “nhân viên trong ca” ở trên để chọn theo từng người.",
+    "ai": "🤖 Để AI điền gợi ý",
+    "aiRunning": "AI đang suy nghĩ…",
+    "aiNote": "Đây là gợi ý của AI. Nếu sai, hãy sửa lại.",
+    "aiFailed": "AI không đưa ra được gợi ý. Hãy tự chọn.",
+    "aiEmpty": "AI không tìm thấy người nào. Hãy tự chọn hoặc chọn “Không phải của riêng ai”.",
+    "need": "Hãy chọn điểm cần cải thiện là của ai, hoặc chọn “Không phải của riêng ai”.",
+    "short": "Của ai",
+    "all": "Cả nhóm",
+    "cat": {
+      "smile": "Nụ cười",
+      "voice": "Giọng nói / câu chào khách",
+      "grooming": "Diện mạo, trang phục",
+      "clean": "Sạch sẽ",
+      "quality": "Chất lượng món",
+      "other": "Khác"
+    }
   }
 }

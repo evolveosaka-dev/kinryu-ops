@@ -17,6 +17,16 @@ const FIELD_JA: Record<string, string> = { stock_text: '在庫', caution_text: '
 const originals = (texts: Record<string, string> | null, lang: string | null) =>
   texts ? `[${lang ?? '?'}] ` + Object.entries(texts).map(([k, v]) => `${FIELD_JA[k] ?? k}: ${v}`).join(' / ') : ''
 
+const ISSUE_JA: Record<string, string> = { smile: '笑顔', voice: '声出し・接客用語', grooming: '身だしなみ', clean: '清潔', quality: '提供品質', other: 'その他' }
+/** "カン（声出し・接客用語、清潔）、ド（笑顔）" / "全体" / "" (sent before tags existed) */
+const issueTags = (tags: { staff: string; category: string }[] | null) => {
+  if (!tags) return ''
+  if (!tags.length) return '全体'
+  const by = new Map<string, string[]>()
+  for (const t of tags) by.set(t.staff, [...(by.get(t.staff) ?? []), ISSUE_JA[t.category] ?? t.category])
+  return [...by].map(([s, c]) => `${s}（${c.join('、')}）`).join('、')
+}
+
 const jst = (ts: string | null) =>
   ts ? new Date(ts).toLocaleString('sv-SE', { timeZone: 'Asia/Tokyo' }).slice(0, 16) : ''
 
@@ -116,7 +126,7 @@ serve(async (req) => {
       ]),
     ],
     巡回チェック: [
-      ['日付', '店舗', 'シフト', '種類', '巡回者（氏名）', '巡回者（表示名）', '開始', '終了', '分', '①笑顔', 'マスク', '②声出し', '③身だしなみ', '④清潔', '⑤提供品質', '合計', '満点', '判定', '⑥お客様の満足度', '⑥いいえの理由', '対象スタッフ', '良かった点', '改善点・指導内容', '備考', '時間確認', '状態', '添付数', '原文（翻訳前）', 'テスト', 'ID'],
+      ['日付', '店舗', 'シフト', '種類', '巡回者（氏名）', '巡回者（表示名）', '開始', '終了', '分', '①笑顔', 'マスク', '②声出し', '③身だしなみ', '④清潔', '⑤提供品質', '合計', '満点', '判定', '⑥お客様の満足度', '⑥いいえの理由', '対象スタッフ', '良かった点', '改善点・指導内容', '改善点の対象', '備考', '時間確認', '状態', '添付数', '原文（翻訳前）', 'テスト', 'ID'],
       ...patrols.data!.map((p) => [
         p.business_date,
         storeName.get(p.store_id) ?? '',
@@ -141,6 +151,7 @@ serve(async (req) => {
         p.staff_on_shift,
         p.good_points ?? '',
         p.improvements ?? '',
+        issueTags(p.issue_tags),
         p.remarks ?? '',
         p.needs_time_review ? '要確認' : '',
         STATUS[p.status] ?? p.status,

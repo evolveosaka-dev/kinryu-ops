@@ -1,3 +1,4 @@
+import type { IssueTag } from '../../domain/issues'
 import type { PatrolItem, Score } from '../../domain/patrol'
 import type { PatrolType, Shift } from '../../domain/types'
 
@@ -23,6 +24,10 @@ export interface PatrolFormState {
   customerNone?: boolean
   customerSatisfied?: boolean
   customerReason?: string
+  /** 改善点の対象 (who × kind); issueNone = 特定の人ではない; issueAi = filled by AI, untouched */
+  issueTags?: IssueTag[]
+  issueNone?: boolean
+  issueAi?: boolean
 }
 
 const KEY = 'kinryu.patrolForm'

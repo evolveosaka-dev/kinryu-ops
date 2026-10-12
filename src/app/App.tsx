@@ -22,6 +22,7 @@ const page = <K extends string>(load: () => Promise<Record<K, React.ComponentTyp
 const DashboardPage = page(() => import('../features/manager/DashboardPage'), 'DashboardPage')
 const ChoreiAdminPage = page(() => import('../features/manager/ChoreiAdminPage'), 'ChoreiAdminPage')
 const PatrolAdminPage = page(() => import('../features/manager/PatrolAdminPage'), 'PatrolAdminPage')
+const StaffPage = page(() => import('../features/manager/StaffPage'), 'StaffPage')
 const StatsPage = page(() => import('../features/manager/StatsPage'), 'StatsPage')
 const HoursPage = page(() => import('../features/manager/HoursPage'), 'HoursPage')
 const SettingsPage = page(() => import('../features/manager/SettingsPage'), 'SettingsPage')
@@ -82,6 +83,7 @@ function Gate() {
             <Route index element={<DashboardPage />} />
             <Route path="chorei" element={<ChoreiAdminPage />} />
             <Route path="patrol" element={<PatrolAdminPage />} />
+            <Route path="staff" element={<StaffPage />} />
             <Route path="stats" element={<StatsPage />} />
             <Route path="hours" element={<HoursPage />} />
             <Route path="settings" element={<SettingsPage />} />

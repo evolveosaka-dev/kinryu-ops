@@ -11,6 +11,7 @@ export function ManagerTabs() {
     { to: '/manager', label: `${t('tabs.dashboard')}`, end: true },
     { to: '/manager/chorei', label: `${t('tabs.chorei')}` },
     { to: '/manager/patrol', label: `${t('tabs.patrol')}` },
+    { to: '/manager/staff', label: `${t('tabs.staff')}` },
     { to: '/manager/stats', label: `${t('tabs.stats')}` },
     { to: '/manager/hours', label: `${t('tabs.hours')}` },
     { to: '/manager/settings', label: `${t('tabs.settings')}`, settings: true },

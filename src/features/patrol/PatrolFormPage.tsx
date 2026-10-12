@@ -15,6 +15,7 @@ import {
   type PatrolScores,
 } from '../../domain/patrol'
 import { readSlotPreset, type SlotPreset } from '../../domain/duty'
+import { issueTagsToSave } from '../../domain/issues'
 import { formatTokyoTime } from '../../domain/time'
 import { PATROL_TYPES, SHIFTS, type PatrolType } from '../../domain/types'
 import { currentLocale } from '../../i18n'
@@ -29,6 +30,7 @@ import type { PreparedMedia } from '../../lib/media'
 import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 import { initialStore } from '../../lib/lastStore'
 import { CustomerItem } from './CustomerItem'
+import { IssueTagsPicker } from './IssueTags'
 import { ScoreItem } from './ScoreItem'
 
 const JUDGEMENT_STYLE = {
@@ -143,6 +145,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
       const f = form
       const scores = completeScores(f.scores)
       const customerNo = !f.customerNone && f.customerSatisfied === false
+      const staff = (f.staffNames ?? []).filter(Boolean)
       // other languages → Japanese, confirmed (and editable) before saving
       const tr = await translation.prepare([
         { key: 'good_points', label: t('goodPoints.label'), text: f.goodPoints.trim() },
@@ -171,6 +174,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
         customer_none: Boolean(f.customerNone),
         customer_satisfied: f.customerNone ? null : (f.customerSatisfied ?? null),
         customer_reason: customerNo ? tr.values.customer_reason : null,
+        issue_tags: issueTagsToSave(f.issueNone, f.issueTags, staff),
         original_texts: tr.originals,
         source_lang: tr.sourceLang,
         status: 'valid',
@@ -218,7 +222,9 @@ function PatrolForm({ stores }: { stores: Store[] }) {
   const overLimit = Boolean(started && !ended && minutes >= PATROL_WARN_MINUTES)
   const photos = media.filter((m) => m.kind === 'image').length
   const customerOk = Boolean(form.customerNone || form.customerSatisfied === true || (form.customerSatisfied === false && form.customerReason?.trim()))
-  const ready = Boolean(started && ended && photos > 0 && scores && customerOk && form.goodPoints.trim() && form.improvements.trim())
+  const staffOnShift = (form.staffNames ?? []).filter(Boolean)
+  const issuesOk = issueTagsToSave(form.issueNone, form.issueTags, staffOnShift) !== null
+  const ready = Boolean(started && ended && photos > 0 && scores && customerOk && issuesOk && form.goodPoints.trim() && form.improvements.trim())
 
   // vibrate once when 15 minutes pass without 終了
   useEffect(() => {
@@ -336,6 +342,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
           onChange={(e) => update({ improvements: e.target.value })}
           error={showMissing && !form.improvements.trim() ? t('common:error.required') : null}
         />
+        <IssueTagsPicker staff={staffOnShift} text={form.improvements} value={form} onChange={update} missing={showMissing} />
         <TextArea label={t('remarks.label')} placeholder={t('remarks.placeholder')} value={form.remarks} onChange={(e) => update({ remarks: e.target.value })} />
       </Card>
 
@@ -381,6 +388,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
         {showMissing && !started && <ErrorBox message={t('time.needStart')} />}
         {endMissing && !ended && <ErrorBox message={t('time.endFirst')} />}
         {showMissing && !customerOk && <ErrorBox message={t('customer.needAnswer')} />}
+        {showMissing && !issuesOk && <ErrorBox message={t('issues.need')} />}
         {showMissing && started && photos === 0 &&<ErrorBox message={t('common:attach.photoRequired')} />}
         {error && <ErrorBox message={error} />}
         <div className="grid grid-cols-[1fr_2fr] gap-2">

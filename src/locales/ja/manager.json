@@ -53,7 +53,8 @@
     "patrol": "巡回",
     "stats": "集計",
     "hours": "巡回時間",
-    "settings": "設定"
+    "settings": "設定",
+    "staff": "スタッフ別"
   },
   "period": {
     "weekMode": "週",
@@ -86,7 +87,9 @@
     "vsLastWeek": "先週比",
     "choreiRate": "朝礼 実施率",
     "patrols": "巡回回数",
-    "mask": "マスク（笑顔1点）"
+    "mask": "マスク（笑顔1点）",
+    "staffInterview": "面談が必要（スタッフ別）",
+    "staffEscalate": "面談後の再発（対応策の検討）"
   },
   "filter": {
     "store": "店舗",
@@ -137,7 +140,10 @@
     "voidButton": "無効にする",
     "leader": "誘導者",
     "submitted": "送信",
-    "skipped": "未実施の手順"
+    "skipped": "未実施の手順",
+    "issueEdit": "対象を直す",
+    "issueSave": "保存する",
+    "issueCancel": "やめる"
   },
   "stats": {
     "title": "集計",
@@ -234,7 +240,8 @@
       "patrol": "巡回チェック",
       "shift_request": "シフト希望",
       "signup": "新規登録",
-      "edit": "修正・取消"
+      "edit": "修正・取消",
+      "staff_alert": "面談指導の通知"
     },
     "active": "送る",
     "delete": "削除",
@@ -251,5 +258,45 @@
     "retrying": "再送待ち",
     "failed": "送信失敗",
     "superseded": "次の変更にまとめた"
+  },
+  "staff": {
+    "title": "スタッフ別",
+    "rule": "同じ人・同じ種類の改善点が30日で3回 → 面談が必要。面談のあと3回再発 → 対応策の提案（メールでもお知らせします）。",
+    "alerts": "要対応",
+    "noAlerts": "いま面談が必要な人はいません。",
+    "pick": "スタッフを選ぶ",
+    "pickHint": "スタッフを選ぶと、改善点・良かった点・面談記録が見られます。",
+    "levelInterview": "面談が必要",
+    "levelEscalate": "面談後の再発",
+    "interviewNeeded": "直近30日で{{n}}回 指摘されています。面談指導の予定を立ててください。",
+    "escalate": "面談{{interviews}}回のあと {{n}}回 再発しています。",
+    "nextStep": "次の対応（会社のステップ）",
+    "ai": "🤖 AIの対応策を見る",
+    "aiLoading": "AIが考えています…（20秒ほど）",
+    "ladder": "対応のステップ",
+    "counts": "改善点の回数",
+    "last30": "直近30日",
+    "sinceInterview": "面談後",
+    "total": "全期間",
+    "lastInterview": "最後の面談",
+    "interviews": "面談記録",
+    "noInterviews": "まだ面談記録はありません。",
+    "addInterview": "面談記録を追加",
+    "category": "種類",
+    "heldOn": "面談日",
+    "note": "面談の内容",
+    "notePlaceholder": "話したこと、本人の答え、決めた目標など",
+    "measure": "対応策",
+    "measurePlaceholder": "例：2週間後に店長がもう一度確認する",
+    "useStep": "ステップを入れる",
+    "save": "記録する",
+    "delete": "削除",
+    "deleteConfirm": "この面談記録を削除しますか？",
+    "by": "記録",
+    "patrols": "巡回の記録（{{n}}件）",
+    "noPatrols": "このスタッフが入った巡回はまだありません。",
+    "thisPerson": "この人の対象",
+    "notTagged": "対象の記録なし",
+    "times": "{{n}}回"
   }
 }

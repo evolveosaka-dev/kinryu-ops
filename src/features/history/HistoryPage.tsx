@@ -14,6 +14,7 @@ import { supabase } from '../../lib/supabase'
 import type { AttachmentSummary, ChoreiRecord, PatrolCheck } from '../../lib/types'
 import { RecordComments, useMarkCommentsRead, type RecordComment } from '../comments/Comments'
 import { CustomerResult } from '../patrol/CustomerItem'
+import { IssueTagsView } from '../patrol/IssueTags'
 
 type Tab = 'chorei' | 'patrol'
 type Scope = 'mine' | 'all'
@@ -205,6 +206,11 @@ function PatrolCard({ r, store }: { r: PatrolView; store?: string }) {
         {r.improvements}
         <Original texts={r.original_texts} field="improvements" />
       </Line>
+      {r.issue_tags && (
+        <Line label={t('issues.short')}>
+          <IssueTagsView tags={r.issue_tags} />
+        </Line>
+      )}
       {r.remarks && (
         <Line label={t('remarks.label')}>
           {r.remarks}

@@ -105,6 +105,7 @@ export function RecordComments({
   const [body, setBody] = useState('')
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: ['admin'] })
+    void queryClient.invalidateQueries({ queryKey: ['staff'] })
     void queryClient.invalidateQueries({ queryKey: ['store_history'] })
     void queryClient.invalidateQueries({ queryKey: ['my_chorei'] })
     void queryClient.invalidateQueries({ queryKey: ['my_patrols'] })

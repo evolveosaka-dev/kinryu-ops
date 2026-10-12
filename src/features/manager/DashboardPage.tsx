@@ -13,9 +13,41 @@ import { errorMessage, storeName } from '../../lib/format'
 import { unwrap, useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import { Stat, Dot } from './common'
-import { today, usePeople, useRecords, weekOf, type AdminPatrol } from './data'
+import { today, useIssueStatus, usePeople, useRecords, weekOf, type AdminPatrol } from './data'
 import { PatrolDetail } from './details'
 import { ManagerTabs } from './ManagerTabs'
+
+/** 面談が必要 / 面談後の再発 (スタッフ別), shown only when there is something to do. */
+function StaffAlerts() {
+  const { t } = useTranslation('manager')
+  const status = useIssueStatus()
+  const interview = (status.data ?? []).filter((s) => s.level === 'interview').length
+  const escalate = (status.data ?? []).filter((s) => s.level === 'escalate').length
+  return (
+    <>
+      {escalate > 0 && (
+        <li>
+          <Link to="/manager/staff" className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-red-50 px-3 font-semibold text-red-900">
+            <span className="flex items-center gap-2">
+              <Dot tone="red" /> {t('dashboard.staffEscalate')}
+            </span>
+            <span>{escalate}</span>
+          </Link>
+        </li>
+      )}
+      {interview > 0 && (
+        <li>
+          <Link to="/manager/staff" className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-amber-50 px-3 font-semibold text-amber-900">
+            <span className="flex items-center gap-2">
+              <Dot tone="amber" /> {t('dashboard.staffInterview')}
+            </span>
+            <span>{interview}</span>
+          </Link>
+        </li>
+      )}
+    </>
+  )
+}
 
 /** Open coaching follow-ups and time reviews, whatever their date. */
 function useOpenItems() {
@@ -111,6 +143,7 @@ export function DashboardPage() {
               <span>{coaching.length}</span>
             </Link>
           </li>
+          <StaffAlerts />
           <li>
             <Link to="/manager/patrol?filter=time" className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-amber-50 px-3 font-semibold text-amber-900">
               <span className="flex items-center gap-2">

@@ -1,4 +1,5 @@
 import type { Locale, PatrolType, ProfileStatus, RecordStatus, Role, Shift, StepsDone } from '../domain/types'
+import type { IssueTag } from '../domain/issues'
 import type { Judgement } from '../domain/patrol'
 
 export interface Store {
@@ -129,6 +130,8 @@ export interface PatrolCheck {
   customer_none: boolean
   customer_satisfied: boolean | null
   customer_reason: string | null
+  /** 改善点の対象: [] = 全体, null = sent before 2026-10-13 */
+  issue_tags: IssueTag[] | null
   submitted_at: string | null
   status: 'draft' | 'valid' | 'void'
   original_texts: Record<string, string> | null

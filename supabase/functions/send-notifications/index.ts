@@ -42,7 +42,7 @@ const PATROL_TYPE: Record<string, string> = { before_shift: '勤務前', in_shif
 const STEPS: Record<string, string> = { greeting: 'はじめの挨拶', philosophy: '経営理念', phrases: '接客用語', handover: '引継ぎ', grooming: '身だしなみ', closing: '締めの挨拶' }
 const ITEMS: [string, string][] = [['score_smile', '笑顔'], ['score_voice', '声出し'], ['score_grooming', '身だしなみ'], ['score_clean', '清潔'], ['score_quality', '提供品質']]
 const ACTION: Record<string, string> = { void: '取消', time: '時間の修正', follow_up: '面談済み', update: '修正' }
-const KIND: Record<string, string> = { chorei: '朝礼記録', chorei_note: '朝礼の追記', patrol: '巡回チェック', shift_request: 'シフト希望', signup: '新規登録', edit: '修正・取消' }
+const KIND: Record<string, string> = { chorei: '朝礼記録', chorei_note: '朝礼の追記', patrol: '巡回チェック', shift_request: 'シフト希望', signup: '新規登録', edit: '修正・取消', staff_alert: '面談指導の通知' }
 const TABLE: Record<string, string> = { chorei_records: '朝礼記録', patrol_checks: '巡回チェック', shift_requests: 'シフト希望' }
 const FIELD: Record<string, string> = {
   status: '状態', void_reason: '取消の理由', started_at: '開始', ended_at: '終了', needs_time_review: '時間確認',
@@ -50,6 +50,14 @@ const FIELD: Record<string, string> = {
 }
 const STATUS: Record<string, string> = { valid: '有効', void: '取消', draft: '下書き' }
 const WEEKDAY = ['日', '月', '火', '水', '木', '金', '土']
+const CATEGORY: Record<string, string> = { smile: '笑顔', voice: '声出し・接客用語', grooming: '身だしなみ', clean: '清潔', quality: '提供品質', other: 'その他' }
+// keep in sync with src/domain/issues.ts
+const ESCALATION_STEPS = [
+  '再面談：改善目標を本人と一緒に決め、2週間後にもう一度確認する',
+  '店長同席の面談：指導内容を書面に残し、本人に確認してもらう',
+  '配置・シフトの見直しと、再研修（OJT）を検討する',
+  '本部（責任者）との面談で、今後の対応を検討する',
+]
 const SHIFT_WAIT_MIN = 10 // シフト希望 edits within 10 minutes become one mail
 
 const appUrl = (path: string) => `${env('APP_URL', 'https://evolveosaka-dev.github.io/kinryu-ops/')}#${path}`
@@ -121,6 +129,7 @@ function patrolLines(L: Lookup, r: Row, photos: number): string[] {
     `勤務者: ${r.staff_names?.length ? r.staff_names.join('、') : r.staff_on_shift}`,
     `良かった点: ${r.good_points ?? ''}`,
     `改善点・指導内容: ${r.improvements ?? ''}`,
+    ...(r.issue_tags ? [`改善点の対象: ${r.issue_tags.length ? Object.entries((r.issue_tags as { staff: string; category: string }[]).reduce<Record<string, string[]>>((a, t) => ({ ...a, [t.staff]: [...(a[t.staff] ?? []), CATEGORY[t.category] ?? t.category] }), {})).map(([n, c]) => `${n}（${c.join('、')}）`).join('、') : '全体'}`] : []),
     ...(r.remarks ? [`備考: ${r.remarks}`] : []),
     `写真・動画: ${photos}件`,
   ]
@@ -188,6 +197,54 @@ async function renderEvent(admin: Admin, L: Lookup, e: NotifyEvent): Promise<{ s
       subject: `${what}（承認待ち） — ${p.full_name || p.display_name || p.email}`,
       lines: [`氏名: ${p.full_name || '（未入力）'}`, `表示名: ${p.display_name || '—'}`, `メール: ${p.email ?? '—'}`, `日時: ${jst(e.created_at)}`, '', '管理 → 設定 → ユーザー で「承認」または「却下」してください。'],
       link: appUrl('/manager/users'),
+    }
+  }
+  if (e.kind === 'staff_alert') {
+    const d = e.data as { staff: string; category: string; interviews: number; last_interview: string | null; occurrences: number; level: string }
+    const cat = CATEGORY[d.category] ?? d.category
+    let q = admin
+      .from('patrol_checks')
+      .select('store_id, business_date, shift, improvements')
+      .eq('status', 'valid')
+      .eq('is_test', false)
+      .contains('issue_tags', [{ staff: d.staff, category: d.category }])
+      .order('business_date')
+    q = d.last_interview ? q.gt('business_date', d.last_interview) : q.gt('business_date', addDays(tokyoToday(), -30))
+    const { data: list, error } = await q
+    if (error) throw new HttpError(500, error.message)
+    const records = (list ?? []).map((r) => `・${slot(L, r)}: ${r.improvements ?? ''}`)
+    const link = appUrl(`/manager/staff?name=${encodeURIComponent(d.staff)}`)
+    if (d.level === 'interview') {
+      return {
+        subject: `⚠ 面談が必要: ${d.staff}（${cat}）30日で${d.occurrences}回`,
+        lines: [
+          `スタッフ: ${d.staff}`,
+          `改善点の種類: ${cat}`,
+          `直近30日で ${d.occurrences}回 指摘されています。面談指導の予定を立ててください。`,
+          '',
+          '指摘の記録:',
+          ...records,
+          '',
+          '面談のあとは 管理 → スタッフ別 で「面談記録」を残してください（その後の再発を数えます）。',
+        ],
+        link,
+      }
+    }
+    const step = ESCALATION_STEPS[Math.min(Math.max(d.interviews, 1), ESCALATION_STEPS.length) - 1]
+    return {
+      subject: `⚠ 面談後の再発${d.occurrences}回: ${d.staff}（${cat}）— 対応策の検討`,
+      lines: [
+        `スタッフ: ${d.staff}`,
+        `改善点の種類: ${cat}`,
+        `面談 ${d.interviews}回（最後: ${d.last_interview ? day(d.last_interview) : '—'}）のあと、${d.occurrences}回 再発しています。`,
+        `次の対応（会社のステップ）: ${step}`,
+        '',
+        '再発の記録:',
+        ...records,
+        '',
+        'アプリの 管理 → スタッフ別 で、AIによる具体的な対応策の提案を見られます。',
+      ],
+      link,
     }
   }
   if (e.kind === 'edit') {

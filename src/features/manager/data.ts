@@ -5,6 +5,7 @@ import { addDays, tokyoParts } from '../../domain/time'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import type { AttachmentSummary } from '../../lib/types'
+import type { IssueStatus, IssueTag } from '../../domain/issues'
 import type { RecordComment } from '../comments/Comments'
 
 export type AdminPatrol = StatPatrol & {
@@ -14,6 +15,7 @@ export type AdminPatrol = StatPatrol & {
   customer_none: boolean
   customer_satisfied: boolean | null
   customer_reason: string | null
+  issue_tags: IssueTag[] | null
   staff_on_shift: string
   follow_up_note: string | null
   void_reason: string | null
@@ -85,6 +87,14 @@ export function useRecords(range: Range) {
 }
 
 /** Everyone with an account; `name(id)` prefers the full name used for reports. */
+/** 面談指導 status per person × kind (all people, or one). */
+export function useIssueStatus(staff?: string) {
+  return useQuery({
+    queryKey: ['staff', 'status', staff ?? ''],
+    queryFn: async () => unwrap<IssueStatus[]>(await supabase.rpc('staff_issue_status', staff ? { p_staff: staff } : {})),
+  })
+}
+
 export function usePeople() {
   const q = useQuery({
     queryKey: ['admin', 'people'],

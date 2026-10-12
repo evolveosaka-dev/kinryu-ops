@@ -10,7 +10,7 @@ import { supabase } from '../../lib/supabase'
 import { jstDateTime } from './data'
 import { ManagerTabs } from './ManagerTabs'
 
-const NOTIFY_KINDS = ['chorei', 'chorei_note', 'patrol', 'shift_request', 'signup', 'edit'] as const
+const NOTIFY_KINDS = ['chorei', 'chorei_note', 'patrol', 'shift_request', 'signup', 'edit', 'staff_alert'] as const
 type Kind = (typeof NOTIFY_KINDS)[number]
 type Mode = 'instant' | 'digest'
 

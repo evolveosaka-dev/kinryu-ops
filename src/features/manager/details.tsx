@@ -11,7 +11,9 @@ import { unwrap, useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import type { AttachmentSummary } from '../../lib/types'
 import { RecordComments } from '../comments/Comments'
+import { issueTagsToSave } from '../../domain/issues'
 import { CustomerResult } from '../patrol/CustomerItem'
+import { IssueTagsPicker, IssueTagsView, type IssueValue } from '../patrol/IssueTags'
 import { Sheet, Dot } from './common'
 import { fromLocalInput, jstDateTime, toLocalInput, type AdminChorei, type AdminPatrol, JUDGE_STYLE } from './data'
 
@@ -29,6 +31,7 @@ function useUpdate(table: 'patrol_checks' | 'chorei_records', id: string, onDone
     mutationFn: async (patch: Record<string, unknown>) => unwrap(await supabase.from(table).update(patch).eq('id', id)),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin'] })
+      void queryClient.invalidateQueries({ queryKey: ['staff'] })
       onDone()
     },
   })
@@ -62,6 +65,55 @@ function Attachments({ list }: { list: AttachmentSummary[] }) {
           </a>
         ))}
       </span>
+    </Row>
+  )
+}
+
+/** 改善点の対象, correctable by managers (the counts per person follow at once). */
+function IssueRow({ patrol: p }: { patrol: AdminPatrol }) {
+  const { t } = useTranslation('manager')
+  const queryClient = useQueryClient()
+  const [editing, setEditing] = useState<IssueValue | null>(null)
+  const staff = p.staff_names
+  const save = useMutation({
+    mutationFn: async (v: IssueValue) =>
+      unwrap(await supabase.from('patrol_checks').update({ issue_tags: issueTagsToSave(v.issueNone, v.issueTags, staff) }).eq('id', p.id)),
+    onSuccess: () => {
+      setEditing(null)
+      void queryClient.invalidateQueries({ queryKey: ['admin'] })
+      void queryClient.invalidateQueries({ queryKey: ['staff'] })
+    },
+  })
+  if (p.status === 'draft') return null
+  return (
+    <Row label={t('patrol:issues.short')}>
+      {editing ? (
+        <span className="flex flex-col gap-2">
+          <IssueTagsPicker staff={staff} text={p.improvements ?? ''} value={editing} onChange={setEditing} missing={false} auto={false} />
+          <span className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" onClick={() => setEditing(null)} disabled={save.isPending}>
+              {t('detail.issueCancel')}
+            </Button>
+            <Button onClick={() => save.mutate(editing)} disabled={save.isPending || issueTagsToSave(editing.issueNone, editing.issueTags, staff) === null}>
+              {t('detail.issueSave')}
+            </Button>
+          </span>
+          {save.error && <ErrorBox message={errorMessage(save.error)} />}
+        </span>
+      ) : (
+        <span className="flex flex-col items-start gap-1">
+          {p.issue_tags ? <IssueTagsView tags={p.issue_tags} /> : <span className="text-slate-500">{t('staff.notTagged')}</span>}
+          {p.status === 'valid' && (
+            <button
+              type="button"
+              className="min-h-9 text-sm font-bold text-brand underline"
+              onClick={() => setEditing({ issueTags: p.issue_tags ?? [], issueNone: p.issue_tags?.length === 0 })}
+            >
+              {t('detail.issueEdit')}
+            </button>
+          )}
+        </span>
+      )}
     </Row>
   )
 }
@@ -118,6 +170,7 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
           {p.improvements}
           <Original texts={p.original_texts} field="improvements" />
         </Row>
+        <IssueRow patrol={p} />
         {p.remarks && (
           <Row label={t('patrol:remarks.label')}>
             {p.remarks}
