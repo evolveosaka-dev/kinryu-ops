@@ -8,7 +8,7 @@ import { ChoreiFormPage } from '../features/chorei/ChoreiFormPage'
 import { GenkoPage } from '../features/genko/GenkoPage'
 import { HistoryPage } from '../features/history/HistoryPage'
 import { PatrolFormPage } from '../features/patrol/PatrolFormPage'
-import { FullNamePage, InactivePage, PendingPage, PrivacyPage } from '../features/profile/GatePages'
+import { FullNamePage, InactivePage, PendingPage, PrivacyPage, RejectedPage } from '../features/profile/GatePages'
 import { ProfilePage } from '../features/profile/ProfilePage'
 import { errorMessage } from '../lib/format'
 import { isConfigured, supabase } from '../lib/supabase'
@@ -60,6 +60,7 @@ function Gate() {
     )
   }
   if (profile.status === 'inactive') return <InactivePage />
+  if (profile.status === 'rejected') return <RejectedPage />
   if (!profile.full_name) return <FullNamePage />
   if (profile.status === 'pending') return <PendingPage />
   if (!profile.privacy_accepted_at) return <PrivacyPage />

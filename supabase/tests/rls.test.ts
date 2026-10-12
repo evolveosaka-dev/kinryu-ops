@@ -62,6 +62,14 @@ describe('anon and pending users', () => {
       t.as(pending, `update public.profiles set status = 'active' where id = auth.uid()`),
     ).rejects.toThrow(/only managers/)
   })
+  it('rejected user can apply again (rejected → pending) but nothing more', async () => {
+    await t.as(manager, `update public.profiles set status = 'rejected' where id = $1`, [pending])
+    await expect(t.as(pending, `update public.profiles set status = 'active' where id = auth.uid()`)).rejects.toThrow(/only managers/)
+    await t.as(pending, `update public.profiles set status = 'pending' where id = auth.uid()`)
+    const [row] = await t.admin<{ status: string }>('select status from public.profiles where id = $1', [pending])
+    expect(row!.status).toBe('pending')
+    await expect(t.as(pending, `update public.profiles set status = 'rejected' where id = auth.uid()`)).rejects.toThrow(/only managers/)
+  })
   it('pending user cannot submit 朝礼', async () => {
     await expect(
       t.as(pending, `insert into public.chorei_records (store_id, business_date, shift, stock_none) values ($1, ${TODAY}, 'early', true)`, [midosuji]),

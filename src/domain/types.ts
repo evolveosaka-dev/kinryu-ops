@@ -8,7 +8,7 @@ export type DayType = 'weekday' | 'weekend_holiday'
 export const PATROL_TYPES = ['before_shift', 'in_shift', 'after_shift', 'random'] as const
 export type PatrolType = (typeof PATROL_TYPES)[number]
 export type Role = 'staff' | 'manager' | 'admin'
-export type ProfileStatus = 'pending' | 'active' | 'inactive'
+export type ProfileStatus = 'pending' | 'active' | 'inactive' | 'rejected'
 export type RecordStatus = 'valid' | 'void'
 
 export const CHOREI_STEPS = ['greeting', 'philosophy', 'phrases', 'handover', 'grooming', 'closing'] as const

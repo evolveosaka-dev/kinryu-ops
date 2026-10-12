@@ -122,6 +122,36 @@ export function InactivePage() {
   )
 }
 
+/** Sign-up rejected by a manager: the same account may apply again (back to 承認待ち). */
+export function RejectedPage() {
+  const { t } = useTranslation()
+  const me = useMe()
+  const { refreshProfile } = useAuth()
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  const reapply = async () => {
+    setBusy(true)
+    const { error: e } = await supabase.from('profiles').update({ status: 'pending' }).eq('id', me.id)
+    setBusy(false)
+    if (e) return setError(e.message)
+    void refreshProfile()
+  }
+
+  return (
+    <GateShell>
+      <Card className="flex flex-col gap-3">
+        <h2 className="text-lg font-bold">{t('rejected.title')}</h2>
+        <p>{t('rejected.body')}</p>
+        {error && <ErrorBox message={error} />}
+        <Button onClick={reapply} disabled={busy}>
+          {t('rejected.reapply')}
+        </Button>
+      </Card>
+    </GateShell>
+  )
+}
+
 export function PrivacyPage() {
   const { t } = useTranslation()
   const me = useMe()

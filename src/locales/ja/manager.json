@@ -5,9 +5,10 @@
     "pending": "承認待ち",
     "active": "利用中",
     "inactive": "停止",
+    "rejected": "却下",
     "approve": "承認",
     "reject": "却下",
-    "rejectConfirm": "このユーザーを却下しますか？（「停止」に移ります。あとで「利用中」に戻すこともできます）",
+    "rejectConfirm": "このユーザーを却下しますか？（「却下」に移ります。本人は同じメールでもう一度申請できます）",
     "rejectYes": "却下する",
     "role": {
       "staff": "スタッフ",

@@ -5,9 +5,10 @@
     "pending": "Waiting for approval",
     "active": "Active",
     "inactive": "Inactive",
+    "rejected": "Rejected",
     "approve": "Approve",
     "reject": "Reject",
-    "rejectConfirm": "Reject this user? (They move to \"Inactive\"; you can make them active again later.)",
+    "rejectConfirm": "Reject this user? (They move to \"Rejected\" and can apply again with the same e-mail.)",
     "rejectYes": "Reject",
     "role": {
       "staff": "Staff",

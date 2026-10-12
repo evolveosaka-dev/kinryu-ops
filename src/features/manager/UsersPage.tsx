@@ -14,7 +14,7 @@ import { ManagerTabs } from './ManagerTabs'
 type Patch = Partial<Pick<Profile, 'role' | 'can_patrol' | 'status' | 'full_name' | 'roster_name'>>
 
 const ROLES: Role[] = ['staff', 'manager', 'admin']
-const STATUSES: ProfileStatus[] = ['pending', 'active', 'inactive']
+const STATUSES: ProfileStatus[] = ['pending', 'active', 'inactive', 'rejected']
 const selectClass = 'min-h-11 w-full rounded-lg border border-slate-300 bg-white px-2 text-sm'
 
 function UserRow({ user, onSave, isSelf, rosterNames, takenNames }: { user: Profile; onSave: (p: Patch) => void; isSelf: boolean; rosterNames: string[]; takenNames: Set<string> }) {
@@ -84,7 +84,7 @@ function UserRow({ user, onSave, isSelf, rosterNames, takenNames }: { user: Prof
             <Button variant="secondary" className="flex-1" onClick={() => setRejecting(false)}>
               {t('common:action.cancel')}
             </Button>
-            <Button variant="danger" className="flex-1" onClick={() => onSave({ status: 'inactive' })}>
+            <Button variant="danger" className="flex-1" onClick={() => onSave({ status: 'rejected' })}>
               {t('users.rejectYes')}
             </Button>
           </div>

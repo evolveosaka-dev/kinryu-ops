@@ -79,6 +79,11 @@
     "title": "This account cannot be used",
     "body": "Please contact a manager."
   },
+  "rejected": {
+    "title": "Your request was declined",
+    "body": "Please check with a manager. You can also apply again.",
+    "reapply": "Apply again"
+  },
   "privacy": {
     "title": "About your personal data",
     "body1": "Records in this app (meeting records and patrol checks) are used to improve customer service and to pay patrol time.",

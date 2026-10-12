@@ -79,6 +79,11 @@
     "title": "Tài khoản này không thể sử dụng",
     "body": "Hãy liên hệ quản lý."
   },
+  "rejected": {
+    "title": "Yêu cầu của bạn đã bị từ chối",
+    "body": "Hãy hỏi lại quản lý. Bạn cũng có thể gửi yêu cầu lại.",
+    "reapply": "Gửi yêu cầu lại"
+  },
   "privacy": {
     "title": "Về thông tin cá nhân",
     "body1": "Dữ liệu trong app (biên bản họp ca, phiếu tuần tra) dùng để cải thiện phục vụ khách và tính lương cho thời gian tuần tra.",
