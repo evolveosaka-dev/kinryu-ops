@@ -176,7 +176,8 @@
     "translationCalls": "{{n}}回",
     "translationTokens": "入力 {{input}} / 出力 {{output}} トークン（約 ${{usd}}）",
     "shiftRequestsSub": "提出状況とExcel出力",
-    "shiftImportSub": "毎月のシフト表を読み込み、スタッフにスケジュールを表示"
+    "shiftImportSub": "毎月のシフト表を読み込み、スタッフにスケジュールを表示",
+    "notifySub": "報告があったときに管理者へメール"
   },
   "targets": {
     "title": "目標杯数",
@@ -216,5 +217,39 @@
     "import": "この内容で読み込む",
     "importing": "読み込み中…",
     "done": "{{n}}件のシフトを読み込みました"
+  },
+  "notify": {
+    "title": "通知メール",
+    "body": "朝礼・巡回・シフト希望などの報告があったとき、ここに登録したメールアドレスに知らせます。アプリのアカウントがない人のアドレスも登録できます。",
+    "add": "追加",
+    "email": "メールアドレス",
+    "name": "名前（任意）",
+    "mode": "受け取り方",
+    "modeInstant": "すぐに送る（1件ごとに1通）",
+    "modeDigest": "まとめ（毎朝7:30に1通）",
+    "kinds": "通知の種類",
+    "kind": {
+      "chorei": "朝礼記録",
+      "chorei_note": "朝礼の追記",
+      "patrol": "巡回チェック",
+      "shift_request": "シフト希望",
+      "signup": "新規登録",
+      "edit": "修正・取消"
+    },
+    "active": "送る",
+    "delete": "削除",
+    "deleteConfirm": "このアドレスを削除しますか？",
+    "test": "テスト送信",
+    "testSent": "テストメールを送りました",
+    "duplicate": "このアドレスはもう登録されています",
+    "empty": "まだ登録がありません。",
+    "recipients": "送り先",
+    "urgentNote": "※ 即日指導と新規登録（再申請を含む）は、「まとめ」の人にもすぐに送ります。テストアカウントの記録は送りません。",
+    "history": "最近の通知",
+    "done": "送信済み",
+    "waiting": "送信待ち",
+    "retrying": "再送待ち",
+    "failed": "送信失敗",
+    "superseded": "次の変更にまとめた"
   }
 }

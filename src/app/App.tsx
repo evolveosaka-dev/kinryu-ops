@@ -29,6 +29,7 @@ const TargetsPage = page(() => import('../features/manager/TargetsPage'), 'Targe
 const UsersPage = page(() => import('../features/manager/UsersPage'), 'UsersPage')
 const RosterPage = page(() => import('../features/manager/RosterPage'), 'RosterPage')
 const SyncPage = page(() => import('../features/manager/SyncPage'), 'SyncPage')
+const NotifyPage = page(() => import('../features/manager/NotifyPage'), 'NotifyPage')
 const ShiftRequestsAdminPage = page(() => import('../features/manager/ShiftRequestsAdminPage'), 'ShiftRequestsAdminPage')
 const ShiftImportPage = page(() => import('../features/manager/ShiftImportPage'), 'ShiftImportPage')
 const SchedulePage = page(() => import('../features/schedule/SchedulePage'), 'SchedulePage')
@@ -87,7 +88,7 @@ function Gate() {
             <Route path="targets" element={<TargetsPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="roster" element={<RosterPage />} />
-            <Route path="sync" element={<SyncPage />} />
+            <Route path="sync" element={<SyncPage />} />`n            <Route path="notify" element={<NotifyPage />} />
             <Route path="shift-requests" element={<ShiftRequestsAdminPage />} />
             <Route path="shift-import" element={<ShiftImportPage />} />
           </Route>

@@ -176,7 +176,8 @@
     "translationCalls": "{{n}} calls",
     "translationTokens": "input {{input}} / output {{output}} tokens (about ${{usd}})",
     "shiftRequestsSub": "Who submitted, Excel export",
-    "shiftImportSub": "Load the monthly shift table and show staff their schedule"
+    "shiftImportSub": "Load the monthly shift table and show staff their schedule",
+    "notifySub": "E-mail managers when a report comes in"
   },
   "targets": {
     "title": "Target bowls",
@@ -216,5 +217,39 @@
     "import": "Import",
     "importing": "Importing…",
     "done": "Imported {{n}} shifts"
+  },
+  "notify": {
+    "title": "Notification e-mails",
+    "body": "When a report (朝礼, patrol, shift request, …) comes in, the addresses below are notified. Addresses of people without an app account can be added too.",
+    "add": "Add",
+    "email": "E-mail address",
+    "name": "Name (optional)",
+    "mode": "Delivery",
+    "modeInstant": "Instantly (one mail per report)",
+    "modeDigest": "Daily digest (7:30 every morning)",
+    "kinds": "Notify about",
+    "kind": {
+      "chorei": "朝礼 record",
+      "chorei_note": "朝礼 note",
+      "patrol": "Patrol check",
+      "shift_request": "Shift request",
+      "signup": "New sign-up",
+      "edit": "Edits / voids"
+    },
+    "active": "On",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this address?",
+    "test": "Send test",
+    "testSent": "Test e-mail sent",
+    "duplicate": "This address is already registered",
+    "empty": "No addresses yet.",
+    "recipients": "Recipients",
+    "urgentNote": "Same-day coaching and new sign-ups (including re-applications) are sent at once, also to digest recipients. Test accounts never notify.",
+    "history": "Recent notifications",
+    "done": "Sent",
+    "waiting": "Waiting",
+    "retrying": "Will retry",
+    "failed": "Failed",
+    "superseded": "Merged into a later change"
   }
 }
