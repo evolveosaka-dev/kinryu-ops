@@ -31,7 +31,6 @@ export interface IssueStatus {
  */
 export const ESCALATION_STEPS = [
   '再面談：改善目標を本人と一緒に決め、2週間後にもう一度確認する',
-  '店長同席の面談：指導内容を書面に残し、本人に確認してもらう',
   '配置・シフトの見直しと、再研修（OJT）を検討する',
   '本部（責任者）との面談で、今後の対応を検討する',
 ] as const
