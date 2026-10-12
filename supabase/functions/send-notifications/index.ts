@@ -206,7 +206,7 @@ async function renderEvent(admin: Admin, L: Lookup, e: NotifyEvent): Promise<{ s
       .select('store_id, business_date, shift, improvements')
       .eq('status', 'valid')
       .eq('is_test', false)
-      .contains('issue_tags', [{ staff: d.staff, category: d.category }])
+      .contains('issue_tags', JSON.stringify([{ staff: d.staff, category: d.category }]))
       .order('business_date')
     q = d.last_interview ? q.gt('business_date', d.last_interview) : q.gt('business_date', addDays(tokyoToday(), -30))
     const { data: list, error } = await q
