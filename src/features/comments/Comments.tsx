@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth, useMe } from '../../app/auth'
 import { Button, ErrorBox, TextArea } from '../../components/ui'
@@ -9,7 +9,7 @@ import { errorMessage } from '../../lib/format'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 
-export interface ChoreiComment {
+export interface RecordComment {
   id: string
   body: string
   author_id: string
@@ -23,15 +23,39 @@ const when = (iso: string) => {
   return `${formatShortDate(tokyoParts(d).date)} ${formatTokyoTime(d)}`
 }
 
-/** Unread manager comments on the 朝礼 records I led (ホーム card, 履歴 badge). */
+export type CommentKind = 'chorei' | 'patrol'
+
+const RPC = {
+  chorei: { add: 'add_chorei_comment', param: 'p_chorei', table: 'chorei_comments', unread: 'unread_chorei_comments', markRead: 'mark_chorei_comments_read' },
+  patrol: { add: 'add_patrol_comment', param: 'p_patrol', table: 'patrol_comments', unread: 'unread_patrol_comments', markRead: 'mark_patrol_comments_read' },
+} as const
+
+/** Unread manager comments on the 朝礼 I led and the 巡回 I did (ホーム card, 履歴 badge). */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useUnreadComments() {
   const me = useMe()
   return useQuery({
     queryKey: ['unread_comments', me.id],
-    queryFn: async () => unwrap<number>(await supabase.rpc('unread_chorei_comments')),
+    queryFn: async () => {
+      const [chorei, patrol] = await Promise.all([supabase.rpc(RPC.chorei.unread), supabase.rpc(RPC.patrol.unread)])
+      const c = unwrap<number>(chorei)
+      const p = unwrap<number>(patrol)
+      return { chorei: c, patrol: p, total: c + p }
+    },
     refetchInterval: 5 * 60_000,
   })
+}
+
+/** On my own history: mark the comments as read once seen (the 新着 marks stay on screen). */
+// eslint-disable-next-line react-refresh/only-export-components
+export function useMarkCommentsRead(kind: CommentKind, comments: RecordComment[] | undefined) {
+  const me = useMe()
+  const queryClient = useQueryClient()
+  const unread = (comments ?? []).some((c) => !c.read_at && c.author_id !== me.id)
+  useEffect(() => {
+    if (!unread) return
+    void supabase.rpc(RPC[kind].markRead).then(() => queryClient.invalidateQueries({ queryKey: ['unread_comments'] }))
+  }, [kind, unread, queryClient])
 }
 
 function Translated({ text }: { text: string }) {
@@ -60,10 +84,20 @@ function Translated({ text }: { text: string }) {
 }
 
 /**
- * 管理者コメント of one 朝礼 record. Managers can add (and delete their own) comments;
- * the leader reads them, with "新着" on the ones not read yet.
+ * 管理者コメント of one 朝礼 or 巡回 record. Managers can add (and delete their own) comments;
+ * the leader / patroller reads them, with "新着" on the ones not read yet.
  */
-export function ChoreiComments({ choreiId, comments, canWrite = true }: { choreiId: string; comments: ChoreiComment[]; canWrite?: boolean }) {
+export function RecordComments({
+  kind,
+  recordId,
+  comments,
+  canWrite = true,
+}: {
+  kind: CommentKind
+  recordId: string
+  comments: RecordComment[]
+  canWrite?: boolean
+}) {
   const { t } = useTranslation()
   const { isManager } = useAuth()
   const me = useMe()
@@ -73,16 +107,17 @@ export function ChoreiComments({ choreiId, comments, canWrite = true }: { chorei
     void queryClient.invalidateQueries({ queryKey: ['admin'] })
     void queryClient.invalidateQueries({ queryKey: ['store_history'] })
     void queryClient.invalidateQueries({ queryKey: ['my_chorei'] })
+    void queryClient.invalidateQueries({ queryKey: ['my_patrols'] })
   }
   const add = useMutation({
-    mutationFn: async () => unwrap(await supabase.rpc('add_chorei_comment', { p_chorei: choreiId, p_body: body.trim() })),
+    mutationFn: async () => unwrap(await supabase.rpc(RPC[kind].add, { [RPC[kind].param]: recordId, p_body: body.trim() })),
     onSuccess: () => {
       setBody('')
       refresh()
     },
   })
   const remove = useMutation({
-    mutationFn: async (id: string) => unwrap(await supabase.from('chorei_comments').delete().eq('id', id)),
+    mutationFn: async (id: string) => unwrap(await supabase.from(RPC[kind].table).delete().eq('id', id)),
     onSuccess: refresh,
   })
   const write = isManager && canWrite

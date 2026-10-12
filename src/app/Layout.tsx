@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet } from 'react-router'
 import { UploadStatus } from '../features/attachments/UploadStatus'
-import { useUnreadComments } from '../features/chorei/Comments'
+import { useUnreadComments } from '../features/comments/Comments'
 import { cx } from '../lib/cx'
 import { familyName } from '../lib/format'
 import { useAuth } from './auth'
@@ -9,7 +9,7 @@ import { useAuth } from './auth'
 export function Layout() {
   const { t } = useTranslation()
   const { canPatrol, isManager, profile } = useAuth()
-  const unread = useUnreadComments().data ?? 0
+  const unread = useUnreadComments().data?.total ?? 0
 
   // Coloured icons + text: recognisable at a glance for staff who read Japanese slowly.
   const items = [

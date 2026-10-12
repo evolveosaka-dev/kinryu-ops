@@ -5,7 +5,7 @@ import { addDays, tokyoParts } from '../../domain/time'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import type { AttachmentSummary } from '../../lib/types'
-import type { ChoreiComment } from '../chorei/Comments'
+import type { RecordComment } from '../comments/Comments'
 
 export type AdminPatrol = StatPatrol & {
   good_points: string | null
@@ -21,6 +21,7 @@ export type AdminPatrol = StatPatrol & {
   original_texts: Record<string, string> | null
   source_lang: string | null
   attachments: AttachmentSummary[]
+  comments: RecordComment[]
 }
 
 export type AdminChorei = StatChorei & {
@@ -33,7 +34,7 @@ export type AdminChorei = StatChorei & {
   original_texts: Record<string, string> | null
   attachments: AttachmentSummary[]
   notes: { body: string; created_at: string }[]
-  comments: ChoreiComment[]
+  comments: RecordComment[]
 }
 
 export interface Person {
@@ -72,11 +73,12 @@ export function useRecords(range: Range) {
       unwrap<AdminPatrol[]>(
         await supabase
           .from('patrol_checks')
-          .select(`*, ${ATT}`)
+          .select(`*, ${ATT}, comments:patrol_comments(id, body, author_id, author_name, created_at, read_at)`)
           .eq('is_test', false)
           .gte('business_date', range.from)
           .lte('business_date', range.to)
-          .order('started_at', { ascending: false }),
+          .order('started_at', { ascending: false })
+          .order('created_at', { referencedTable: 'comments' }),
       ),
   })
   return { chorei, patrols, isLoading: chorei.isLoading || patrols.isLoading, error: chorei.error ?? patrols.error }

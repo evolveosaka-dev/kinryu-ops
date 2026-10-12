@@ -28,13 +28,16 @@ export function PatrolAdminPage() {
   const [type, setType] = useState('')
   const [patroller, setPatroller] = useState('')
   const [judgement, setJudgement] = useState('')
-  const [selected, setSelected] = useState<AdminPatrol | null>(null)
+  // by id, so the sheet shows the record again after a refetch (e.g. a new comment)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const filter = params.get('filter') ?? ''
 
   if (isLoading) return <Spinner />
   if (error) return <ErrorBox message={errorMessage(error)} />
 
   const all = patrols.data ?? []
+  const selected = all.find((p) => p.id === selectedId) ?? null
+  const setSelected = (p: AdminPatrol | null) => setSelectedId(p?.id ?? null)
   const list = all.filter(
     (p) =>
       (p.status !== 'draft' || p.needs_time_review) &&

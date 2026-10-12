@@ -1,5 +1,5 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, type ReactNode } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 import { useAuth, useMe } from '../../app/auth'
@@ -12,7 +12,7 @@ import { errorMessage, storeName } from '../../lib/format'
 import { unwrap, useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import type { AttachmentSummary, ChoreiRecord, PatrolCheck } from '../../lib/types'
-import { ChoreiComments, type ChoreiComment } from '../chorei/Comments'
+import { RecordComments, useMarkCommentsRead, type RecordComment } from '../comments/Comments'
 import { CustomerResult } from '../patrol/CustomerItem'
 
 type Tab = 'chorei' | 'patrol'
@@ -38,9 +38,9 @@ interface ChoreiView {
   status?: string
   notes: { body: string; author?: string; created_at: string }[]
   attachments: AttachmentSummary[]
-  comments: ChoreiComment[]
+  comments: RecordComment[]
 }
-type PatrolView = PatrolCheck & { patroller?: string }
+type PatrolView = PatrolCheck & { patroller?: string; comments?: RecordComment[] }
 
 const ITEMS = [
   ['score_smile', 'smile'],
@@ -158,7 +158,7 @@ function ChoreiCard({ r, store }: { r: ChoreiView; store?: string }) {
         </Line>
       )}
       <Attachments list={r.attachments} />
-      <ChoreiComments choreiId={r.id} comments={r.comments ?? []} canWrite={r.status !== 'void'} />
+      <RecordComments kind="chorei" recordId={r.id} comments={r.comments ?? []} canWrite={r.status !== 'void'} />
     </Card>
   )
 }
@@ -212,6 +212,7 @@ function PatrolCard({ r, store }: { r: PatrolView; store?: string }) {
         </Line>
       )}
       <Attachments list={r.attachments} />
+      <RecordComments kind="patrol" recordId={r.id} comments={r.comments ?? []} canWrite={r.status === 'valid'} />
     </Card>
   )
 }
@@ -227,11 +228,10 @@ function MyChorei() {
   const { t } = useTranslation('chorei')
   const me = useMe()
   const stores = useStores()
-  const queryClient = useQueryClient()
   const q = useQuery({
     queryKey: ['my_chorei', me.id],
     queryFn: async () =>
-      unwrap<(ChoreiRecord & { chorei_notes: { body: string; created_at: string }[]; chorei_comments: ChoreiComment[] })[]>(
+      unwrap<(ChoreiRecord & { chorei_notes: { body: string; created_at: string }[]; chorei_comments: RecordComment[] })[]>(
         await supabase
           .from('chorei_records')
           .select('*, attachments(id, kind, status, drive_url), chorei_notes(body, created_at), chorei_comments(id, body, author_id, author_name, created_at, read_at)')
@@ -242,11 +242,7 @@ function MyChorei() {
       ),
   })
   // Seen now: the 新着 marks stay on this screen, the ホーム card and badge go away.
-  const unread = (q.data ?? []).some((r) => r.chorei_comments?.some((c) => !c.read_at && c.author_id !== me.id))
-  useEffect(() => {
-    if (!unread) return
-    void supabase.rpc('mark_chorei_comments_read').then(() => queryClient.invalidateQueries({ queryKey: ['unread_comments'] }))
-  }, [unread, queryClient])
+  useMarkCommentsRead('chorei', q.data?.flatMap((r) => r.chorei_comments ?? []))
   return (
     <ListState loading={q.isLoading} error={q.error} empty={!q.data?.length} emptyText={t('historyEmpty')}>
       {q.data?.map((r) => (
@@ -268,21 +264,23 @@ function MyPatrols() {
   const q = useQuery({
     queryKey: ['my_patrols', me.id],
     queryFn: async () =>
-      unwrap<PatrolCheck[]>(
+      unwrap<(PatrolCheck & { patrol_comments: RecordComment[] })[]>(
         await supabase
           .from('patrol_checks')
-          .select('*, attachments(id, kind, status, drive_url)')
+          .select('*, attachments(id, kind, status, drive_url), patrol_comments(id, body, author_id, author_name, created_at, read_at)')
           .eq('patroller_id', me.id)
           .neq('status', 'draft')
           .order('business_date', { ascending: false })
+          .order('created_at', { referencedTable: 'patrol_comments' })
           .limit(50),
       ),
   })
+  useMarkCommentsRead('patrol', q.data?.flatMap((r) => r.patrol_comments ?? []))
   return (
     <ListState loading={q.isLoading} error={q.error} empty={!q.data?.length} emptyText={t('historyEmpty')}>
       {q.data?.map((r) => (
         <li key={r.id}>
-          <PatrolCard r={r} store={storeName(stores.data?.find((s) => s.id === r.store_id), currentLocale())} />
+          <PatrolCard r={{ ...r, comments: r.patrol_comments ?? [] }} store={storeName(stores.data?.find((s) => s.id === r.store_id), currentLocale())} />
         </li>
       ))}
     </ListState>
