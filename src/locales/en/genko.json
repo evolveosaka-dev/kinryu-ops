@@ -9,8 +9,7 @@
   "before": {
     "title": "Before the meeting (5 min before)",
     "stock": "① Stock: ask the previous shift",
-    "target": "② Target: check \"Target bowls\" in the app",
-    "caution": "③ Point to be careful about: choose one (you can use an example below)"
+    "caution": "② Point to be careful about: choose one (you can use an example below)"
   },
   "leaderSays": "Leader says",
   "allSay": "Everyone says / does",
@@ -50,7 +49,6 @@
     "ookini": "Thank you! (Osaka dialect)",
     "handoverStart": "Now the handover.",
     "handoverStock": "Stock: we need to order ○○. (Or: \"Nothing.\")",
-    "handoverTarget": "Target: this shift's target is ○○ bowls.",
     "handoverCaution": "Point to be careful about: ○○○○.",
     "questions": "Any questions?",
     "noQuestions": "No questions!",

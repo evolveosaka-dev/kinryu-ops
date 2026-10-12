@@ -62,8 +62,7 @@ export const GENKO_STEPS: GenkoStep[] = [
     leader: [
       { ja: '{引継|ひきつ}ぎをします。', romaji: 'Hikitsugi o shimasu.', key: 'lines.handoverStart' },
       { ja: '①{在庫|ざいこ}です。{仕入|しい}れが{必要|ひつよう}なものは〇〇です。（または「ありません。」）', romaji: 'Zaiko desu. Shiire ga hitsuyō na mono wa ○○ desu. (Arimasen.)', key: 'lines.handoverStock' },
-      { ja: '②{目標|もくひょう}です。このシフトの{目標|もくひょう}は〇〇{杯|はい}です。', romaji: 'Mokuhyō desu. Kono shifuto no mokuhyō wa ○○ hai desu.', key: 'lines.handoverTarget' },
-      { ja: '③{注意点|ちゅういてん}です。〇〇〇〇。', romaji: 'Chūiten desu. ○○○○.', key: 'lines.handoverCaution' },
+      { ja: '②{注意点|ちゅういてん}です。〇〇〇〇。', romaji: 'Chūiten desu. ○○○○.', key: 'lines.handoverCaution' },
       { ja: '{質問|しつもん}はありますか？', romaji: 'Shitsumon wa arimasu ka?', key: 'lines.questions' },
     ],
     all: [{ ja: 'ありません！', romaji: 'Arimasen!', key: 'lines.noQuestions' }],

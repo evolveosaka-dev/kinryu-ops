@@ -9,8 +9,7 @@
   "before": {
     "title": "Trước buổi họp (5 phút trước)",
     "stock": "① Hàng tồn: hỏi người ca trước",
-    "target": "② Mục tiêu: xem \"Mục tiêu số bát\" trong app",
-    "caution": "③ Điểm cần chú ý: chọn một điều (có thể chọn từ ví dụ bên dưới)"
+    "caution": "② Điểm cần chú ý: chọn một điều (có thể chọn từ ví dụ bên dưới)"
   },
   "leaderSays": "Người dẫn nói",
   "allSay": "Mọi người nói / làm",
@@ -50,7 +49,6 @@
     "ookini": "Cảm ơn! (tiếng Osaka)",
     "handoverStart": "Bây giờ bàn giao.",
     "handoverStock": "Hàng tồn: cần nhập ○○. (Hoặc: \"Không có.\")",
-    "handoverTarget": "Mục tiêu: ca này là ○○ bát.",
     "handoverCaution": "Điểm cần chú ý: ○○○○.",
     "questions": "Có câu hỏi nào không?",
     "noQuestions": "Không có!",

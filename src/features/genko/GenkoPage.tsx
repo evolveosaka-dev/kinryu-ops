@@ -95,7 +95,6 @@ export function GenkoPage() {
           <ul className="pl-4">
             <Line line={PREP_QUESTION} furigana={furigana} />
           </ul>
-          <p className="text-sm">{t('before.target')}</p>
           <p className="text-sm">{t('before.caution')}</p>
         </Card>
 

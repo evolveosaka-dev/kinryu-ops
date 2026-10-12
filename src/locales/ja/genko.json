@@ -9,8 +9,7 @@
   "before": {
     "title": "朝礼の前に（5分前）",
     "stock": "① 在庫：前のシフトの人に聞く",
-    "target": "② 目標：アプリの「目標杯数」を見る",
-    "caution": "③ 注意点：一つ決める（下の例から選んでもよい）"
+    "caution": "② 注意点：一つ決める（下の例から選んでもよい）"
   },
   "leaderSays": "誘導者が言うこと",
   "allSay": "全員が言うこと・すること",
@@ -50,7 +49,6 @@
     "ookini": "おおきに！",
     "handoverStart": "引継ぎをします。",
     "handoverStock": "在庫です。仕入れが必要なものは〇〇です。",
-    "handoverTarget": "目標です。このシフトの目標は〇〇杯です。",
     "handoverCaution": "注意点です。〇〇〇〇。",
     "questions": "質問はありますか？",
     "noQuestions": "ありません！",
