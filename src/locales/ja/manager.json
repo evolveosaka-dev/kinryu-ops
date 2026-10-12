@@ -6,6 +6,9 @@
     "active": "利用中",
     "inactive": "停止",
     "approve": "承認",
+    "reject": "却下",
+    "rejectConfirm": "このユーザーを却下しますか？（「停止」に移ります。あとで「利用中」に戻すこともできます）",
+    "rejectYes": "却下する",
     "role": {
       "staff": "スタッフ",
       "manager": "管理者",

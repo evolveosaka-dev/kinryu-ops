@@ -20,6 +20,7 @@ const selectClass = 'min-h-11 w-full rounded-lg border border-slate-300 bg-white
 function UserRow({ user, onSave, isSelf, rosterNames, takenNames }: { user: Profile; onSave: (p: Patch) => void; isSelf: boolean; rosterNames: string[]; takenNames: Set<string> }) {
   const { t } = useTranslation('manager')
   const [draft, setDraft] = useState<Patch>({})
+  const [rejecting, setRejecting] = useState(false)
   const v = { ...user, ...draft }
   const dirty = Object.keys(draft).length > 0
 
@@ -76,11 +77,29 @@ function UserRow({ user, onSave, isSelf, rosterNames, takenNames }: { user: Prof
           {t('users.canPatrol')}
         </Checkbox>
       </div>
+      {rejecting && (
+        <div className="flex flex-col gap-2 rounded-lg bg-red-50 p-2">
+          <p className="text-sm">{t('users.rejectConfirm')}</p>
+          <div className="flex gap-2">
+            <Button variant="secondary" className="flex-1" onClick={() => setRejecting(false)}>
+              {t('common:action.cancel')}
+            </Button>
+            <Button variant="danger" className="flex-1" onClick={() => onSave({ status: 'inactive' })}>
+              {t('users.rejectYes')}
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="flex gap-2">
-        {user.status === 'pending' && !dirty && (
-          <Button className="flex-1" onClick={() => onSave({ status: 'active' })}>
-            ✓ {t('users.approve')}
-          </Button>
+        {user.status === 'pending' && !dirty && !rejecting && (
+          <>
+            <Button variant="secondary" className="flex-1" onClick={() => setRejecting(true)}>
+              ✕ {t('users.reject')}
+            </Button>
+            <Button className="flex-1" onClick={() => onSave({ status: 'active' })}>
+              ✓ {t('users.approve')}
+            </Button>
+          </>
         )}
         {dirty && (
           <Button

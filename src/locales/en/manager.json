@@ -6,6 +6,9 @@
     "active": "Active",
     "inactive": "Inactive",
     "approve": "Approve",
+    "reject": "Reject",
+    "rejectConfirm": "Reject this user? (They move to \"Inactive\"; you can make them active again later.)",
+    "rejectYes": "Reject",
     "role": {
       "staff": "Staff",
       "manager": "Manager",
