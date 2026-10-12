@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { useMe } from '../../app/auth'
-import { useToast } from '../../components/Toast'
+import { useSentNotice } from '../../components/SentNotice'
 import { Button, Card, Checkbox, ErrorBox, PageTitle, Segmented, SectionTitle, Spinner, StickyActions, TextArea, TextInput } from '../../components/ui'
 import {
   EMPTY_ANSWERS,
@@ -99,7 +99,7 @@ function ShiftRequestForm({
 }) {
   const { t } = useTranslation('shift')
   const me = useMe()
-  const toast = useToast()
+  const sent = useSentNotice()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const holidays = useHolidays()
@@ -179,7 +179,7 @@ function ShiftRequestForm({
       )
     },
     onSuccess: () => {
-      toast(t('done'))
+      sent({ kind: t('common:sent.shiftRequest'), detail: t('common:sent.month', { y: month.slice(0, 4), m: Number(month.slice(5, 7)) }) })
       void queryClient.invalidateQueries({ queryKey: ['shift_request'] })
       void navigate('/')
     },

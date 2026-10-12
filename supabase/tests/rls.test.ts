@@ -515,3 +515,24 @@ describe('test account with the manager role is read-only', () => {
     expect(c!.is_test).toBe(true)
   })
 })
+
+describe('履歴 → 全店舗', () => {
+  const month = `date_trunc('month', ${TODAY})::date`
+  it('any active staff sees every 朝礼 of a store this month, with the leader name', async () => {
+    await t.as(staffM, `insert into public.chorei_records (store_id, business_date, shift, stock_none) values ($1, ${TODAY}, 'late', true)`, [midosuji])
+    const rows = await t.as<{ r: { leader: string; shift: string }[] }>(staffS, `select public.store_chorei_month($1, ${month}) as r`, [midosuji])
+    expect(rows[0]!.r.length).toBeGreaterThan(0)
+    expect(rows[0]!.r[0]).toHaveProperty('leader')
+  })
+  it('巡回 of all stores: managers only, not staff or patrol members', async () => {
+    await expect(t.as(staffS, `select public.store_patrol_month($1, ${month})`, [midosuji])).rejects.toThrow(/managers only/)
+    await expect(t.as(patroller, `select public.store_patrol_month($1, ${month})`, [midosuji])).rejects.toThrow(/managers only/)
+    const [row] = await t.as<{ r: { patroller: string }[] }>(manager, `select public.store_patrol_month($1, ${month}) as r`, [midosuji])
+    expect(row!.r.length).toBeGreaterThan(0)
+    expect(row!.r[0]).toHaveProperty('patroller')
+  })
+  it('pending users get nothing', async () => {
+    const newcomer = await t.createUser('newcomer2@example.com')
+    await expect(t.as(newcomer, `select public.store_chorei_month($1, ${month})`, [midosuji])).rejects.toThrow(/not allowed/)
+  })
+})

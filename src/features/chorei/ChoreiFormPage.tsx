@@ -3,12 +3,12 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { useMe } from '../../app/auth'
-import { useToast } from '../../components/Toast'
+import { useSentNotice } from '../../components/SentNotice'
 import { StaffPicker } from '../../components/StaffPicker'
 import { Button, Card, Checkbox, ErrorBox, Segmented, Spinner, StickyActions, TextArea, TextInput, PageTitle } from '../../components/ui'
 import { readSlotPreset } from '../../domain/duty'
 import { CAUTION_PICKS } from '../../domain/phrases'
-import { currentSlot, dayType, formatTokyoTime, MEETING_TIME, monthOf } from '../../domain/time'
+import { currentSlot, dayType, formatShortDate, formatTokyoTime, MEETING_TIME, monthOf } from '../../domain/time'
 import { ALL_STEPS_DONE, CHOREI_STEPS, SHIFTS, type Shift, type StepsDone } from '../../domain/types'
 import { currentLocale } from '../../i18n'
 import { errorMessage, isNetworkError, storeName } from '../../lib/format'
@@ -26,7 +26,7 @@ import { choreiSchema, fieldErrors } from './schema'
 export function ChoreiFormPage() {
   const { t } = useTranslation('chorei')
   const me = useMe()
-  const toast = useToast()
+  const sent = useSentNotice()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const locale = currentLocale()
@@ -60,6 +60,7 @@ export function ChoreiFormPage() {
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const effectiveStore = storeId || stores.data?.find((s) => s.code === preset.storeCode)?.id || stores.data?.[0]?.id || ''
+  const slotLabel = `${formatShortDate(businessDate)} ${t(`common:shift.${shift}`)}・${storeName(stores.data?.find((s) => s.id === effectiveStore), locale)}`
 
   const slot = useQuery({
     queryKey: ['chorei_slot', effectiveStore, businessDate, shift],
@@ -117,7 +118,7 @@ export function ChoreiFormPage() {
       await uploads.enqueue('chorei', (res.data as { id: string }).id, media)
     },
     onSuccess: () => {
-      toast(t('common:toast.sent'))
+      sent({ kind: t('common:sent.chorei'), detail: slotLabel, photos: media.length })
       void queryClient.invalidateQueries({ queryKey: ['my_chorei'] })
       void navigate('/history')
     },
@@ -140,7 +141,7 @@ export function ChoreiFormPage() {
     },
     onSuccess: () => {
       setNote('')
-      toast(t('existing.noteAdded'))
+      sent({ kind: t('common:sent.note'), detail: slotLabel })
     },
     onError: (err) => !(err instanceof TranslationCancelled) && setSubmitError(errorMessage(err)),
   })

@@ -3,6 +3,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './app/App'
 import { AuthProvider } from './app/auth'
+import { SentNoticeProvider } from './components/SentNotice'
 import { ToastProvider } from './components/Toast'
 import { UpdateBanner } from './components/UpdateBanner'
 import { UploadQueueProvider } from './features/attachments/uploadQueue'
@@ -17,12 +18,14 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
+        <SentNoticeProvider>
         <AuthProvider>
           <UploadQueueProvider>
             <App />
             <UpdateBanner />
           </UploadQueueProvider>
         </AuthProvider>
+        </SentNoticeProvider>
       </ToastProvider>
     </QueryClientProvider>
   </StrictMode>,

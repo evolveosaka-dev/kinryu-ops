@@ -143,11 +143,27 @@
     "notConfigured": "サーバーの設定がまだです（VITE_SUPABASE_URL）。"
   },
   "history": {
-    "title": "自分の履歴",
+    "title": "履歴",
     "chorei": "朝礼",
     "patrol": "巡回",
     "empty": "まだ記録がありません。",
-    "test": "テスト"
+    "test": "テスト",
+    "mine": "自分のみ",
+    "allStores": "全店舗",
+    "pickStore": "店舗",
+    "pickStoreHint": "店舗を選んでください。",
+    "month": "{{y}}年{{m}}月",
+    "prevMonth": "前の月",
+    "nextMonth": "次の月",
+    "count": "{{n}}件",
+    "monthEmpty": "この月の記録はありません。",
+    "leader": "誘導者",
+    "patroller": "巡回者",
+    "sentAt": "{{time}} 送信",
+    "steps": "6ステップ",
+    "skipped": "できなかった",
+    "allSteps": "すべて実施",
+    "original": "原文"
   },
   "profile": {
     "title": "設定",
@@ -218,5 +234,17 @@
   "update": {
     "available": "新しいバージョンがあります",
     "button": "更新"
+  },
+  "sent": {
+    "title": "送信しました",
+    "body": "管理者に届きました。",
+    "time": "送信時刻 {{time}}",
+    "photos": "写真・動画（{{n}}件）は、このあと自動でアップロードします。",
+    "ok": "OK",
+    "chorei": "朝礼記録",
+    "note": "朝礼の追記",
+    "patrol": "巡回チェック",
+    "shiftRequest": "シフト希望",
+    "month": "{{y}}年{{m}}月"
   }
 }

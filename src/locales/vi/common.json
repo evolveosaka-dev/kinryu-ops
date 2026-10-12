@@ -143,11 +143,27 @@
     "notConfigured": "Máy chủ chưa được cài đặt (VITE_SUPABASE_URL)."
   },
   "history": {
-    "title": "Lịch sử của tôi",
+    "title": "Lịch sử",
     "chorei": "Họp ca",
     "patrol": "Tuần tra",
     "empty": "Chưa có dữ liệu.",
-    "test": "Thử"
+    "test": "Thử",
+    "mine": "Của tôi",
+    "allStores": "Tất cả cửa hàng",
+    "pickStore": "Cửa hàng",
+    "pickStoreHint": "Hãy chọn cửa hàng.",
+    "month": "Tháng {{m}}/{{y}}",
+    "prevMonth": "Tháng trước",
+    "nextMonth": "Tháng sau",
+    "count": "{{n}} báo cáo",
+    "monthEmpty": "Tháng này chưa có báo cáo.",
+    "leader": "Người dẫn",
+    "patroller": "Người tuần tra",
+    "sentAt": "gửi lúc {{time}}",
+    "steps": "6 bước",
+    "skipped": "Chưa làm",
+    "allSteps": "Đã làm đủ",
+    "original": "Bản gốc"
   },
   "profile": {
     "title": "Cài đặt",
@@ -218,5 +234,17 @@
   "update": {
     "available": "Đã có phiên bản mới",
     "button": "Cập nhật"
+  },
+  "sent": {
+    "title": "Đã gửi",
+    "body": "Quản lý đã nhận được.",
+    "time": "Gửi lúc {{time}}",
+    "photos": "Ảnh/video ({{n}}) sẽ tự động tải lên sau.",
+    "ok": "OK",
+    "chorei": "Biên bản họp đầu ca (朝礼)",
+    "note": "Ghi chú thêm cho 朝礼",
+    "patrol": "Phiếu tuần tra",
+    "shiftRequest": "Đăng ký ca",
+    "month": "Tháng {{m}}/{{y}}"
   }
 }

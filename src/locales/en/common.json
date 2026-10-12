@@ -143,11 +143,27 @@
     "notConfigured": "Server is not configured yet (VITE_SUPABASE_URL)."
   },
   "history": {
-    "title": "My history",
+    "title": "History",
     "chorei": "Meeting",
     "patrol": "Patrol",
     "empty": "No records yet.",
-    "test": "Test"
+    "test": "Test",
+    "mine": "Mine only",
+    "allStores": "All stores",
+    "pickStore": "Store",
+    "pickStoreHint": "Choose a store.",
+    "month": "{{m}}/{{y}}",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "count": "{{n}} records",
+    "monthEmpty": "No records this month.",
+    "leader": "Leader",
+    "patroller": "Patroller",
+    "sentAt": "sent {{time}}",
+    "steps": "6 steps",
+    "skipped": "Not done",
+    "allSteps": "All done",
+    "original": "Original"
   },
   "profile": {
     "title": "Settings",
@@ -218,5 +234,17 @@
   "update": {
     "available": "A new version is available",
     "button": "Update"
+  },
+  "sent": {
+    "title": "Sent",
+    "body": "The managers have received it.",
+    "time": "Sent at {{time}}",
+    "photos": "The photos/videos ({{n}}) will upload automatically.",
+    "ok": "OK",
+    "chorei": "Meeting record (朝礼)",
+    "note": "Note to the 朝礼",
+    "patrol": "Patrol check",
+    "shiftRequest": "Shift request",
+    "month": "{{m}}/{{y}}"
   }
 }

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router'
 import { useMe } from '../../app/auth'
-import { useToast } from '../../components/Toast'
+import { useSentNotice } from '../../components/SentNotice'
 import { StaffPicker } from '../../components/StaffPicker'
 import { Button, Card, Checkbox, ErrorBox, Segmented, Spinner, StickyActions, TextArea, TextInput, PageTitle } from '../../components/ui'
 import {
@@ -77,7 +77,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
   const { t } = useTranslation('patrol')
   const [params] = useSearchParams()
   const me = useMe()
-  const toast = useToast()
+  const sent = useSentNotice()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const locale = currentLocale()
@@ -177,7 +177,11 @@ function PatrolForm({ stores }: { stores: Store[] }) {
     },
     onSuccess: () => {
       saveLocalDraft(me.id, null)
-      toast(t('common:toast.sent'))
+      sent({
+        kind: t('common:sent.patrol'),
+        detail: `${form.businessDate.slice(5).replace('-', '/')} ${t(`common:shift.${form.shift}`)}・${storeName(stores.find((s) => s.id === form.storeId), locale)}`,
+        photos: media.length,
+      })
       void queryClient.invalidateQueries({ queryKey: ['my_patrols'] })
       void navigate('/history?tab=patrol')
     },
