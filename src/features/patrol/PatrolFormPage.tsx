@@ -28,6 +28,7 @@ import { useUploadQueue } from '../attachments/uploadQueue'
 import type { PreparedMedia } from '../../lib/media'
 import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 import { initialStore } from '../../lib/lastStore'
+import { CustomerItem } from './CustomerItem'
 import { ScoreItem } from './ScoreItem'
 
 const JUDGEMENT_STYLE = {
@@ -141,11 +142,13 @@ function PatrolForm({ stores }: { stores: Store[] }) {
     mutationFn: async (endedAt: string) => {
       const f = form
       const scores = completeScores(f.scores)
+      const customerNo = !f.customerNone && f.customerSatisfied === false
       // other languages → Japanese, confirmed (and editable) before saving
       const tr = await translation.prepare([
         { key: 'good_points', label: t('goodPoints.label'), text: f.goodPoints.trim() },
         { key: 'improvements', label: t('improvements.label'), text: f.improvements.trim() },
         { key: 'remarks', label: t('remarks.label'), text: f.remarks.trim() || null },
+        { key: 'customer_reason', label: t('customer.reason'), text: customerNo ? (f.customerReason ?? '').trim() : null },
       ])
       const payload = {
         store_id: f.storeId,
@@ -165,6 +168,9 @@ function PatrolForm({ stores }: { stores: Store[] }) {
         good_points: tr.values.good_points,
         improvements: tr.values.improvements,
         remarks: tr.values.remarks || null,
+        customer_none: Boolean(f.customerNone),
+        customer_satisfied: f.customerNone ? null : (f.customerSatisfied ?? null),
+        customer_reason: customerNo ? tr.values.customer_reason : null,
         original_texts: tr.originals,
         source_lang: tr.sourceLang,
         status: 'valid',
@@ -200,7 +206,8 @@ function PatrolForm({ stores }: { stores: Store[] }) {
     void navigate('/')
   }
   const hasInput = Boolean(
-    form.startedAt || media.length || form.goodPoints.trim() || form.improvements.trim() || form.remarks.trim() || Object.keys(form.scores).length,
+    form.startedAt || media.length || form.goodPoints.trim() || form.improvements.trim() || form.remarks.trim() || Object.keys(form.scores).length ||
+      form.customerNone || form.customerSatisfied !== undefined,
   )
 
   const scores = completeScores(form.scores)
@@ -210,7 +217,8 @@ function PatrolForm({ stores }: { stores: Store[] }) {
   const minutes = started ? durationMinutes(started, ended ?? now) : 0
   const overLimit = Boolean(started && !ended && minutes >= PATROL_WARN_MINUTES)
   const photos = media.filter((m) => m.kind === 'image').length
-  const ready = Boolean(started && ended && photos > 0 && scores && form.goodPoints.trim() && form.improvements.trim())
+  const customerOk = Boolean(form.customerNone || form.customerSatisfied === true || (form.customerSatisfied === false && form.customerReason?.trim()))
+  const ready = Boolean(started && ended && photos > 0 && scores && customerOk && form.goodPoints.trim() && form.improvements.trim())
 
   // vibrate once when 15 minutes pass without 終了
   useEffect(() => {
@@ -304,6 +312,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
           }
         />
       ))}
+      <CustomerItem value={form} onChange={update} missing={showMissing} />
 
       <Card className="flex flex-col gap-3">
         <StaffPicker
@@ -371,7 +380,8 @@ function PatrolForm({ stores }: { stores: Store[] }) {
         {result?.max === 20 && <p className="mb-1 text-xs text-slate-600">{t('fourItems')}</p>}
         {showMissing && !started && <ErrorBox message={t('time.needStart')} />}
         {endMissing && !ended && <ErrorBox message={t('time.endFirst')} />}
-        {showMissing && started && photos === 0 && <ErrorBox message={t('common:attach.photoRequired')} />}
+        {showMissing && !customerOk && <ErrorBox message={t('customer.needAnswer')} />}
+        {showMissing && started && photos === 0 &&<ErrorBox message={t('common:attach.photoRequired')} />}
         {error && <ErrorBox message={error} />}
         <div className="grid grid-cols-[1fr_2fr] gap-2">
           <Button variant="secondary" disabled={submit.isPending} onClick={() => (hasInput ? setConfirmCancel(true) : void navigate('/'))}>

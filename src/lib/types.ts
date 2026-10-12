@@ -125,6 +125,10 @@ export interface PatrolCheck {
   good_points: string | null
   improvements: string | null
   remarks: string | null
+  /** ⑥ お客様の満足度 (not scored); null = not asked (before 2026-10-12) */
+  customer_none: boolean
+  customer_satisfied: boolean | null
+  customer_reason: string | null
   submitted_at: string | null
   status: 'draft' | 'valid' | 'void'
   original_texts: Record<string, string> | null

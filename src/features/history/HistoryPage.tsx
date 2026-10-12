@@ -13,6 +13,7 @@ import { unwrap, useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import type { AttachmentSummary, ChoreiRecord, PatrolCheck } from '../../lib/types'
 import { ChoreiComments, type ChoreiComment } from '../chorei/Comments'
+import { CustomerResult } from '../patrol/CustomerItem'
 
 type Tab = 'chorei' | 'patrol'
 type Scope = 'mine' | 'all'
@@ -189,6 +190,12 @@ function PatrolCard({ r, store }: { r: PatrolView; store?: string }) {
           </li>
         ))}
       </ul>
+      {(r.customer_none || r.customer_satisfied != null) && (
+        <Line label={t('customer.short')}>
+          <CustomerResult r={r} />
+          <Original texts={r.original_texts} field="customer_reason" />
+        </Line>
+      )}
       <Line label={t('staffOnShift')}>{r.staff_names?.length ? r.staff_names.join('、') : r.staff_on_shift}</Line>
       <Line label={t('goodPoints.label')}>
         {r.good_points}

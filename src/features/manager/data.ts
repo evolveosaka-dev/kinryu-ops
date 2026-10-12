@@ -11,6 +11,9 @@ export type AdminPatrol = StatPatrol & {
   good_points: string | null
   improvements: string | null
   remarks: string | null
+  customer_none: boolean
+  customer_satisfied: boolean | null
+  customer_reason: string | null
   staff_on_shift: string
   follow_up_note: string | null
   void_reason: string | null

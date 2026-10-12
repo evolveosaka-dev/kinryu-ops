@@ -117,6 +117,7 @@ function patrolLines(L: Lookup, r: Row, photos: number): string[] {
     `時間: ${hm(r.started_at)}–${hm(r.ended_at)}（${r.duration_min ?? '—'}分）${r.needs_time_review ? ' ⚠ 時間確認が必要' : ''}`,
     `点数: ${r.total} / ${r.max_total}　判定: ${JUDGE[r.judgement] ?? r.judgement}`,
     `内訳: ${items}${r.mask_worn ? '（マスク利用）' : ''}`,
+    ...(r.customer_none ? ['⑥お客様の満足度: お客様なし'] : r.customer_satisfied === true ? ['⑥お客様の満足度: はい'] : r.customer_satisfied === false ? [`⚠ ⑥お客様の満足度: いいえ（理由: ${r.customer_reason ?? ''}）`] : []),
     `勤務者: ${r.staff_names?.length ? r.staff_names.join('、') : r.staff_on_shift}`,
     `良かった点: ${r.good_points ?? ''}`,
     `改善点・指導内容: ${r.improvements ?? ''}`,

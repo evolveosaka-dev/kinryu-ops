@@ -12,7 +12,7 @@ const STEPS = { greeting: '挨拶', philosophy: '経営理念', phrases: '接客
 
 type Cell = string | number | boolean | null
 
-const FIELD_JA: Record<string, string> = { stock_text: '在庫', caution_text: '注意点', skip_reason: '理由', good_points: '良かった点', improvements: '改善点', remarks: '備考' }
+const FIELD_JA: Record<string, string> = { stock_text: '在庫', caution_text: '注意点', skip_reason: '理由', good_points: '良かった点', improvements: '改善点', remarks: '備考', customer_reason: '⑥いいえの理由' }
 /** "[vi] 良かった点: … / 改善点: …" for translated records, empty otherwise */
 const originals = (texts: Record<string, string> | null, lang: string | null) =>
   texts ? `[${lang ?? '?'}] ` + Object.entries(texts).map(([k, v]) => `${FIELD_JA[k] ?? k}: ${v}`).join(' / ') : ''
@@ -116,7 +116,7 @@ serve(async (req) => {
       ]),
     ],
     巡回チェック: [
-      ['日付', '店舗', 'シフト', '種類', '巡回者（氏名）', '巡回者（表示名）', '開始', '終了', '分', '①笑顔', 'マスク', '②声出し', '③身だしなみ', '④清潔', '⑤提供品質', '合計', '満点', '判定', '対象スタッフ', '良かった点', '改善点・指導内容', '備考', '時間確認', '状態', '添付数', '原文（翻訳前）', 'テスト', 'ID'],
+      ['日付', '店舗', 'シフト', '種類', '巡回者（氏名）', '巡回者（表示名）', '開始', '終了', '分', '①笑顔', 'マスク', '②声出し', '③身だしなみ', '④清潔', '⑤提供品質', '合計', '満点', '判定', '⑥お客様の満足度', '⑥いいえの理由', '対象スタッフ', '良かった点', '改善点・指導内容', '備考', '時間確認', '状態', '添付数', '原文（翻訳前）', 'テスト', 'ID'],
       ...patrols.data!.map((p) => [
         p.business_date,
         storeName.get(p.store_id) ?? '',
@@ -136,6 +136,8 @@ serve(async (req) => {
         p.total,
         p.max_total,
         JUDGE[p.judgement] ?? '',
+        p.customer_none ? 'お客様なし' : p.customer_satisfied === true ? 'はい' : p.customer_satisfied === false ? 'いいえ' : '',
+        p.customer_reason ?? '',
         p.staff_on_shift,
         p.good_points ?? '',
         p.improvements ?? '',

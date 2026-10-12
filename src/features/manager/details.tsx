@@ -11,6 +11,7 @@ import { unwrap, useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import type { AttachmentSummary } from '../../lib/types'
 import { ChoreiComments } from '../chorei/Comments'
+import { CustomerResult } from '../patrol/CustomerItem'
 import { Sheet, Dot } from './common'
 import { fromLocalInput, jstDateTime, toLocalInput, type AdminChorei, type AdminPatrol, JUDGE_STYLE } from './data'
 
@@ -102,6 +103,12 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
             </li>
           ))}
         </ul>
+        {(p.customer_none || p.customer_satisfied != null) && (
+          <Row label={t('patrol:customer.short')}>
+            <CustomerResult r={p} />
+            <Original texts={p.original_texts} field="customer_reason" />
+          </Row>
+        )}
         <Row label={t('detail.staff')}>{p.staff_names.length ? p.staff_names.join('、') : p.staff_on_shift}</Row>
         <Row label={t('patrol:goodPoints.label')}>
           {p.good_points}

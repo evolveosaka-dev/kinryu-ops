@@ -102,5 +102,18 @@
     "body": "The start time, scores, comments and photos will all be deleted.",
     "yes": "Cancel patrol",
     "no": "Keep going"
+  },
+  "customer": {
+    "name": "⑥ Customer satisfaction",
+    "short": "⑥ Customers",
+    "notScored": "Not included in the score",
+    "question": "Did leaving customers look satisfied?",
+    "example": "(e.g. \"It was delicious\", \"Gochisōsama\")",
+    "yes": "Yes",
+    "no": "No",
+    "none": "No customers",
+    "reason": "Reason for \"No\"",
+    "reasonPlaceholder": "e.g. Left without a word. Said the soup was lukewarm",
+    "needAnswer": "Please answer ⑥ Customer satisfaction."
   }
 }

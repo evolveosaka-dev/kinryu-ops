@@ -102,5 +102,18 @@
     "body": "Giờ bắt đầu, điểm, nhận xét và ảnh sẽ bị xóa hết.",
     "yes": "Hủy tuần tra",
     "no": "Tiếp tục"
+  },
+  "customer": {
+    "name": "⑥ Mức độ hài lòng của khách",
+    "short": "⑥ Khách hàng",
+    "notScored": "Không tính vào điểm",
+    "question": "Khách ra về trông có hài lòng không?",
+    "example": "(ví dụ: “ngon quá”, “gochisōsama”)",
+    "yes": "Có",
+    "no": "Không",
+    "none": "Không có khách",
+    "reason": "Lý do “Không”",
+    "reasonPlaceholder": "Ví dụ: Khách ra về không nói gì. Khách nói súp bị nguội",
+    "needAnswer": "Hãy trả lời mục ⑥ Mức độ hài lòng của khách."
   }
 }

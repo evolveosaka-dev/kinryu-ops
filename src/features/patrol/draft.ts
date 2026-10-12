@@ -19,6 +19,10 @@ export interface PatrolFormState {
   goodPoints: string
   improvements: string
   remarks: string
+  /** ⑥ お客様の満足度: true/false = はい/いいえ, undefined = not answered */
+  customerNone?: boolean
+  customerSatisfied?: boolean
+  customerReason?: string
 }
 
 const KEY = 'kinryu.patrolForm'
