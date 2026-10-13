@@ -1,15 +1,16 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card, ErrorBox, Spinner, PageTitle } from '../../components/ui'
-import { choreiSlots, completion, dateRange } from '../../domain/stats'
+import { choreiSlots, completion, dateRange, missSummary, type ChoreiSlotView } from '../../domain/stats'
 import { formatShortDate, weekdayOf } from '../../domain/time'
-import { SHIFTS } from '../../domain/types'
+import { MISS_ICON, SHIFTS } from '../../domain/types'
 import { currentLocale } from '../../i18n'
 import { cx } from '../../lib/cx'
 import { errorMessage, storeName } from '../../lib/format'
 import { useStores } from '../../lib/queries'
 import { PeriodBar, Stat } from './common'
 import { usePeople, useRecords, type AdminChorei, usePeriod } from './data'
+import { ChoreiMissSheet } from './ChoreiMissSheet'
 import { ChoreiDetail } from './details'
 import { ManagerTabs } from './ManagerTabs'
 
@@ -18,9 +19,11 @@ export function ChoreiAdminPage() {
   const period = usePeriod('week')
   const stores = useStores()
   const people = usePeople()
-  const { chorei, isLoading, error } = useRecords(period.range)
+  const { chorei, misses, isLoading, error } = useRecords(period.range)
   // by id, so the sheet shows the record again after a refetch (e.g. a new comment)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  // a slot without a record (✗ / reason / manager's ✓), by key
+  const [missKey, setMissKey] = useState<string | null>(null)
 
   if (isLoading || stores.isLoading) return <Spinner />
   if (error) return <ErrorBox message={errorMessage(error)} />
@@ -29,7 +32,10 @@ export function ChoreiAdminPage() {
   const setSelected = (r: AdminChorei | null) => setSelectedId(r?.id ?? null)
   const storeIds = (stores.data ?? []).map((s) => s.id)
   const dates = dateRange(period.range.from, period.range.to)
-  const slots = choreiSlots(chorei.data ?? [], dates, storeIds, new Date())
+  const slots = choreiSlots(chorei.data ?? [], dates, storeIds, new Date(), misses.data ?? [])
+  const missStats = missSummary(slots)
+  const keyOf = (s: ChoreiSlotView<unknown>) => `${s.date}|${s.storeId}|${s.shift}`
+  const missSlot = slots.find((s) => keyOf(s) === missKey) ?? null
   const total = completion(slots)
   const voided = (chorei.data ?? []).filter((r) => r.status === 'void')
   const short = (id: string) => storeName(stores.data?.find((s) => s.id === id), 'ja').replace('店', '')
@@ -82,8 +88,20 @@ export function ChoreiAdminPage() {
                           <button type="button" onClick={() => setSelected(slot.record!)} className="min-h-9 w-full font-bold text-green-700 underline">
                             ✓
                           </button>
+                        ) : slot.state === 'done' || slot.state === 'missing' ? (
+                          <button
+                            type="button"
+                            onClick={() => setMissKey(keyOf(slot))}
+                            title={slot.miss?.reason ? t(`chorei:miss.reason.${slot.miss.reason}`) : undefined}
+                            className={cx(
+                              'min-h-9 w-full rounded font-bold',
+                              slot.state === 'done' ? 'bg-teal-50 text-teal-800' : slot.miss ? 'bg-amber-100' : 'text-red-700',
+                            )}
+                          >
+                            {slot.state === 'done' ? `✓${t('misses.confirmedShort')}` : slot.miss?.reason ? MISS_ICON[slot.miss.reason] : '✗'}
+                          </button>
                         ) : (
-                          <span className={slot.state === 'missing' ? 'font-bold text-red-700' : 'text-slate-300'} title={slot.state === 'off' ? t('testPeriod') : undefined}>{slot.state === 'missing' ? '✗' : '―'}</span>
+                          <span className="text-slate-300" title={slot.state === 'off' ? t('testPeriod') : undefined}>―</span>
                         )}
                       </td>
                     )
@@ -108,11 +126,41 @@ export function ChoreiAdminPage() {
                     {short(sid)} {t(`common:shift.${shift}`)}
                   </span>
                   <b>{c.rate === null ? '—' : `${c.rate}%`}</b>
+                  {(missStats.byStoreShift.get(`${sid}|${shift}`) ?? 0) > 0 && (
+                    <span className="block text-xs text-red-700">{t('misses.count', { n: missStats.byStoreShift.get(`${sid}|${shift}`) })}</span>
+                  )}
                 </li>
               )
             }),
           )}
         </ul>
+      </Card>
+
+      <Card className="flex flex-col gap-2">
+        <h2 className="font-bold">{t('misses.title')}</h2>
+        {missStats.total === 0 ? (
+          <p className="text-sm text-slate-600">{t('misses.none')}</p>
+        ) : (
+          <>
+            <ul className="flex flex-col gap-1 text-sm">
+              {missStats.byReason.map(({ reason, count }) => (
+                <li key={reason ?? 'none'} className={cx('flex items-center justify-between rounded-lg px-2 py-1', reason ? 'bg-amber-50' : 'bg-red-50 font-bold text-red-800')}>
+                  <span>{reason ? `${MISS_ICON[reason]} ${t(`chorei:miss.reason.${reason}`)}` : `✗ ${t('misses.unreported')}`}</span>
+                  <span>{t('misses.count', { n: count })}</span>
+                </li>
+              ))}
+            </ul>
+            <h3 className="text-sm font-bold">{t('misses.byWeekday')}</h3>
+            <ul className="grid grid-cols-7 gap-1 text-center text-xs">
+              {[1, 2, 3, 4, 5, 6, 0].map((wd) => (
+                <li key={wd} className="rounded-lg bg-slate-50 p-1">
+                  <span className="block">{t(`weekday.${wd}`)}</span>
+                  <b className={missStats.byWeekday[wd] ? 'text-red-700' : 'text-slate-400'}>{missStats.byWeekday[wd]}</b>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </Card>
 
       {voided.length > 0 && (
@@ -128,6 +176,15 @@ export function ChoreiAdminPage() {
             ))}
           </ul>
         </Card>
+      )}
+      {missSlot && (
+        <ChoreiMissSheet
+          key={missKey}
+          slot={missSlot}
+          title={`${missSlot.date} ${t(`common:shift.${missSlot.shift}`)} ${storeName(stores.data?.find((s) => s.id === missSlot.storeId), currentLocale())}`}
+          reporterName={people.name}
+          onClose={() => setMissKey(null)}
+        />
       )}
       {selected && <ChoreiDetail record={selected} leaderName={people.name(selected.leader_id)} onClose={() => setSelected(null)} />}
     </div>

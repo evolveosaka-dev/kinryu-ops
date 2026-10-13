@@ -245,7 +245,8 @@
     "note": "Ghi chú thêm cho 朝礼",
     "patrol": "Phiếu tuần tra",
     "shiftRequest": "Đăng ký ca",
-    "month": "Tháng {{m}}/{{y}}"
+    "month": "Tháng {{m}}/{{y}}",
+    "miss": "Báo cáo không làm được 朝礼"
   },
   "comment": {
     "title": "Nhận xét của quản lý",

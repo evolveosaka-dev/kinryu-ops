@@ -79,7 +79,7 @@
     "todo": "To do",
     "coaching": "Same-day coaching (talk pending)",
     "timeReview": "Time needs review",
-    "missingChorei": "Meetings not recorded (7 days)",
+    "missingChorei": "Meetings without record or reason (7 days)",
     "pendingUsers": "Users waiting for approval",
     "thisWeek": "This week {{from}}–{{to}}",
     "avgScore": "Patrol average (/25)",
@@ -112,7 +112,7 @@
   "choreiList": {
     "title": "Meeting records",
     "missing": "Missing",
-    "legend": "✓ recorded (tap for details) / ✗ missing (from 30 min after the meeting) / ― not yet",
+    "legend": "✓ recorded (tap for details) / ✓ok held, confirmed by a manager / 🔥👥🧍❓✏️ not held, reason reported / ✗ no record and no reason (from 30 min after the meeting) / ― not yet. Tap ✗, a reason or ✓ok to correct it.",
     "byShift": "Rate by store × shift",
     "voided": "Voided records"
   },
@@ -316,5 +316,23 @@
     "voided": "Voided",
     "addedFiles": "Added {{n}} photo(s)/video(s)",
     "stockSome": "Some"
+  },
+  "misses": {
+    "title": "Why 朝礼 were not held (period)",
+    "none": "No 朝礼 without a record in this period.",
+    "unreported": "No record and no reason reported",
+    "confirmed": "Held, confirmed by a manager (no record)",
+    "confirmedShort": "ok",
+    "count": "{{n}}",
+    "byWeekday": "By weekday (no record)",
+    "now": "Now",
+    "edit": "Correct (manager)",
+    "markDone": "The 朝礼 was held (mark ✓)",
+    "note": "Note",
+    "save": "Save",
+    "remove": "Delete the report (back to ✗)",
+    "saved": "Saved",
+    "removed": "Back to ✗",
+    "byManager": "manager"
   }
 }

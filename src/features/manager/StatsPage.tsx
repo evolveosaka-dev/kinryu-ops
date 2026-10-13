@@ -31,7 +31,7 @@ export function StatsPage() {
   const period = usePeriod('month')
   const stores = useStores()
   const people = usePeople()
-  const { chorei, patrols, isLoading, error } = useRecords(period.range)
+  const { chorei, patrols, misses, isLoading, error } = useRecords(period.range)
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState<string | null>(null)
 
@@ -46,7 +46,7 @@ export function StatsPage() {
   const ps = patrols.data ?? []
   const rs = chorei.data ?? []
   const summary = patrolSummary(ps)
-  const slots = choreiSlots(rs, dateRange(from, to), storeIds, now)
+  const slots = choreiSlots(rs, dateRange(from, to), storeIds, now, misses.data ?? [])
   const choreiRate = completion(slots)
   const table = byStoreShift(ps, storeIds)
   const items = itemAverages(ps)

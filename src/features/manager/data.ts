@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import type { StatChorei, StatPatrol } from '../../domain/stats'
+import type { StatChorei, StatMiss, StatPatrol } from '../../domain/stats'
 import { addDays, tokyoParts } from '../../domain/time'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
@@ -84,7 +84,26 @@ export function useRecords(range: Range) {
           .order('created_at', { referencedTable: 'comments' }),
       ),
   })
-  return { chorei, patrols, isLoading: chorei.isLoading || patrols.isLoading, error: chorei.error ?? patrols.error }
+  // 朝礼できなかった reports and managers' ✓ (test accounts' reports left out)
+  const misses = useQuery({
+    queryKey: ['admin', 'misses', range.from, range.to],
+    queryFn: async () =>
+      unwrap<StatMiss[]>(
+        await supabase
+          .from('chorei_misses')
+          .select('id, store_id, business_date, shift, kind, reason, note, original_texts, reporter_id, by_manager, updated_at')
+          .eq('by_test_account', false)
+          .gte('business_date', range.from)
+          .lte('business_date', range.to),
+      ),
+  })
+  return {
+    chorei,
+    patrols,
+    misses,
+    isLoading: chorei.isLoading || patrols.isLoading || misses.isLoading,
+    error: chorei.error ?? patrols.error ?? misses.error,
+  }
 }
 
 /** Everyone with an account; `name(id)` prefers the full name used for reports. */

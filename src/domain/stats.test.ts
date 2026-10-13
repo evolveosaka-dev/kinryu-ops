@@ -6,6 +6,7 @@ import {
   choreiSlots,
   completion,
   itemAverages,
+  missSummary,
   patrolHours,
   patrolSummary,
   skippedSteps,
@@ -14,6 +15,7 @@ import {
   weekStart,
   weeklyTrend,
   type StatChorei,
+  type StatMiss,
   type StatPatrol,
 } from './stats'
 
@@ -147,5 +149,38 @@ describe('朝礼 aggregation', () => {
   })
   it('skipped steps with reasons', () => {
     expect(skippedSteps(rs).find((s) => s.step === 'grooming')).toEqual({ step: 'grooming', count: 1, reasons: ['混雑'] })
+  })
+})
+
+describe('朝礼できなかった', () => {
+  const miss = (o: Partial<StatMiss>): StatMiss => ({
+    id: 'x', store_id: 'M', business_date: '2026-10-13', shift: 'early', kind: 'missed', reason: 'busy', note: null,
+    reporter_id: 'u', by_manager: false, updated_at: '2026-10-13T00:00:00Z', ...o,
+  })
+  it('a manager ✓ counts as done; a reason keeps the slot missing; a record wins', () => {
+    const now = jst('2026-10-13T23:59:00')
+    const slots = choreiSlots(
+      [chorei({ business_date: '2026-10-13', shift: 'late' })],
+      ['2026-10-13'],
+      ['M'],
+      now,
+      [miss({}), miss({ shift: 'middle', kind: 'done', reason: null }), miss({ shift: 'late' })],
+    )
+    expect(slots.map((s) => [s.shift, s.state, s.miss?.kind ?? null])).toEqual([
+      ['early', 'missing', 'missed'],
+      ['middle', 'done', 'done'],
+      ['late', 'done', null],
+    ])
+    expect(completion(slots)).toEqual({ done: 2, due: 3, rate: 67 })
+  })
+  it('summarises missing slots by reason, store × shift and weekday', () => {
+    const slots = choreiSlots([], ['2026-10-13'], ['M', 'S'], jst('2026-10-13T23:59:00'), [miss({}), miss({ store_id: 'S', shift: 'late', reason: 'alone' })])
+    const s = missSummary(slots)
+    expect(s.total).toBe(6)
+    expect(s.unreported).toBe(4)
+    expect(s.byReason.find((r) => r.reason === 'busy')!.count).toBe(1)
+    expect(s.byReason.find((r) => r.reason === null)!.count).toBe(4)
+    expect(s.byStoreShift.get('M|early')).toBe(1)
+    expect(s.byWeekday[2]).toBe(6)
   })
 })

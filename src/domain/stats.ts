@@ -2,7 +2,7 @@
 import { isBeforeOperation } from './operation'
 import { normalizedTo25, PATROL_WARN_MINUTES } from './patrol'
 import { addDays, MEETING_TIME, tokyoParts, weekdayOf } from './time'
-import { CHOREI_STEPS, SHIFTS, type ChoreiStep, type PatrolType, type Shift } from './types'
+import { CHOREI_STEPS, MISS_REASONS, SHIFTS, type ChoreiStep, type MissReason, type PatrolType, type Shift } from './types'
 
 export interface StatPatrol {
   id: string
@@ -41,6 +41,22 @@ export interface StatChorei {
   status: 'valid' | 'void'
 }
 
+/** 朝礼できなかった report, or a manager's ✓ (kind 'done': held but not recorded). */
+export interface StatMiss {
+  id: string
+  store_id: string
+  business_date: string
+  shift: Shift
+  kind: 'missed' | 'done'
+  reason: MissReason | null
+  note: string | null
+  reporter_id: string
+  by_manager: boolean
+  updated_at: string
+  /** reporter's note before translation */
+  original_texts?: Record<string, string> | null
+}
+
 const round1 = (n: number) => Math.round(n * 10) / 10
 const avg = (xs: number[]) => (xs.length ? round1(xs.reduce((s, x) => s + x, 0) / xs.length) : null)
 export const slotKey = (date: string, storeId: string, shift: Shift) => `${date}|${storeId}|${shift}`
@@ -74,17 +90,51 @@ export function slotDue(date: string, shift: Shift, now: Date): boolean {
 /** off = before the operation start (test period), not counted */
 export type SlotState = 'done' | 'missing' | 'upcoming' | 'off'
 
-export function choreiSlots<T extends StatChorei>(records: T[], dates: string[], storeIds: string[], now: Date) {
+export interface ChoreiSlotView<T> {
+  date: string
+  storeId: string
+  shift: Shift
+  state: SlotState
+  record?: T
+  /** report / manager's correction of a slot without a record */
+  miss?: StatMiss
+}
+
+/**
+ * State of every slot. A valid record is ✓; without one, a manager's 'done' mark is ✓ too,
+ * otherwise the slot is missing once due (with or without a reported reason in `miss`).
+ */
+export function choreiSlots<T extends StatChorei>(records: T[], dates: string[], storeIds: string[], now: Date, misses: StatMiss[] = []) {
   const byKey = new Map(records.filter((r) => r.status === 'valid').map((r) => [slotKey(r.business_date, r.store_id, r.shift), r]))
-  const slots: { date: string; storeId: string; shift: Shift; state: SlotState; record?: T }[] = []
+  const missByKey = new Map(misses.map((m) => [slotKey(m.business_date, m.store_id, m.shift), m]))
+  const slots: ChoreiSlotView<T>[] = []
   for (const date of dates)
     for (const storeId of storeIds)
       for (const shift of SHIFTS) {
-        const record = byKey.get(slotKey(date, storeId, shift))
-        const state: SlotState = isBeforeOperation(date) ? 'off' : record ? 'done' : slotDue(date, shift, now) ? 'missing' : 'upcoming'
-        slots.push({ date, storeId, shift, record, state })
+        const key = slotKey(date, storeId, shift)
+        const record = byKey.get(key)
+        const miss = record ? undefined : missByKey.get(key)
+        const state: SlotState = isBeforeOperation(date)
+          ? 'off'
+          : record || miss?.kind === 'done'
+            ? 'done'
+            : slotDue(date, shift, now) || miss
+              ? 'missing'
+              : 'upcoming'
+        slots.push({ date, storeId, shift, record, miss, state })
       }
   return slots
+}
+
+/** Missing slots by reason (null = nobody reported), by store × shift and by weekday (0 = Sunday). */
+export function missSummary(slots: ChoreiSlotView<unknown>[]) {
+  const missing = slots.filter((s) => s.state === 'missing')
+  const reasonOf = (s: ChoreiSlotView<unknown>) => (s.miss?.kind === 'missed' ? s.miss.reason : null)
+  const byReason = [...MISS_REASONS, null].map((reason) => ({ reason, count: missing.filter((s) => reasonOf(s) === reason).length }))
+  const byStoreShift = new Map<string, number>()
+  for (const s of missing) byStoreShift.set(`${s.storeId}|${s.shift}`, (byStoreShift.get(`${s.storeId}|${s.shift}`) ?? 0) + 1)
+  const byWeekday = [0, 1, 2, 3, 4, 5, 6].map((wd) => missing.filter((s) => weekdayOf(s.date) === wd).length)
+  return { total: missing.length, unreported: missing.filter((s) => !reasonOf(s)).length, byReason, byStoreShift, byWeekday }
 }
 
 /** Completion over the slots that are already due. */

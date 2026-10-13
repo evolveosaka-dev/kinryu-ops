@@ -43,6 +43,8 @@ const STEPS: Record<string, string> = { greeting: 'はじめの挨拶', philosop
 const ITEMS: [string, string][] = [['score_smile', '笑顔'], ['score_voice', '声出し'], ['score_grooming', '身だしなみ'], ['score_clean', '清潔'], ['score_quality', '提供品質']]
 const ACTION: Record<string, string> = { void: '取消', time: '時間の修正', follow_up: '面談済み', update: '修正' }
 const KIND: Record<string, string> = { chorei: '朝礼記録', chorei_note: '朝礼の追記', patrol: '巡回チェック', shift_request: 'シフト希望', signup: '新規登録', edit: '修正・取消', staff_alert: '面談指導の通知' }
+// keep in sync with src/domain/types.ts MISS_REASONS / chorei.json miss.reason
+const MISS_REASON: Record<string, string> = { busy: 'お客様が多かった', no_manager: '管理者がいなかった', alone: '1人だけの勤務だった', forgot: '忘れた', other: 'その他' }
 const TABLE: Record<string, string> = { chorei_records: '朝礼記録', patrol_checks: '巡回チェック', shift_requests: 'シフト希望' }
 const FIELD: Record<string, string> = {
   status: '状態', void_reason: '取消の理由', started_at: '開始', ended_at: '終了', needs_time_review: '時間確認',
@@ -340,8 +342,17 @@ async function missingChorei(admin: Admin, L: Lookup, date: string): Promise<str
   if (date < '2026-10-12') return null
   const { data } = await admin.from('chorei_records').select('store_id, shift').eq('business_date', date).eq('status', 'valid').eq('by_test_account', false)
   const done = new Set((data ?? []).map((r) => `${r.store_id}:${r.shift}`))
+  // 朝礼できなかった reports: a manager's ✓ counts as held, a reason is shown
+  const { data: misses } = await admin.from('chorei_misses').select('store_id, shift, kind, reason, note').eq('business_date', date).eq('by_test_account', false)
+  const missBy = new Map((misses ?? []).map((m) => [`${m.store_id}:${m.shift}`, m]))
   const out: string[] = []
-  for (const [id, name] of L.stores) for (const s of ['early', 'middle', 'late']) if (!done.has(`${id}:${s}`)) out.push(`${name} ${SHIFT[s]}`)
+  for (const [id, name] of L.stores)
+    for (const s of ['early', 'middle', 'late']) {
+      const key = `${id}:${s}`
+      const m = missBy.get(key)
+      if (done.has(key) || m?.kind === 'done') continue
+      out.push(`${name} ${SHIFT[s]}${m?.reason ? `（${MISS_REASON[m.reason] ?? m.reason}${m.note ? `：${m.note}` : ''}）` : '（理由の報告なし）'}`)
+    }
   return out
 }
 

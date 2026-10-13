@@ -61,5 +61,28 @@
     "6": "Bổ sung đũa và giấy ăn trước giờ đông khách.",
     "7": "Sàn đang ướt, hãy cẩn thận.",
     "8": "Khi nhận vé ăn, hãy nói \"Maido!\"."
+  },
+  "miss": {
+    "button": "Không làm được 朝礼",
+    "title": "Lý do không làm được 朝礼",
+    "hint": "Chọn 1 lý do rồi gửi.",
+    "reasonLabel": "Lý do",
+    "note": "Chi tiết",
+    "notePlaceholder": "Ví dụ: kín chỗ, có 10 khách đang chờ",
+    "needReason": "Hãy chọn lý do.",
+    "send": "Gửi báo cáo",
+    "cancel": "Hủy",
+    "already": "Người khác đã báo cáo 朝礼 này rồi.",
+    "recorded": "朝礼 này đã được ghi rồi.",
+    "reportedTitle": "Đã báo cáo: không làm được 朝礼",
+    "stillCanRecord": "Nếu sau đó làm 朝礼, hãy ghi ở bên dưới.",
+    "change": "Đổi lý do",
+    "reason": {
+      "busy": "Khách đông",
+      "no_manager": "Không có quản lý",
+      "alone": "Ca chỉ có 1 người",
+      "forgot": "Quên",
+      "other": "Khác"
+    }
   }
 }

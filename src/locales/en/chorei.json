@@ -61,5 +61,28 @@
     "6": "Refill chopsticks and paper napkins before it gets busy.",
     "7": "The floor is wet, so be careful.",
     "8": "When you take the meal ticket, say \"Maido!\"."
+  },
+  "miss": {
+    "button": "Could not hold the 朝礼",
+    "title": "Why the 朝礼 could not be held",
+    "hint": "Choose one reason and send.",
+    "reasonLabel": "Reason",
+    "note": "Details",
+    "notePlaceholder": "e.g. all seats full, 10 customers waiting",
+    "needReason": "Choose a reason.",
+    "send": "Send report",
+    "cancel": "Cancel",
+    "already": "Someone else has already reported this 朝礼.",
+    "recorded": "This 朝礼 is already recorded.",
+    "reportedTitle": "Reported: 朝礼 not held",
+    "stillCanRecord": "If the 朝礼 is held later, record it below.",
+    "change": "Change the reason",
+    "reason": {
+      "busy": "Too many customers",
+      "no_manager": "No manager on shift",
+      "alone": "Only one person on shift",
+      "forgot": "Forgot",
+      "other": "Other"
+    }
   }
 }

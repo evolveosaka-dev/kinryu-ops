@@ -1,4 +1,4 @@
-import type { Locale, PatrolType, ProfileStatus, RecordStatus, Role, Shift, StepsDone } from '../domain/types'
+import type { Locale, MissReason, PatrolType, ProfileStatus, RecordStatus, Role, Shift, StepsDone } from '../domain/types'
 import type { IssueTag } from '../domain/issues'
 import type { Judgement } from '../domain/patrol'
 
@@ -98,9 +98,20 @@ export interface HandoverSummary {
   notes: { body: string; author: string }[]
 }
 
+/** 朝礼できなかった report of a slot (kind 'done' = a manager confirmed it was held). */
+export interface ChoreiMiss {
+  kind: 'missed' | 'done'
+  reason: MissReason | null
+  note: string | null
+  reporter: string
+  mine: boolean
+  at: string
+}
+
 export interface ChoreiSlot {
   existing: { id: string; leader: string; submitted_at: string } | null
   previous: HandoverSummary | null
+  miss: ChoreiMiss | null
 }
 
 export interface PatrolCheck {

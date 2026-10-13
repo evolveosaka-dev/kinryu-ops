@@ -546,3 +546,37 @@ describe('履歴 → 全店舗', () => {
     await expect(t.as(newcomer, `select public.store_chorei_month($1, ${month})`, [midosuji])).rejects.toThrow(/not allowed/)
   })
 })
+
+describe('朝礼できなかった (chorei_misses)', () => {
+  const SLOT = `${TODAY} - 1`
+  const report = (who: string, reason: string, note: string | null = null) =>
+    t.as(who, `select public.report_chorei_miss($1, ${SLOT}, 'middle', $2, $3) as id`, [midosuji, reason, note])
+
+  it('staff report a reason; other needs a note; a second person cannot overwrite', async () => {
+    await expect(report(staffM, 'other')).rejects.toThrow(/chorei_miss_other_note/)
+    await report(staffM, 'busy')
+    await report(staffM, 'alone')
+    await expect(report(staffS, 'forgot')).rejects.toThrow(/already reported/)
+    const [slot] = await t.as<{ s: { miss: { reason: string; mine: boolean } } }>(staffS, `select public.chorei_slot($1, ${SLOT}, 'middle') as s`, [midosuji])
+    expect(slot!.s.miss).toMatchObject({ reason: 'alone', mine: false })
+  })
+  it('staff cannot write the table directly nor read others; managers correct it to ✓', async () => {
+    await expect(
+      t.as(staffS, `insert into public.chorei_misses (store_id, business_date, shift, reason, reporter_id) values ($1, ${TODAY}, 'late', 'busy', auth.uid())`, [midosuji]),
+    ).rejects.toThrow(/row-level security/)
+    expect(await t.as(staffS, 'select id from public.chorei_misses')).toHaveLength(0)
+    expect(await t.as(staffM, 'select id from public.chorei_misses')).toHaveLength(1)
+    const rows = await t.as<{ kind: string; reason: string | null; by_manager: boolean }>(
+      manager,
+      `update public.chorei_misses set kind = 'done', note = '実施を確認' returning kind, reason, by_manager`,
+    )
+    expect(rows).toEqual([{ kind: 'done', reason: null, by_manager: true }])
+  })
+  it('cannot report a slot that already has a 朝礼 record, nor outside today ± 1', async () => {
+    const [rec] = await t.admin<{ store_id: string; d: string; shift: string }>(
+      `select store_id, business_date::text as d, shift from public.chorei_records where status = 'valid' and not by_test_account and business_date = ${TODAY} limit 1`,
+    )
+    await expect(t.as(staffM, `select public.report_chorei_miss($1, $2::date, $3, 'busy')`, [rec!.store_id, rec!.d, rec!.shift])).rejects.toThrow(/already recorded/)
+    await expect(t.as(staffM, `select public.report_chorei_miss($1, ${TODAY} - 5, 'late', 'busy')`, [midosuji])).rejects.toThrow(/out of range/)
+  })
+})

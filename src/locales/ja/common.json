@@ -245,7 +245,8 @@
     "note": "朝礼の追記",
     "patrol": "巡回チェック",
     "shiftRequest": "シフト希望",
-    "month": "{{y}}年{{m}}月"
+    "month": "{{y}}年{{m}}月",
+    "miss": "朝礼できなかった報告"
   },
   "comment": {
     "title": "管理者コメント",

@@ -21,6 +21,7 @@ import type { PreparedMedia } from '../../lib/media'
 import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 import { getLastStore, setLastStore } from '../../lib/lastStore'
 import { HandoverCard } from './HandoverCard'
+import { MissReport } from './MissReport'
 import { choreiSchema, fieldErrors } from './schema'
 
 export function ChoreiFormPage() {
@@ -199,6 +200,17 @@ export function ChoreiFormPage() {
       </Card>
 
       {slot.isLoading ? <Spinner /> : <HandoverCard handover={slot.data?.previous ?? null} />}
+
+      {!existing && !slot.isLoading && effectiveStore && (
+        <MissReport
+          key={`${effectiveStore}|${businessDate}|${shift}`}
+          storeId={effectiveStore}
+          businessDate={businessDate}
+          shift={shift}
+          slotLabel={slotLabel}
+          miss={slot.data?.miss ?? null}
+        />
+      )}
 
       {existing ? (
         <Card className="flex flex-col gap-3 ring-2 ring-green-500">

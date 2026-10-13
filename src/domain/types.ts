@@ -23,3 +23,8 @@ export const ALL_STEPS_DONE: StepsDone = {
   grooming: true,
   closing: true,
 }
+
+/** 朝礼できなかった: why a 朝礼 was not held (chorei_misses.reason). Keep in sync with the SQL check. */
+export const MISS_REASONS = ['busy', 'no_manager', 'alone', 'forgot', 'other'] as const
+export type MissReason = (typeof MISS_REASONS)[number]
+export const MISS_ICON: Record<MissReason, string> = { busy: '🔥', no_manager: '👥', alone: '🧍', forgot: '❓', other: '✏️' }

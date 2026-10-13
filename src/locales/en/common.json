@@ -245,7 +245,8 @@
     "note": "Note to the 朝礼",
     "patrol": "Patrol check",
     "shiftRequest": "Shift request",
-    "month": "{{m}}/{{y}}"
+    "month": "{{m}}/{{y}}",
+    "miss": "Report: 朝礼 not held"
   },
   "comment": {
     "title": "Manager comments",

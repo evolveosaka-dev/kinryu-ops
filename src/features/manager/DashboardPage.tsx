@@ -6,7 +6,7 @@ import { Card, ErrorBox, Spinner, PageTitle } from '../../components/ui'
 import { PATROL_TARGET_25 } from '../../domain/patrol'
 import { choreiSlots, completion, dateRange, patrolSummary } from '../../domain/stats'
 import { addDays, formatShortDate, formatTokyoTime } from '../../domain/time'
-import { SHIFTS } from '../../domain/types'
+import { MISS_ICON, SHIFTS } from '../../domain/types'
 import { currentLocale } from '../../i18n'
 import { cx } from '../../lib/cx'
 import { errorMessage, storeName } from '../../lib/format'
@@ -85,12 +85,14 @@ export function DashboardPage() {
   const storeIds = (stores.data ?? []).map((s) => s.id)
   const chorei = records.chorei.data ?? []
   const patrols = records.patrols.data ?? []
-  const todaySlots = choreiSlots(chorei, [day], storeIds, now)
-  const missingSlots = choreiSlots(chorei, dateRange(addDays(day, -6), day), storeIds, now).filter((s) => s.state === 'missing')
+  const misses = records.misses.data ?? []
+  const todaySlots = choreiSlots(chorei, [day], storeIds, now, misses)
+  // 要対応: missing 朝礼 that nobody explained yet
+  const missingSlots = choreiSlots(chorei, dateRange(addDays(day, -6), day), storeIds, now, misses).filter((s) => s.state === 'missing' && !s.miss)
   const inRange = (r: { from: string; to: string }) => patrols.filter((p) => p.business_date >= r.from && p.business_date <= r.to)
   const cur = patrolSummary(inRange(thisWeek))
   const prev = patrolSummary(inRange(lastWeek))
-  const weekChorei = completion(choreiSlots(chorei, dateRange(thisWeek.from, day), storeIds, now))
+  const weekChorei = completion(choreiSlots(chorei, dateRange(thisWeek.from, day), storeIds, now, misses))
   const coaching = (open.data ?? []).filter((p) => p.judgement === 'coaching' && !p.follow_up_done_at && p.status === 'valid')
   const timeReview = (open.data ?? []).filter((p) => p.needs_time_review)
   const pending = (people.data ?? []).filter((p) => p.status === 'pending').length
@@ -122,8 +124,16 @@ export function DashboardPage() {
                 {SHIFTS.map((shift) => {
                   const slot = todaySlots.find((x) => x.storeId === sid && x.shift === shift)!
                   return (
-                    <td key={shift} className={cx('py-2 font-bold', slot.state === 'done' ? 'text-green-700' : slot.state === 'missing' ? 'text-red-700' : 'text-slate-500')}>
-                      {slot.state === 'done' ? `✓ ${formatTokyoTime(new Date(slot.record!.submitted_at))}` : slot.state === 'missing' ? `✗ ${t('dashboard.missing')}` : '―'}
+                    <td key={shift} className={cx('py-2 font-bold', slot.state === 'done' ? 'text-green-700' : slot.state === 'missing' ? (slot.miss ? 'text-amber-800' : 'text-red-700') : 'text-slate-500')}>
+                      {slot.state === 'done'
+                        ? slot.record
+                          ? `✓ ${formatTokyoTime(new Date(slot.record.submitted_at))}`
+                          : `✓ ${t('misses.confirmedShort')}`
+                        : slot.state === 'missing'
+                          ? slot.miss?.reason
+                            ? `${MISS_ICON[slot.miss.reason]} ${t(`chorei:miss.reason.${slot.miss.reason}`)}`
+                            : `✗ ${t('dashboard.missing')}`
+                          : '―'}
                     </td>
                   )
                 })}
