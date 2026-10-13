@@ -332,7 +332,7 @@ describe('test data before the operation start (2026-10-12)', () => {
     for (const r of rows) expect(r.is_test).toBe(r.business_date < '2026-10-12')
     await t.admin(
       `insert into public.chorei_records (store_id, business_date, shift, leader_id, stock_none)
-       values ($1, '2026-10-11', 'late', $2, true), ($1, '2026-10-12', 'late', $2, true)`,
+       values ($1, '2026-10-11', 'early', $2, true), ($1, '2026-10-12', 'early', $2, true)`, // early: the duty tests use 'late' on TODAY - 3
       [sennichimae, manager],
     )
     const flags = await t.admin<{ d: string; is_test: boolean }>(`select business_date::text as d, is_test from public.chorei_records where business_date in ('2026-10-11', '2026-10-12')`)
