@@ -28,15 +28,20 @@ import viShift from './locales/vi/shift.json'
 import siShift from './locales/si/shift.json'
 import neShift from './locales/ne/shift.json'
 import neCommon from './locales/ne/common.json'
+import jaLearn from './locales/ja/learn.json'
+import enLearn from './locales/en/learn.json'
+import viLearn from './locales/vi/learn.json'
+import siLearn from './locales/si/learn.json'
+import neLearn from './locales/ne/learn.json'
 import neChorei from './locales/ne/chorei.json'
 import nePatrol from './locales/ne/patrol.json'
 
 export const resources = {
-  ja: { common: jaCommon, chorei: jaChorei, patrol: jaPatrol, manager: jaManager, genko: jaGenko, shift: jaShift },
-  en: { common: enCommon, chorei: enChorei, patrol: enPatrol, manager: enManager, genko: enGenko, shift: enShift },
-  vi: { common: viCommon, chorei: viChorei, patrol: viPatrol, genko: viGenko, shift: viShift },
-  si: { common: siCommon, chorei: siChorei, patrol: siPatrol, genko: siGenko, shift: siShift },
-  ne: { common: neCommon, chorei: neChorei, patrol: nePatrol, genko: neGenko, shift: neShift },
+  ja: { common: jaCommon, chorei: jaChorei, patrol: jaPatrol, manager: jaManager, genko: jaGenko, shift: jaShift, learn: jaLearn },
+  en: { common: enCommon, chorei: enChorei, patrol: enPatrol, manager: enManager, genko: enGenko, shift: enShift, learn: enLearn },
+  vi: { common: viCommon, chorei: viChorei, patrol: viPatrol, genko: viGenko, shift: viShift, learn: viLearn },
+  si: { common: siCommon, chorei: siChorei, patrol: siPatrol, genko: siGenko, shift: siShift, learn: siLearn },
+  ne: { common: neCommon, chorei: neChorei, patrol: nePatrol, genko: neGenko, shift: neShift, learn: neLearn },
 } as const
 
 // Load only the font a locale needs (slow mobile data).
@@ -70,7 +75,7 @@ void i18n
     nonExplicitSupportedLngs: true,
     fallbackLng: 'ja',
     defaultNS: 'common',
-    ns: ['common', 'chorei', 'patrol', 'manager', 'genko', 'shift'],
+    ns: ['common', 'chorei', 'patrol', 'manager', 'genko', 'shift', 'learn'],
     interpolation: { escapeValue: false },
     detection: { order: ['localStorage', 'navigator'], caches: ['localStorage'], lookupLocalStorage: 'kinryu.locale' },
   })

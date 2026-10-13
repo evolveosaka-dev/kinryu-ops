@@ -1,0 +1,40 @@
+{
+  "manual": {
+    "title": "Work manual",
+    "empty": "No manuals yet. Coming soon."
+  },
+  "video": {
+    "title": "Model videos",
+    "empty": "No videos yet. Coming soon.",
+    "openYoutube": "Open in YouTube"
+  },
+  "skills": {
+    "title": "Skill up",
+    "soon": "Coming soon",
+    "body": "Customer-service quizzes and speaking practice will be added."
+  },
+  "search": "Search",
+  "searchPlaceholder": "e.g. ticket machine, おおきに",
+  "noMatch": "Nothing found.",
+  "recommended": "Recommended",
+  "draft": "Draft (staff cannot see it)",
+  "draftShort": "Draft",
+  "category": {
+    "shift": "Shift flow",
+    "position": "Station work",
+    "service": "Customer service",
+    "trouble": "When there is a problem",
+    "hygiene": "Cleaning & hygiene",
+    "other": "Other"
+  },
+  "steps": "Steps",
+  "stepsCount": "{{n}} steps",
+  "stepPhoto": "Photo of step {{n}}",
+  "mistakes": "Common mistakes",
+  "showJa": "🇯🇵 Show in Japanese",
+  "showMine": "🌐 Show in my language",
+  "notTranslated": "Not translated yet. Shown in Japanese.",
+  "updated": "Updated: {{date}}",
+  "back": "Back",
+  "notFound": "Not found. It may have been deleted."
+}

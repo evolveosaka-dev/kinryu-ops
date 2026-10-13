@@ -113,7 +113,15 @@
     "scheduleSub": "Ngày, giờ và cửa hàng mình làm",
     "allShifts": "Ca của tất cả cửa hàng",
     "allShiftsSub": "Ai làm ca nào, theo từng cửa hàng (quản lý)",
-    "testAccount": "Đây là tài khoản thử nghiệm. Màn hình quản lý chỉ để xem, không thay đổi được gì. Dữ liệu thử bị xóa lúc 4:00 mỗi ngày (giờ Nhật), ảnh và video không được tải lên."
+    "testAccount": "Đây là tài khoản thử nghiệm. Màn hình quản lý chỉ để xem, không thay đổi được gì. Dữ liệu thử bị xóa lúc 4:00 mỗi ngày (giờ Nhật), ảnh và video không được tải lên.",
+    "learn": "Học tập",
+    "learnBadge": "Đang xây dựng",
+    "manual": "Hướng dẫn công việc",
+    "manualSub": "Thứ tự và cách làm",
+    "videos": "Video mẫu",
+    "videosSub": "Video làm mẫu",
+    "skills": "Nâng cao kỹ năng",
+    "skillsSub": "Đang chuẩn bị"
   },
   "phrase": {
     "philosophy1": "Khách hàng là trên hết",

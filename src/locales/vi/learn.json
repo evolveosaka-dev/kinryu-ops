@@ -1,0 +1,40 @@
+{
+  "manual": {
+    "title": "Hướng dẫn công việc",
+    "empty": "Chưa có hướng dẫn. Đang chuẩn bị."
+  },
+  "video": {
+    "title": "Video mẫu",
+    "empty": "Chưa có video. Đang chuẩn bị.",
+    "openYoutube": "Mở bằng YouTube"
+  },
+  "skills": {
+    "title": "Nâng cao kỹ năng",
+    "soon": "Đang chuẩn bị",
+    "body": "Sắp có bài kiểm tra về phục vụ khách và luyện nói."
+  },
+  "search": "Tìm kiếm",
+  "searchPlaceholder": "Ví dụ: máy bán vé, おおきに",
+  "noMatch": "Không tìm thấy.",
+  "recommended": "Nên xem",
+  "draft": "Bản nháp (nhân viên không thấy)",
+  "draftShort": "Nháp",
+  "category": {
+    "shift": "Trình tự ca làm",
+    "position": "Công việc theo vị trí",
+    "service": "Phục vụ khách",
+    "trouble": "Khi gặp sự cố",
+    "hygiene": "Vệ sinh",
+    "other": "Khác"
+  },
+  "steps": "Các bước",
+  "stepsCount": "{{n}} bước",
+  "stepPhoto": "Ảnh bước {{n}}",
+  "mistakes": "Lỗi hay gặp",
+  "showJa": "🇯🇵 Xem bằng tiếng Nhật",
+  "showMine": "🌐 Xem bằng tiếng của tôi",
+  "notTranslated": "Chưa có bản dịch. Đang hiển thị tiếng Nhật.",
+  "updated": "Cập nhật: {{date}}",
+  "back": "Quay lại",
+  "notFound": "Không tìm thấy. Có thể đã bị xóa."
+}

@@ -112,6 +112,20 @@ export function HomePage() {
       </section>
 
       <section className="flex flex-col gap-2">
+        <SectionTitle>
+          {t('home.learn')}
+          <span className="ml-2 rounded-md bg-amber-100 px-2 py-0.5 align-middle text-sm font-bold text-amber-900">🚧 {t('home.learnBadge')}</span>
+        </SectionTitle>
+        <Card className="p-0">
+          <ul className="divide-y divide-line">
+            <MenuItem to="/learn/manual" icon="📘" tint="bg-sky-100" title={t('home.manual')} sub={t('home.manualSub')} />
+            <MenuItem to="/learn/videos" icon="🎥" tint="bg-rose-100" title={t('home.videos')} sub={t('home.videosSub')} />
+            <MenuItem to="/learn/skills" icon="📈" tint="bg-lime-100" title={t('home.skills')} sub={t('home.skillsSub')} />
+          </ul>
+        </Card>
+      </section>
+
+      <section className="flex flex-col gap-2">
         <SectionTitle>{t('home.philosophy')}</SectionTitle>
         <Card>
           <ul className="flex flex-col gap-3">

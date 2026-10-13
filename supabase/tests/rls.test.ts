@@ -631,3 +631,31 @@ describe('巡回を後から記録 (manager)', () => {
     await expect(insert(staffS, `'${patroller}'`)).rejects.toThrow(/row-level security|out of range/)
   })
 })
+
+describe('学ぶ (learn_items)', () => {
+  const insert = `insert into public.learn_items (kind, category, title, steps, published) values ('manual', 'service', $1, '[{"text":"「おおきに」","image":null}]', $2) returning id`
+  it('only managers write; staff read published pages only', async () => {
+    await expect(t.as(staffM, insert, ['勝手に', true])).rejects.toThrow(/row-level security/)
+    await t.as(manager, insert, ['お見送り', true])
+    await t.as(manager, insert, ['下書き', false])
+    expect((await t.as<{ title: string }>(staffM, 'select title from public.learn_items')).map((r) => r.title)).toEqual(['お見送り'])
+    expect(await t.as(manager, 'select id from public.learn_items')).toHaveLength(2)
+    // an account waiting for approval (earlier tests approve `pending`)
+    const waiting = await t.createUser('wait@example.com')
+    expect(await t.as(waiting, 'select id from public.learn_items')).toHaveLength(0)
+    await expect(t.as(null, 'select id from public.learn_items')).rejects.toThrow(/permission denied/)
+    expect(await t.as(staffM, `update public.learn_items set title = 'x' returning id`)).toHaveLength(0)
+  })
+  it('a video needs a link; changing the Japanese moves content_updated_at, translating does not', async () => {
+    await expect(t.as(manager, `insert into public.learn_items (kind, category, title) values ('video', 'service', 'v')`)).rejects.toThrow(/learn_video_needs_url/)
+    const [row] = await t.admin<{ id: string; c: string }>(`select id, content_updated_at::text as c from public.learn_items where title = 'お見送り'`)
+    await t.admin(`update public.learn_items set content_updated_at = '2026-01-01' where id = $1`, [row!.id])
+    await t.admin(`update public.learn_items set translations = '{"en":{}}', translated_at = now() where id = $1`, [row!.id])
+    const [a] = await t.admin<{ c: string }>(`select content_updated_at::text as c from public.learn_items where id = $1`, [row!.id])
+    expect(a!.c.startsWith('2026-01-01')).toBe(true)
+    await t.as(manager, `update public.learn_items set steps = '[{"text":"「まいど」","image":null}]' where id = $1`, [row!.id])
+    const [b] = await t.admin<{ c: string; by: string }>(`select content_updated_at::text as c, updated_by::text as by from public.learn_items where id = $1`, [row!.id])
+    expect(b!.c.startsWith('2026-01-01')).toBe(false)
+    expect(b!.by).toBe(manager)
+  })
+})

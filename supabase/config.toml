@@ -19,3 +19,6 @@ verify_jwt = false
 
 [functions.staff-ai]
 verify_jwt = false
+
+[functions.learn-translate]
+verify_jwt = false

@@ -37,6 +37,11 @@ const ShiftRequestsAdminPage = page(() => import('../features/manager/ShiftReque
 const ShiftImportPage = page(() => import('../features/manager/ShiftImportPage'), 'ShiftImportPage')
 const SchedulePage = page(() => import('../features/schedule/SchedulePage'), 'SchedulePage')
 const AllShiftsPage = page(() => import('../features/schedule/AllShiftsPage'), 'AllShiftsPage')
+const ManualListPage = page(() => import('../features/learn/LearnListPage'), 'ManualListPage')
+const VideoListPage = page(() => import('../features/learn/LearnListPage'), 'VideoListPage')
+const SkillsPage = page(() => import('../features/learn/LearnListPage'), 'SkillsPage')
+const LearnItemPage = page(() => import('../features/learn/LearnItemPage'), 'LearnItemPage')
+const LearnEditPage = page(() => import('../features/learn/LearnEditPage'), 'LearnEditPage')
 const ShiftRequestPage = page(() => import('../features/shift/ShiftRequestPage'), 'ShiftRequestPage')
 
 /** Decides which screen a visitor may see: login → approval → privacy notice → app. */
@@ -82,6 +87,11 @@ function Gate() {
         <Route path="schedule" element={<SchedulePage />} />
         {isManager && <Route path="all-shifts" element={<AllShiftsPage />} />}
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="learn/manual" element={<ManualListPage />} />
+        <Route path="learn/videos" element={<VideoListPage />} />
+        <Route path="learn/skills" element={<SkillsPage />} />
+        <Route path="learn/:id" element={<LearnItemPage />} />
+        {isManager && <Route path="learn/edit/:id" element={<LearnEditPage />} />}
         {isManager && (
           <Route path="manager">
             <Route index element={<DashboardPage />} />

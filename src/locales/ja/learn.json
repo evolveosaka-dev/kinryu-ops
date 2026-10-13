@@ -1,0 +1,40 @@
+{
+  "manual": {
+    "title": "仕事のマニュアル",
+    "empty": "まだマニュアルはありません。準備中です。"
+  },
+  "video": {
+    "title": "見本動画",
+    "empty": "まだ動画はありません。準備中です。",
+    "openYoutube": "YouTubeで開く"
+  },
+  "skills": {
+    "title": "スキルアップ",
+    "soon": "準備中です",
+    "body": "接客のクイズや、言葉の練習などをこれから追加します。"
+  },
+  "search": "検索",
+  "searchPlaceholder": "例：券売機、おおきに",
+  "noMatch": "見つかりませんでした。",
+  "recommended": "おすすめ",
+  "draft": "下書き（スタッフには見えません）",
+  "draftShort": "下書き",
+  "category": {
+    "shift": "シフトの流れ",
+    "position": "持ち場の仕事",
+    "service": "接客",
+    "trouble": "困ったとき",
+    "hygiene": "清掃・衛生",
+    "other": "その他"
+  },
+  "steps": "手順",
+  "stepsCount": "手順 {{n}}",
+  "stepPhoto": "手順{{n}}の写真",
+  "mistakes": "よくある間違い",
+  "showJa": "🇯🇵 日本語で見る",
+  "showMine": "🌐 自分の言葉で見る",
+  "notTranslated": "まだ翻訳がありません。日本語で表示しています。",
+  "updated": "更新：{{date}}",
+  "back": "戻る",
+  "notFound": "見つかりませんでした。削除された可能性があります。"
+}
