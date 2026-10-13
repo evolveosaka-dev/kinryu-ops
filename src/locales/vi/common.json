@@ -176,7 +176,7 @@
     "addPhoto": "Ảnh",
     "addVideo": "Video",
     "rule": "Không chụp/quay mặt khách hàng.",
-    "limit": "Tối đa 5 ảnh và 1 video (90 giây, 150 MB). Tự động tải lên sau khi gửi.",
+    "limit": "Tối đa 5 ảnh và 3 video (90 giây, 150 MB). Tự động tải lên sau khi gửi.",
     "tooLong": "Video tối đa 90 giây.",
     "tooLarge": "File quá lớn (video tối đa 150 MB).",
     "unsupported": "Không dùng được file này.",

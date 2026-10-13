@@ -1,7 +1,7 @@
 // Prepare photos/videos on the phone before upload (CLAUDE.md §14.5).
 
 export const MAX_IMAGES = 5
-export const MAX_VIDEOS = 1
+export const MAX_VIDEOS = 3
 export const MAX_VIDEO_SEC = 90
 export const MAX_VIDEO_BYTES = 150 * 1024 * 1024
 export const MAX_IMAGE_BYTES = 15 * 1024 * 1024

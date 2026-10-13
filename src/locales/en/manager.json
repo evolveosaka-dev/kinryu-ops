@@ -303,7 +303,7 @@
   "choreiEdit": {
     "open": "Edit / add photos",
     "title": "Edit the 朝礼 record",
-    "filesHint": "You can add photos and videos. Up to 5 photos and 1 video in total, including the ones already there.",
+    "filesHint": "You can add photos and videos. Up to 5 photos and 3 videos in total, including the ones already there.",
     "save": "Save",
     "cancel": "Cancel",
     "saved": "Saved",

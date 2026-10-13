@@ -211,11 +211,13 @@ describe('attachments', () => {
       [owner, patrolId, kind, kind === 'image' ? 'image/jpeg' : 'video/mp4', size, duration],
     )
 
-  it('allows 5 photos and 1 video per record, not more', async () => {
+  it('allows 5 photos and 3 videos per record, not more', async () => {
     const [p] = await t.admin<{ id: string }>(`select id from public.patrol_checks where status = 'valid' limit 1`)
     for (let i = 0; i < 5; i++) await add(patroller, p!.id, 'image')
     await expect(add(patroller, p!.id, 'image')).rejects.toThrow(/attachment limit/)
     await add(patroller, p!.id, 'video', 140_000_000, 89)
+    await add(patroller, p!.id, 'video', 1000, 10)
+    await add(patroller, p!.id, 'video', 1000, 10)
     await expect(add(patroller, p!.id, 'video', 1000, 10)).rejects.toThrow(/attachment limit/)
   })
   it('rejects videos over 90 s or 150 MB', async () => {
@@ -224,8 +226,8 @@ describe('attachments', () => {
     await expect(add(patroller, p!.id, 'video', 160 * 1024 * 1024, 30)).rejects.toThrow(/attachment_video_limits/)
   })
   it('owners see their own attachments, managers all, other staff none; nobody inserts directly', async () => {
-    expect((await t.as(patroller, 'select id from public.attachments')).length).toBe(6)
-    expect((await t.as(manager, 'select id from public.attachments')).length).toBe(6)
+    expect((await t.as(patroller, 'select id from public.attachments')).length).toBe(8)
+    expect((await t.as(manager, 'select id from public.attachments')).length).toBe(8)
     expect(await t.as(staffS, 'select id from public.attachments')).toHaveLength(0)
     await expect(
       t.as(patroller, `insert into public.attachments (owner_id, chorei_id, kind, file_name, mime_type, size_bytes) values (auth.uid(), null, 'image', 'x', 'image/jpeg', 1)`),
@@ -596,7 +598,7 @@ describe('朝礼できなかった (chorei_misses)', () => {
     )
     expect(s).toEqual({ entered_by_manager: false, manager_note: null })
   })
-  it('a report can carry photos (5 + 1 limit per report)', async () => {
+  it('a report can carry photos (5 + 3 limit per report)', async () => {
     const [m] = await t.admin<{ id: string }>('select id from public.chorei_misses limit 1')
     const add = (kind: string) =>
       t.admin(`insert into public.attachments (owner_id, miss_id, kind, file_name, mime_type, size_bytes) values ($1, $2, $3, 'f', $4, 1000)`, [
@@ -604,7 +606,8 @@ describe('朝礼できなかった (chorei_misses)', () => {
       ])
     for (let i = 0; i < 5; i++) await add('image')
     await expect(add('image')).rejects.toThrow(/attachment limit/)
-    await add('video')
+    for (let i = 0; i < 3; i++) await add('video')
+    await expect(add('video')).rejects.toThrow(/attachment limit/)
   })
 })
 

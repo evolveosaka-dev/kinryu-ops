@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card, ErrorBox } from '../../components/ui'
-import { canAdd, MAX_IMAGES, MediaError, prepareMedia, type MediaKind, type PreparedMedia } from '../../lib/media'
+import { canAdd, MAX_IMAGES, MAX_VIDEOS, MediaError, prepareMedia, type MediaKind, type PreparedMedia } from '../../lib/media'
 
 function Thumb({ media, onRemove }: { media: PreparedMedia; onRemove: () => void }) {
   const { t } = useTranslation()
@@ -112,16 +112,16 @@ export function AttachmentPicker({
         </button>
         <button
           type="button"
-          disabled={busy || videos >= 1 || Boolean(lockedNote)}
+          disabled={busy || videos >= MAX_VIDEOS || Boolean(lockedNote)}
           onClick={() => videoInput.current?.click()}
           className="min-h-12 rounded-xl border border-slate-300 bg-white font-bold disabled:text-slate-500"
         >
-          🎥 {t('attach.addVideo')}（{videos}/1）
+          🎥 {t('attach.addVideo')}（{videos}/{MAX_VIDEOS}）
         </button>
       </div>
       {lockedNote && <p className="text-sm text-slate-600">{lockedNote}</p>}
       <input ref={photoInput} type="file" accept="image/*" multiple={!camera} capture={camera ? 'environment' : undefined} hidden onChange={(e) => void add(e.target.files, 'image').then(() => (e.target.value = ''))} />
-      <input ref={videoInput} type="file" accept="video/*" hidden onChange={(e) => void add(e.target.files, 'video').then(() => (e.target.value = ''))} />
+      <input ref={videoInput} type="file" accept="video/*" multiple hidden onChange={(e) => void add(e.target.files, 'video').then(() => (e.target.value = ''))} />
       {busy && <p className="text-sm text-slate-600">{t('attach.processing')}</p>}
       <p className="text-xs text-slate-600">{t('attach.limit')}</p>
       {error && <ErrorBox message={error} />}

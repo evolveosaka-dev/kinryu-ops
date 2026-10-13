@@ -14,11 +14,13 @@ describe('fitSize', () => {
 
 describe('canAdd', () => {
   const imgs = (n: number) => Array.from({ length: n }, () => ({ kind: 'image' as const }))
-  it('allows up to 5 photos and 1 video', () => {
+  const vids = (n: number) => Array.from({ length: n }, () => ({ kind: 'video' as const }))
+  it('allows up to 5 photos and 3 videos', () => {
     expect(canAdd(imgs(4), 'image')).toBe(true)
     expect(canAdd(imgs(5), 'image')).toBe(false)
     expect(canAdd(imgs(5), 'video')).toBe(true)
-    expect(canAdd([{ kind: 'video' }], 'video')).toBe(false)
+    expect(canAdd(vids(2), 'video')).toBe(true)
+    expect(canAdd(vids(3), 'video')).toBe(false)
   })
 })
 
