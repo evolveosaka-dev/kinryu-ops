@@ -36,6 +36,7 @@ const NotifyPage = page(() => import('../features/manager/NotifyPage'), 'NotifyP
 const ShiftRequestsAdminPage = page(() => import('../features/manager/ShiftRequestsAdminPage'), 'ShiftRequestsAdminPage')
 const ShiftImportPage = page(() => import('../features/manager/ShiftImportPage'), 'ShiftImportPage')
 const SchedulePage = page(() => import('../features/schedule/SchedulePage'), 'SchedulePage')
+const AllShiftsPage = page(() => import('../features/schedule/AllShiftsPage'), 'AllShiftsPage')
 const ShiftRequestPage = page(() => import('../features/shift/ShiftRequestPage'), 'ShiftRequestPage')
 
 /** Decides which screen a visitor may see: login → approval → privacy notice → app. */
@@ -79,6 +80,7 @@ function Gate() {
         <Route path="history" element={<HistoryPage />} />
         <Route path="shift-request" element={<ShiftRequestPage />} />
         <Route path="schedule" element={<SchedulePage />} />
+        {isManager && <Route path="all-shifts" element={<AllShiftsPage />} />}
         <Route path="profile" element={<ProfilePage />} />
         {isManager && (
           <Route path="manager">
@@ -93,7 +95,8 @@ function Gate() {
             <Route path="targets" element={<TargetsPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="roster" element={<RosterPage />} />
-            <Route path="sync" element={<SyncPage />} />`n            <Route path="notify" element={<NotifyPage />} />
+            <Route path="sync" element={<SyncPage />} />
+            <Route path="notify" element={<NotifyPage />} />
             <Route path="shift-requests" element={<ShiftRequestsAdminPage />} />
             <Route path="shift-import" element={<ShiftImportPage />} />
           </Route>

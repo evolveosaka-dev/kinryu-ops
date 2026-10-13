@@ -59,7 +59,7 @@
   "deadline": "Deadline: {{date}} (the 20th)",
   "closed": "The deadline ({{date}}) has passed, so this cannot be changed. Please contact a manager.",
   "schedule": {
-    "title": "Shift schedule",
+    "title": "My schedule",
     "next": "Next shift",
     "now": "Working now",
     "today": "Today",
@@ -77,12 +77,21 @@
     "coworkers": "Working with you",
     "noCoworkers": "Nobody else at the same time.",
     "hours": "{{h}} h",
-    "open": "See shift schedule",
+    "open": "See my schedule",
     "prevMonth": "Previous month",
     "nextMonth": "Next month",
     "off": "Day off",
     "extended": "Extended shift: until {{to}} instead of {{from}} (for the meeting and patrol)",
     "extendedShort": "Extended {{from}}→{{to}}"
+  },
+  "allShifts": {
+    "title": "All-store shifts",
+    "pickStore": "Choose a store",
+    "all": "All",
+    "tapDay": "Tap a day to see who works and when.",
+    "nobody": "No one is scheduled.",
+    "people": "{{n}} people",
+    "legend": "The number next to ● is how many people work."
   },
   "duty": {
     "title": "Your meeting & patrol duties",

@@ -109,8 +109,10 @@
     "name": "{{name}} さん",
     "shiftRequest": "シフト希望提出",
     "shiftRequestSub": "来月の出勤できる日と時間",
-    "schedule": "シフトスケジュール",
+    "schedule": "勤務予定",
     "scheduleSub": "自分の勤務日・時間・お店",
+    "allShifts": "全店舗シフト",
+    "allShiftsSub": "店舗ごとの勤務予定（管理者用）",
     "testAccount": "テスト用アカウントです。管理画面は見るだけで、変更はできません。テストの記録は毎日4:00（日本時間）に削除され、写真・動画はアップロードされません。"
   },
   "phrase": {

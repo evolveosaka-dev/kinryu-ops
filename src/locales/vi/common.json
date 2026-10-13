@@ -111,6 +111,8 @@
     "shiftRequestSub": "Ngày và giờ có thể làm tháng sau",
     "schedule": "Lịch làm việc",
     "scheduleSub": "Ngày, giờ và cửa hàng mình làm",
+    "allShifts": "Ca của tất cả cửa hàng",
+    "allShiftsSub": "Ai làm ca nào, theo từng cửa hàng (quản lý)",
     "testAccount": "Đây là tài khoản thử nghiệm. Màn hình quản lý chỉ để xem, không thay đổi được gì. Dữ liệu thử bị xóa lúc 4:00 mỗi ngày (giờ Nhật), ảnh và video không được tải lên."
   },
   "phrase": {

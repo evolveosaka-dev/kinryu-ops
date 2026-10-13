@@ -84,6 +84,15 @@
     "extended": "Kéo dài ca: đến {{to}} thay vì {{from}} (để họp ca và tuần tra)",
     "extendedShort": "Kéo dài {{from}}→{{to}}"
   },
+  "allShifts": {
+    "title": "Ca của tất cả cửa hàng",
+    "pickStore": "Chọn cửa hàng",
+    "all": "Tất cả",
+    "tapDay": "Nhấn vào một ngày để xem ai làm và giờ làm.",
+    "nobody": "Không có ai làm.",
+    "people": "{{n}} người",
+    "legend": "Số cạnh ● là số người làm ca đó."
+  },
   "duty": {
     "title": "Nhiệm vụ họp ca・tuần tra",
     "open": "Cần làm ngay: {{n}}",

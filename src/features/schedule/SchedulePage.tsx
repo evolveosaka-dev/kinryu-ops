@@ -53,7 +53,7 @@ function DayDetail({ date, rows, chains, onClose }: { date: string; rows: Assign
   )
 }
 
-/** メニュー → シフトスケジュール: my shifts by month, as a list (default) or a calendar. */
+/** メニュー → 勤務予定: my shifts by month, as a list (default) or a calendar. */
 export function SchedulePage() {
   const { t } = useTranslation('shift')
   const { t: tc } = useTranslation()

@@ -103,6 +103,7 @@ export function HomePage() {
           <ul className="divide-y divide-line">
             {canPatrol && <MenuItem to="/patrol" icon="🔍" tint="bg-amber-100" title={t('home.patrolButton')} sub={t('home.patrolSub')} />}
             <MenuItem to="/schedule" icon="📅" tint="bg-sky-100" title={t('home.schedule')} sub={t('home.scheduleSub')} />
+            {isManager && <MenuItem to="/all-shifts" icon="🗓️" tint="bg-teal-100" title={t('home.allShifts')} sub={t('home.allShiftsSub')} />}
             <MenuItem to="/shift-request" icon="📝" tint="bg-violet-100" title={t('home.shiftRequest')} sub={t('home.shiftRequestSub')} />
             <MenuItem to="/history" icon="🗂️" tint="bg-green-100" title={t('home.historyButton')} sub={t('home.historySub')} />
             {isManager && <MenuItem to="/manager" icon="📊" tint="bg-blue-100" title={t('home.managerButton')} sub={t('home.managerSub')} />}

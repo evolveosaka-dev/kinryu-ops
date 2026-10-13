@@ -59,7 +59,7 @@
   "deadline": "締切：{{date}}（20日）まで",
   "closed": "締切（{{date}}）を過ぎたため、変更できません。変更したいときは管理者に連絡してください。",
   "schedule": {
-    "title": "シフトスケジュール",
+    "title": "勤務予定",
     "next": "次の勤務",
     "now": "勤務中",
     "today": "今日",
@@ -77,12 +77,21 @@
     "coworkers": "一緒に働く人",
     "noCoworkers": "同じ時間の人はいません。",
     "hours": "{{h}}時間",
-    "open": "シフトスケジュールを見る",
+    "open": "勤務予定を見る",
     "prevMonth": "前の月",
     "nextMonth": "次の月",
     "off": "休み",
     "extended": "勤務延長：{{from}}まで → {{to}}まで（朝礼・巡回のため）",
     "extendedShort": "{{from}}→{{to}} 延長"
+  },
+  "allShifts": {
+    "title": "全店舗シフト",
+    "pickStore": "店舗を選んでください",
+    "all": "すべて",
+    "tapDay": "日付を押すと、その日に勤務する人と時間が出ます。",
+    "nobody": "勤務する人はいません。",
+    "people": "{{n}}人",
+    "legend": "●の数字は勤務する人数です。"
   },
   "duty": {
     "title": "朝礼・巡回の担当",
