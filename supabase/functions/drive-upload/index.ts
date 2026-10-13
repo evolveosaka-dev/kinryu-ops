@@ -9,9 +9,9 @@ import { clearFolderCache, ensureFolder, google, googleToken } from '../_shared/
 import { adminClient, appOrigin, HttpError, requireUser, serve } from '../_shared/http.ts'
 
 const SHIFT_JA: Record<string, string> = { early: '早番', middle: '中番', late: '遅番' }
-const MAX_VIDEO_BYTES = 100 * 1024 * 1024
+const MAX_VIDEO_BYTES = 150 * 1024 * 1024
 const MAX_IMAGE_BYTES = 15 * 1024 * 1024
-const MAX_VIDEO_SEC = 60
+const MAX_VIDEO_SEC = 90
 
 interface StartBody {
   action: 'start'

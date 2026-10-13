@@ -2,8 +2,8 @@
 
 export const MAX_IMAGES = 5
 export const MAX_VIDEOS = 1
-export const MAX_VIDEO_SEC = 60
-export const MAX_VIDEO_BYTES = 100 * 1024 * 1024
+export const MAX_VIDEO_SEC = 90
+export const MAX_VIDEO_BYTES = 150 * 1024 * 1024
 export const MAX_IMAGE_BYTES = 15 * 1024 * 1024
 const IMAGE_LONG_SIDE = 1600
 

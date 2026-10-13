@@ -205,13 +205,13 @@ describe('attachments', () => {
     const [p] = await t.admin<{ id: string }>(`select id from public.patrol_checks where status = 'valid' limit 1`)
     for (let i = 0; i < 5; i++) await add(patroller, p!.id, 'image')
     await expect(add(patroller, p!.id, 'image')).rejects.toThrow(/attachment limit/)
-    await add(patroller, p!.id, 'video', 50_000_000, 59)
+    await add(patroller, p!.id, 'video', 140_000_000, 89)
     await expect(add(patroller, p!.id, 'video', 1000, 10)).rejects.toThrow(/attachment limit/)
   })
-  it('rejects videos over 60 s or 100 MB', async () => {
+  it('rejects videos over 90 s or 150 MB', async () => {
     const [p] = await t.admin<{ id: string }>(`select id from public.patrol_checks where status = 'valid' offset 1 limit 1`)
-    await expect(add(patroller, p!.id, 'video', 1000, 90)).rejects.toThrow(/attachment_video_limits/)
-    await expect(add(patroller, p!.id, 'video', 200 * 1024 * 1024, 30)).rejects.toThrow(/attachment_video_limits/)
+    await expect(add(patroller, p!.id, 'video', 1000, 95)).rejects.toThrow(/attachment_video_limits/)
+    await expect(add(patroller, p!.id, 'video', 160 * 1024 * 1024, 30)).rejects.toThrow(/attachment_video_limits/)
   })
   it('owners see their own attachments, managers all, other staff none; nobody inserts directly', async () => {
     expect((await t.as(patroller, 'select id from public.attachments')).length).toBe(6)
