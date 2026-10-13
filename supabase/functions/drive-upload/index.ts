@@ -15,7 +15,8 @@ const MAX_VIDEO_SEC = 90
 
 interface StartBody {
   action: 'start'
-  parentType: 'chorei' | 'patrol'
+  /** miss = a 朝礼できなかった report (chorei_misses), files added by a manager */
+  parentType: 'chorei' | 'patrol' | 'miss'
   parentId: string
   kind: 'image' | 'video'
   fileName: string
@@ -32,7 +33,7 @@ serve(async (req) => {
   if (body.action === 'start') {
     const b = body as StartBody
     if (caller.isTestAccount) throw new HttpError(403, 'test account: files are not uploaded')
-    if (!['chorei', 'patrol'].includes(b.parentType)) throw new HttpError(400, 'bad parentType')
+    if (!['chorei', 'patrol', 'miss'].includes(b.parentType)) throw new HttpError(400, 'bad parentType')
     if (b.kind === 'image' && (!b.mimeType.startsWith('image/') || b.size > MAX_IMAGE_BYTES)) throw new HttpError(400, 'bad image')
     if (b.kind === 'video') {
       if (!b.mimeType.startsWith('video/')) throw new HttpError(400, 'bad video')
@@ -42,15 +43,15 @@ serve(async (req) => {
     const origin = appOrigin(req)
     if (!origin) throw new HttpError(403, 'origin not allowed')
 
-    // The parent record must be the caller's own (leader / patroller), or the caller is a manager.
-    const table = b.parentType === 'chorei' ? 'chorei_records' : 'patrol_checks'
-    const ownerCol = b.parentType === 'chorei' ? 'leader_id' : 'patroller_id'
+    // The parent record must be the caller's own (leader / patroller / reporter), or the caller is a manager.
+    const table = b.parentType === 'chorei' ? 'chorei_records' : b.parentType === 'patrol' ? 'patrol_checks' : 'chorei_misses'
+    const ownerCol = b.parentType === 'chorei' ? 'leader_id' : b.parentType === 'patrol' ? 'patroller_id' : 'reporter_id'
     const { data: parent } = await admin
       .from(table)
-      .select(`id, ${ownerCol}, business_date, shift, status, store:stores(name_ja)`)
+      .select(`id, ${ownerCol}, business_date, shift, ${b.parentType === 'miss' ? '' : 'status, '}store:stores(name_ja)`)
       .eq('id', b.parentId)
       .maybeSingle()
-    if (!parent || parent.status === 'void') throw new HttpError(404, 'record not found')
+    if (!parent || (parent as Record<string, unknown>).status === 'void') throw new HttpError(404, 'record not found')
     if (!caller.isManager && (parent as Record<string, unknown>)[ownerCol] !== caller.id) throw new HttpError(403, 'not your record')
 
     const { data: row, error } = await admin
@@ -59,6 +60,7 @@ serve(async (req) => {
         owner_id: caller.id,
         chorei_id: b.parentType === 'chorei' ? b.parentId : null,
         patrol_id: b.parentType === 'patrol' ? b.parentId : null,
+        miss_id: b.parentType === 'miss' ? b.parentId : null,
         kind: b.kind,
         file_name: b.fileName.slice(0, 200),
         mime_type: b.mimeType,
@@ -73,9 +75,9 @@ serve(async (req) => {
     const embedded = parent.store as unknown as { name_ja: string } | { name_ja: string }[] | null
     const store = (Array.isArray(embedded) ? embedded[0] : embedded)?.name_ja ?? 'store'
     const date = parent.business_date as string
-    const folderPath = [date.slice(0, 7), store, b.parentType === 'chorei' ? '朝礼' : '巡回']
+    const folderPath = [date.slice(0, 7), store, b.parentType === 'patrol' ? '巡回' : '朝礼']
     const ext = b.fileName.includes('.') ? b.fileName.slice(b.fileName.lastIndexOf('.')).toLowerCase() : ''
-    const driveName = `${date}_${SHIFT_JA[parent.shift as string] ?? parent.shift}_${b.parentType === 'chorei' ? '朝礼' : '巡回'}_${row.id.slice(0, 8)}${ext}`
+    const driveName = `${date}_${SHIFT_JA[parent.shift as string] ?? parent.shift}_${b.parentType === 'chorei' ? '朝礼' : b.parentType === 'patrol' ? '巡回' : '朝礼なし'}_${row.id.slice(0, 8)}${ext}`
 
     const createSession = async (folderId: string) =>
       fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id', {

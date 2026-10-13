@@ -84,5 +84,10 @@
       "forgot": "Quên",
       "other": "Khác"
     }
+  },
+  "backfill": {
+    "banner": "Quản lý ghi bổ sung sau (朝礼 ngày {{date}}). Giờ gửi sẽ là giờ 朝礼 {{time}}.",
+    "note": "Ghi chú của quản lý",
+    "notePlaceholder": "Ví dụ: Đã làm 朝礼 nhưng quên ghi. Người dẫn là ..."
   }
 }

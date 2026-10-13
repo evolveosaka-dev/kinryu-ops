@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router'
-import { useMe } from '../../app/auth'
+import { useAuth, useMe } from '../../app/auth'
 import { useSentNotice } from '../../components/SentNotice'
 import { StaffPicker } from '../../components/StaffPicker'
 import { Button, Card, Checkbox, ErrorBox, Segmented, Spinner, StickyActions, TextArea, TextInput, PageTitle } from '../../components/ui'
@@ -24,9 +24,13 @@ import { HandoverCard } from './HandoverCard'
 import { MissReport } from './MissReport'
 import { choreiSchema, fieldErrors } from './schema'
 
+/** The meeting time of a slot (Tokyo) as an ISO timestamp. */
+const meetingAt = (date: string, shift: Shift) => new Date(`${date}T${MEETING_TIME[shift]}:00+09:00`).toISOString()
+
 export function ChoreiFormPage() {
   const { t } = useTranslation('chorei')
   const me = useMe()
+  const { isManager } = useAuth()
   const sent = useSentNotice()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -39,6 +43,9 @@ export function ChoreiFormPage() {
   // opened from the 担当 card on ホーム: that store, date and shift
   const [params] = useSearchParams()
   const [preset] = useState(() => readSlotPreset(params))
+  // 管理 → 朝礼一覧 ✗ → ✓: a manager records a missed 朝礼 afterwards, sent at the meeting time
+  const backfill = isManager && params.get('backfill') === '1'
+  const [managerNote, setManagerNote] = useState('')
   const initial = useMemo(
     () => (preset.date && preset.shift ? { businessDate: preset.date, shift: preset.shift } : currentSlot(new Date())),
     [preset],
@@ -111,6 +118,9 @@ export function ChoreiFormPage() {
         original_texts: tr.originals,
         source_lang: tr.sourceLang,
         leader_id: me.id,
+        ...(backfill
+          ? { submitted_at: meetingAt(businessDate, shift), entered_by_manager: true, manager_note: managerNote.trim() || null }
+          : {}),
       }
       const res = await supabase.from('chorei_records').insert(record).select('id').single()
       if (!res.error) setLastStore(record.store_id)
@@ -121,7 +131,8 @@ export function ChoreiFormPage() {
     onSuccess: () => {
       sent({ kind: t('common:sent.chorei'), detail: slotLabel, photos: media.length })
       void queryClient.invalidateQueries({ queryKey: ['my_chorei'] })
-      void navigate('/history')
+      void queryClient.invalidateQueries({ queryKey: ['admin'] })
+      void navigate(backfill ? '/manager/chorei' : '/history')
     },
     onError: (err: Error & { code?: string }) => {
       if (err.message === 'validation' || err instanceof TranslationCancelled) return setSubmitError(null)
@@ -199,9 +210,15 @@ export function ChoreiFormPage() {
         </p>
       </Card>
 
+      {backfill && (
+        <p className="rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-900 ring-1 ring-amber-300">
+          {t('backfill.banner', { time: formatTokyoTime(new Date(meetingAt(businessDate, shift))), date: formatShortDate(businessDate) })}
+        </p>
+      )}
+
       {slot.isLoading ? <Spinner /> : <HandoverCard handover={slot.data?.previous ?? null} />}
 
-      {!existing && !slot.isLoading && effectiveStore && (
+      {!existing && !backfill && !slot.isLoading && effectiveStore && (
         <MissReport
           key={`${effectiveStore}|${businessDate}|${shift}`}
           storeId={effectiveStore}
@@ -298,6 +315,17 @@ export function ChoreiFormPage() {
               />
             )}
           </Card>
+
+          {backfill && (
+            <Card className="flex flex-col gap-2 ring-2 ring-blue-300">
+              <TextArea
+                label={t('backfill.note')}
+                placeholder={t('backfill.notePlaceholder')}
+                value={managerNote}
+                onChange={(e) => setManagerNote(e.target.value)}
+              />
+            </Card>
+          )}
 
           <StickyActions>
             {submitError && <ErrorBox message={submitError} />}

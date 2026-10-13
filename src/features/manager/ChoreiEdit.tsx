@@ -31,6 +31,7 @@ export function ChoreiEdit({ record: r, onDone }: { record: AdminChorei; onDone:
   const [caution, setCaution] = useState(r.caution_text ?? '')
   const [steps, setSteps] = useState<StepsDone>(r.steps_done)
   const [skipReason, setSkipReason] = useState(r.skip_reason ?? '')
+  const [managerNote, setManagerNote] = useState(r.manager_note ?? '')
   const [media, setMedia] = useState<PreparedMedia[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
   const live = r.attachments.filter((a) => a.status === 'pending' || a.status === 'uploaded')
@@ -69,6 +70,7 @@ export function ChoreiEdit({ record: r, onDone }: { record: AdminChorei; onDone:
         stock_none: parsed.data.stock_none,
         target_bowls: parsed.data.target_bowls,
         steps_done: parsed.data.steps_done,
+        manager_note: managerNote.trim() || null,
         ...Object.fromEntries(TEXT_FIELDS.map((k) => [k, changed.includes(k) ? (tr.values[k] ?? null) : (r[k] ?? null)])),
         original_texts: Object.keys(originals).length ? originals : null,
         ...(tr.sourceLang ? { source_lang: tr.sourceLang } : {}),
@@ -127,6 +129,7 @@ export function ChoreiEdit({ record: r, onDone }: { record: AdminChorei; onDone:
           />
         )}
       </div>
+      <TextArea label={t('chorei:backfill.note')} value={managerNote} onChange={(e) => setManagerNote(e.target.value)} />
       <AttachmentPicker value={media} onChange={setMedia} taken={taken} hint={t('choreiEdit.filesHint')} />
       {failed && <ErrorBox message={errorMessage(save.error)} />}
       <div className="grid grid-cols-2 gap-2">
@@ -158,6 +161,7 @@ const HISTORY_FIELDS: Record<string, string> = {
   caution_text: 'chorei:caution.label',
   steps_done: 'chorei:steps.label',
   skip_reason: 'chorei:steps.skipReason',
+  manager_note: 'chorei:backfill.note',
   void_reason: 'detail.voidReason',
 }
 

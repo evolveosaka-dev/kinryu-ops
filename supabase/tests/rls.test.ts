@@ -579,4 +579,31 @@ describe('朝礼できなかった (chorei_misses)', () => {
     await expect(t.as(staffM, `select public.report_chorei_miss($1, $2::date, $3, 'busy')`, [rec!.store_id, rec!.d, rec!.shift])).rejects.toThrow(/already recorded/)
     await expect(t.as(staffM, `select public.report_chorei_miss($1, ${TODAY} - 5, 'late', 'busy')`, [midosuji])).rejects.toThrow(/out of range/)
   })
+  it('a manager records a missed 朝礼 afterwards at the meeting time; staff cannot set those fields', async () => {
+    const [r] = await t.as<{ submitted_at: string; entered_by_manager: boolean; manager_note: string }>(
+      manager,
+      `insert into public.chorei_records (store_id, business_date, shift, leader_id, stock_none, submitted_at, entered_by_manager, manager_note)
+       values ($1, ${TODAY} - 1, 'early', auth.uid(), true, ((${TODAY} - 1)::text || ' 07:00+09')::timestamptz, true, '記録漏れ')
+       returning to_char(submitted_at at time zone 'Asia/Tokyo', 'HH24:MI') as submitted_at, entered_by_manager, manager_note`,
+      [sennichimae],
+    )
+    expect(r).toEqual({ submitted_at: '07:00', entered_by_manager: true, manager_note: '記録漏れ' })
+    const [s] = await t.as<{ entered_by_manager: boolean; manager_note: string | null }>(
+      staffS,
+      `insert into public.chorei_records (store_id, business_date, shift, stock_none, entered_by_manager, manager_note)
+       values ($1, ${TODAY} + 1, 'late', true, true, 'x') returning entered_by_manager, manager_note`,
+      [sennichimae],
+    )
+    expect(s).toEqual({ entered_by_manager: false, manager_note: null })
+  })
+  it('a report can carry photos (5 + 1 limit per report)', async () => {
+    const [m] = await t.admin<{ id: string }>('select id from public.chorei_misses limit 1')
+    const add = (kind: string) =>
+      t.admin(`insert into public.attachments (owner_id, miss_id, kind, file_name, mime_type, size_bytes) values ($1, $2, $3, 'f', $4, 1000)`, [
+        manager, m!.id, kind, kind === 'image' ? 'image/jpeg' : 'video/mp4',
+      ])
+    for (let i = 0; i < 5; i++) await add('image')
+    await expect(add('image')).rejects.toThrow(/attachment limit/)
+    await add('video')
+  })
 })

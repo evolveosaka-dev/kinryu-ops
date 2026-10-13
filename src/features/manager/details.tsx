@@ -247,6 +247,7 @@ export function ChoreiDetail({ record: r, leaderName, onClose }: { record: Admin
     <Sheet title={`${r.business_date} ${t(`common:shift.${r.shift}`)} ${store}`} onClose={onClose}>
       <Card className="flex flex-col gap-2">
         {r.status === 'void' && <p className="rounded-lg bg-slate-200 p-2 text-sm font-bold">{t('common:status.void')} — {r.void_reason}</p>}
+        {r.entered_by_manager && <p className="rounded-lg bg-teal-50 p-2 text-sm font-bold text-teal-900">✓ {t('misses.enteredByManager')}</p>}
         <Row label={t('detail.leader')}>{leaderName}</Row>
         <Row label={t('detail.submitted')}>{jstDateTime(r.submitted_at)}</Row>
         <Row label={t('chorei:participants.label')}>{r.participants_extra.join('、') || '—'}</Row>
@@ -260,6 +261,7 @@ export function ChoreiDetail({ record: r, leaderName, onClose }: { record: Admin
           <Original texts={r.original_texts} field="caution_text" />
         </Row>
         <Row label={t('detail.skipped')}>{skipped.length ? `${skipped.map((s) => t(`chorei:steps.${s}`)).join('、')}（${r.skip_reason ?? ''}）` : '—'}</Row>
+        {r.manager_note && <Row label={t('chorei:backfill.note')}>{r.manager_note}</Row>}
         {r.notes.length > 0 && <Row label={t('chorei:previous.notes')}>{r.notes.map((n) => n.body).join('\n')}</Row>}
         <Attachments list={r.attachments} />
         <RecordComments kind="chorei" recordId={r.id} comments={r.comments ?? []} canWrite={r.status === 'valid'} />

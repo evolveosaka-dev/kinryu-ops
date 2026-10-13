@@ -55,6 +55,8 @@ export interface StatMiss {
   updated_at: string
   /** reporter's note before translation */
   original_texts?: Record<string, string> | null
+  /** photos / videos added to the report (managers) */
+  attachments?: { id: string; kind: 'image' | 'video'; status: string; drive_url: string | null }[]
 }
 
 const round1 = (n: number) => Math.round(n * 10) / 10

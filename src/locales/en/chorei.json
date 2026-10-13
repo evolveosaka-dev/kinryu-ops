@@ -84,5 +84,10 @@
       "forgot": "Forgot",
       "other": "Other"
     }
+  },
+  "backfill": {
+    "banner": "A manager records this afterwards ({{date}} 朝礼). The sent time will be the meeting time {{time}}.",
+    "note": "Manager note",
+    "notePlaceholder": "e.g. The 朝礼 was held but not recorded. Led by ..."
   }
 }

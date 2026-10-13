@@ -80,14 +80,15 @@ serve(async (req) => {
     if (caller.isTestAccount) throw new HttpError(403, 'test account: read only')
   }
 
-  const [stores, profiles, chorei, patrols, attachments] = await Promise.all([
+  const [stores, profiles, chorei, patrols, attachments, misses] = await Promise.all([
     admin.from('stores').select('id, name_ja'),
     admin.from('profiles').select('id, display_name, full_name'),
     admin.from('chorei_records').select('*').order('business_date', { ascending: false }).order('shift'),
     admin.from('patrol_checks').select('*').neq('status', 'draft').order('business_date', { ascending: false }).order('started_at', { ascending: false }),
     admin.from('attachments').select('*').eq('status', 'uploaded').order('created_at', { ascending: false }),
+    admin.from('chorei_misses').select('id, store_id, business_date, shift'),
   ])
-  for (const r of [stores, profiles, chorei, patrols, attachments]) if (r.error) throw new HttpError(500, r.error.message)
+  for (const r of [stores, profiles, chorei, patrols, attachments, misses]) if (r.error) throw new HttpError(500, r.error.message)
 
   const storeName = new Map(stores.data!.map((s) => [s.id, s.name_ja]))
   // 氏名 for aggregation; the short display name is kept in its own column
@@ -100,6 +101,7 @@ serve(async (req) => {
   }
   const choreiById = new Map(chorei.data!.map((c) => [c.id, c]))
   const patrolById = new Map(patrols.data!.map((p) => [p.id, p]))
+  const missById = new Map(misses.data!.map((m) => [m.id, m]))
 
   const sheets: Record<string, Cell[][]> = {
     朝礼記録: [
@@ -164,12 +166,12 @@ serve(async (req) => {
     添付ファイル: [
       ['日付', '店舗', 'シフト', '記録', '投稿者（氏名）', '種類', 'ファイル名', 'サイズ(MB)', '秒', 'Driveリンク', '登録日時', '記録ID'],
       ...attachments.data!.map((a) => {
-        const parent = a.chorei_id ? choreiById.get(a.chorei_id) : patrolById.get(a.patrol_id)
+        const parent = a.chorei_id ? choreiById.get(a.chorei_id) : a.patrol_id ? patrolById.get(a.patrol_id) : missById.get(a.miss_id)
         return [
           parent?.business_date ?? '',
           parent ? (storeName.get(parent.store_id) ?? '') : '',
           parent ? (SHIFT[parent.shift] ?? '') : '',
-          a.chorei_id ? '朝礼' : '巡回',
+          a.chorei_id ? '朝礼' : a.patrol_id ? '巡回' : '朝礼なし（理由）',
           person.get(a.owner_id) ?? '',
           a.kind === 'video' ? '動画' : '写真',
           a.file_name,
@@ -177,7 +179,7 @@ serve(async (req) => {
           a.duration_sec,
           a.drive_url ?? '',
           jst(a.created_at),
-          a.chorei_id ?? a.patrol_id,
+          a.chorei_id ?? a.patrol_id ?? a.miss_id,
         ]
       }),
     ],

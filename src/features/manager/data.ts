@@ -29,6 +29,9 @@ export type AdminPatrol = StatPatrol & {
 export type AdminChorei = StatChorei & {
   participants: string[]
   stock_none: boolean
+  /** recorded afterwards by a manager (✗ → ✓), sent at the meeting time */
+  entered_by_manager: boolean
+  manager_note: string | null
   stock_text: string | null
   target_bowls: number | null
   caution_text: string | null
@@ -91,7 +94,7 @@ export function useRecords(range: Range) {
       unwrap<StatMiss[]>(
         await supabase
           .from('chorei_misses')
-          .select('id, store_id, business_date, shift, kind, reason, note, original_texts, reporter_id, by_manager, updated_at')
+          .select('id, store_id, business_date, shift, kind, reason, note, original_texts, reporter_id, by_manager, updated_at, attachments(id, kind, status, drive_url)')
           .eq('by_test_account', false)
           .gte('business_date', range.from)
           .lte('business_date', range.to),

@@ -181,6 +181,7 @@ export function ChoreiAdminPage() {
         <ChoreiMissSheet
           key={missKey}
           slot={missSlot}
+          storeCode={stores.data?.find((s) => s.id === missSlot.storeId)?.code ?? ''}
           title={`${missSlot.date} ${t(`common:shift.${missSlot.shift}`)} ${storeName(stores.data?.find((s) => s.id === missSlot.storeId), currentLocale())}`}
           reporterName={people.name}
           onClose={() => setMissKey(null)}

@@ -333,6 +333,9 @@
     "remove": "Delete the report (back to ✗)",
     "saved": "Saved",
     "removed": "Back to ✗",
-    "byManager": "manager"
+    "byManager": "manager",
+    "markDoneHint": "Opens the 朝礼 form with this date, shift and store. The sent time will be the meeting time; you can add a manager note and photos/videos.",
+    "openForm": "Record the 朝礼",
+    "enteredByManager": "Recorded afterwards by a manager (sent time = meeting time)"
   }
 }
