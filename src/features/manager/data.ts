@@ -27,6 +27,7 @@ export type AdminPatrol = StatPatrol & {
 }
 
 export type AdminChorei = StatChorei & {
+  participants: string[]
   stock_none: boolean
   stock_text: string | null
   target_bowls: number | null
@@ -51,7 +52,7 @@ export interface Range {
   to: string
 }
 
-const ATT = 'attachments(id, kind, status, drive_url)'
+const ATT = 'attachments(id, kind, status, drive_url, owner_id, created_at)'
 
 /** 朝礼 and 巡回 of a date range (managers read everything through RLS). */
 export function useRecords(range: Range) {

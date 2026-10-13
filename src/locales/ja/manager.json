@@ -298,5 +298,23 @@
     "thisPerson": "この人の対象",
     "notTagged": "対象の記録なし",
     "times": "{{n}}回"
+  },
+  "choreiEdit": {
+    "open": "内容を修正する・写真を追加",
+    "title": "朝礼の内容を修正",
+    "filesHint": "写真・動画を追加できます。今ある分も含めて、写真5枚・動画1本までです。",
+    "save": "保存する",
+    "cancel": "やめる",
+    "saved": "保存しました",
+    "field": {
+      "stock_text": "在庫",
+      "caution_text": "注意点",
+      "skip_reason": "できなかった理由"
+    },
+    "history": "修正の履歴",
+    "historyNote": "送信時刻（{{at}}）は変わりません。この履歴は管理画面だけに表示されます。",
+    "voided": "無効にしました",
+    "addedFiles": "写真・動画を{{n}}件追加",
+    "stockSome": "あり"
   }
 }

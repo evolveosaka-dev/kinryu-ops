@@ -298,5 +298,23 @@
     "thisPerson": "For this person",
     "notTagged": "Not recorded",
     "times": "{{n}}×"
+  },
+  "choreiEdit": {
+    "open": "Edit / add photos",
+    "title": "Edit the 朝礼 record",
+    "filesHint": "You can add photos and videos. Up to 5 photos and 1 video in total, including the ones already there.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saved": "Saved",
+    "field": {
+      "stock_text": "Stock",
+      "caution_text": "Caution",
+      "skip_reason": "Reason for skipped steps"
+    },
+    "history": "Edit history",
+    "historyNote": "The sent time ({{at}}) does not change. This history is shown on manager screens only.",
+    "voided": "Voided",
+    "addedFiles": "Added {{n}} photo(s)/video(s)",
+    "stockSome": "Some"
   }
 }

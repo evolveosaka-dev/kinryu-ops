@@ -40,6 +40,7 @@ export function AttachmentPicker({
   hint,
   lockedNote,
   missing = false,
+  taken = { images: 0, videos: 0 },
 }: {
   value: PreparedMedia[]
   onChange: (v: PreparedMedia[]) => void
@@ -52,6 +53,8 @@ export function AttachmentPicker({
   lockedNote?: string | null
   /** show the "photo required" error */
   missing?: boolean
+  /** files the record already has (a manager adding files later); they count toward the limits */
+  taken?: { images: number; videos: number }
 }) {
   const { t } = useTranslation()
   const photoInput = useRef<HTMLInputElement>(null)
@@ -64,8 +67,9 @@ export function AttachmentPicker({
     setBusy(true)
     setError(null)
     let next = [...value]
+    const already = [...Array<{ kind: MediaKind }>(taken.images).fill({ kind: 'image' }), ...Array<{ kind: MediaKind }>(taken.videos).fill({ kind: 'video' })]
     for (const file of Array.from(files)) {
-      if (!canAdd(next, kind)) {
+      if (!canAdd([...already, ...next], kind)) {
         setError(t('attach.tooMany'))
         break
       }
@@ -79,8 +83,8 @@ export function AttachmentPicker({
     setBusy(false)
   }
 
-  const images = value.filter((m) => m.kind === 'image').length
-  const videos = value.length - images
+  const images = taken.images + value.filter((m) => m.kind === 'image').length
+  const videos = taken.videos + value.filter((m) => m.kind === 'video').length
 
   return (
     <Card className="flex flex-col gap-3">

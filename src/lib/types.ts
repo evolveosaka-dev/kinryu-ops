@@ -58,6 +58,8 @@ export interface AttachmentSummary {
   kind: 'image' | 'video'
   status: 'pending' | 'uploaded' | 'failed' | 'deleted'
   drive_url: string | null
+  owner_id?: string
+  created_at?: string
 }
 
 export interface ChoreiRecord {

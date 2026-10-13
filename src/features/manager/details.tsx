@@ -13,6 +13,7 @@ import type { AttachmentSummary } from '../../lib/types'
 import { RecordComments } from '../comments/Comments'
 import { issueTagsToSave, STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { CustomerResult } from '../patrol/CustomerItem'
+import { ChoreiEdit, ChoreiEditHistory } from './ChoreiEdit'
 import { IssueTagsPicker, IssueTagsView, type IssueValue } from '../patrol/IssueTags'
 import { Sheet, Dot } from './common'
 import { fromLocalInput, jstDateTime, toLocalInput, type AdminChorei, type AdminPatrol, JUDGE_STYLE } from './data'
@@ -238,6 +239,7 @@ export function ChoreiDetail({ record: r, leaderName, onClose }: { record: Admin
   const stores = useStores()
   const update = useUpdate('chorei_records', r.id, onClose)
   const [voidReason, setVoidReason] = useState('')
+  const [editing, setEditing] = useState(false)
   const store = storeName(stores.data?.find((s) => s.id === r.store_id), currentLocale())
   const skipped = CHOREI_STEPS.filter((s) => r.steps_done[s] === false)
 
@@ -262,6 +264,15 @@ export function ChoreiDetail({ record: r, leaderName, onClose }: { record: Admin
         <Attachments list={r.attachments} />
         <RecordComments kind="chorei" recordId={r.id} comments={r.comments ?? []} canWrite={r.status === 'valid'} />
       </Card>
+      <ChoreiEditHistory record={r} />
+      {r.status === 'valid' &&
+        (editing ? (
+          <ChoreiEdit record={r} onDone={() => setEditing(false)} />
+        ) : (
+          <Button variant="secondary" onClick={() => setEditing(true)}>
+            ✏️ {t('choreiEdit.open')}
+          </Button>
+        ))}
       {r.status === 'valid' && (
         <Card className="flex flex-col gap-2">
           <h3 className="font-bold">{t('detail.void')}</h3>

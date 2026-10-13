@@ -108,6 +108,16 @@ describe('朝礼記録', () => {
     await t.as(staffS, 'select public.add_chorei_note($1, $2)', [rec!.id, '追加：ネギ不足'])
     expect(await t.admin('select * from public.chorei_notes')).toHaveLength(1)
   })
+  it('manager edits keep the original submitted time and are audited for managers only', async () => {
+    const [rec] = await t.admin<{ id: string; submitted_at: string }>(`select id, submitted_at::text from public.chorei_records where store_id = $1 and shift = 'early'`, [midosuji])
+    await t.as(manager, `update public.chorei_records set caution_text = '丼の縁', participants_extra = '{カン}' where id = $1`, [rec!.id])
+    const [after] = await t.admin<{ submitted_at: string; caution_text: string }>(`select submitted_at::text, caution_text from public.chorei_records where id = $1`, [rec!.id])
+    expect(after).toEqual({ submitted_at: rec!.submitted_at, caution_text: '丼の縁' })
+    const audit = await t.as<{ diff: Record<string, { old: unknown; new: unknown }> }>(manager, `select diff from public.audit_log where row_id = $1`, [rec!.id])
+    expect(audit.at(-1)!.diff.caution_text).toEqual({ old: '笑顔', new: '丼の縁' })
+    expect(audit.at(-1)!.diff.submitted_at).toBeUndefined()
+    expect(await t.as(staffM, 'select id from public.audit_log')).toHaveLength(0)
+  })
   it('staff cannot void; manager can, and it is audited', async () => {
     const [rec] = await t.admin<{ id: string }>(`select id from public.chorei_records where store_id = $1`, [midosuji])
     await expect(
