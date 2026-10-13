@@ -127,6 +127,8 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
   const [start, setStart] = useState(toLocalInput(p.started_at))
   const [end, setEnd] = useState(toLocalInput(p.ended_at))
   const [voidReason, setVoidReason] = useState('')
+  // managers may correct the times at any time, not only when 時間の確認 is flagged
+  const [timeEdit, setTimeEdit] = useState(false)
   const store = storeName(stores.data?.find((s) => s.id === p.store_id), currentLocale())
   const score = p.total !== null && p.max_total ? Math.round(normalizedTo25(p.total, p.max_total) * 10) / 10 : null
 
@@ -136,8 +138,14 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
         {p.status !== 'valid' && <p className="rounded-lg bg-slate-200 p-2 text-sm font-bold">{t(`common:status.${p.status}`)} {p.void_reason && `— ${p.void_reason}`}</p>}
         <Row label={t('detail.patroller')}>{patrollerName}</Row>
         <Row label={t('detail.type')}>{t(`patrol:type.${p.patrol_type}`)}</Row>
+        {p.entered_by_manager && <p className="rounded-lg bg-teal-50 p-2 text-sm font-bold text-teal-900">✓ {t('patrolBackfill.entered')}</p>}
         <Row label={t('detail.time')}>
           {jstDateTime(p.started_at)} – {jstDateTime(p.ended_at).slice(11) || '—'}（{p.duration_min ?? '—'}{t('detail.min')}）
+          {p.status !== 'void' && !p.needs_time_review && !timeEdit && (
+            <button type="button" className="ml-2 min-h-9 text-sm font-bold text-brand underline" onClick={() => setTimeEdit(true)}>
+              {t('detail.timeEdit')}
+            </button>
+          )}
         </Row>
         {p.judgement && (
           <div className={`flex items-center justify-between rounded-xl px-3 py-2 font-bold ${JUDGE_STYLE[p.judgement] ?? ''}`}>
@@ -172,6 +180,7 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
           <Original texts={p.original_texts} field="improvements" />
         </Row>
         {STAFF_ISSUES_ENABLED && <IssueRow patrol={p} />}
+        {p.manager_note && <Row label={t('chorei:backfill.note')}>{p.manager_note}</Row>}
         {p.remarks && (
           <Row label={t('patrol:remarks.label')}>
             {p.remarks}
@@ -200,9 +209,9 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
         </Card>
       )}
 
-      {p.needs_time_review && p.status !== 'void' && (
+      {(p.needs_time_review || timeEdit) && p.status !== 'void' && (
         <Card className="flex flex-col gap-2 ring-2 ring-amber-300">
-          <h3 className="font-bold"><Dot tone="amber" /> {t('detail.timeReview')}</h3>
+          <h3 className="font-bold"><Dot tone="amber" /> {p.needs_time_review ? t('detail.timeReview') : t('detail.timeEdit')}</h3>
           <label className="text-sm font-bold">
             {t('detail.start')}
             <input type="datetime-local" className="min-h-11 w-full rounded-lg border border-slate-300 px-2" value={start} onChange={(e) => setStart(e.target.value)} />

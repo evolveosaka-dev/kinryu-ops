@@ -143,7 +143,8 @@
     "skipped": "Steps not done",
     "issueEdit": "Correct",
     "issueSave": "Save",
-    "issueCancel": "Cancel"
+    "issueCancel": "Cancel",
+    "timeEdit": "Correct the time"
   },
   "stats": {
     "title": "Reports",
@@ -337,5 +338,19 @@
     "markDoneHint": "Opens the 朝礼 form with this date, shift and store. The sent time will be the meeting time; you can add a manager note and photos/videos.",
     "openForm": "Record the 朝礼",
     "enteredByManager": "Recorded afterwards by a manager (sent time = meeting time)"
+  },
+  "patrolBackfill": {
+    "open": "Record a past patrol",
+    "title": "Record a past patrol",
+    "banner": "A manager records a patrol that could not be entered at the time. Patrol time (pay) goes to the patrol member you choose.",
+    "patroller": "Patrol member",
+    "pick": "Choose",
+    "times": "Patrol time",
+    "timesHint": "Enter the actual times (e.g. 2:00–2:12). Late-night times of a 遅番 are on the next calendar day.",
+    "minutes": "{{n}} min",
+    "endAfterStart": "The end must be after the start.",
+    "photosHint": "Photos and videos are optional; you can pick them from the gallery.",
+    "notePlaceholder": "e.g. Could not be entered at the time because of an app problem.",
+    "entered": "Patrol recorded afterwards by a manager"
   }
 }

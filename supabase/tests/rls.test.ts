@@ -607,3 +607,24 @@ describe('朝礼できなかった (chorei_misses)', () => {
     await add('video')
   })
 })
+
+describe('巡回を後から記録 (manager)', () => {
+  const insert = (who: string, patrollerSql: string, extra = '') =>
+    t.as<{ patroller_id: string; entered_by_manager: boolean; needs_time_review: boolean; duration_min: number }>(
+      who,
+      `insert into public.patrol_checks (patroller_id, store_id, business_date, shift, patrol_type, started_at, ended_at,
+         score_smile, score_voice, score_grooming, score_clean, score_quality, good_points, improvements, status, entered_by_manager, manager_note)
+       values (${patrollerSql}, $1, ${TODAY} - 3, 'late', 'after_shift', now() - interval '3 days', now() - interval '3 days' + interval '20 minutes',
+         4, 4, 4, 4, null, '良い', '改善', 'valid', true, '後から入力' ${extra})
+       returning patroller_id, entered_by_manager, needs_time_review, duration_min`,
+      [midosuji],
+    )
+  it('a manager records a past patrol for a patrol member, with its own times and no time review', async () => {
+    const [r] = await insert(manager, `'${patroller}'`)
+    expect(r).toEqual({ patroller_id: patroller, entered_by_manager: true, needs_time_review: false, duration_min: 20 })
+  })
+  it('not for a member without patrol rights; staff cannot use it', async () => {
+    await expect(insert(manager, `'${staffS}'`)).rejects.toThrow(/row-level security/)
+    await expect(insert(staffS, `'${patroller}'`)).rejects.toThrow(/row-level security|out of range/)
+  })
+})

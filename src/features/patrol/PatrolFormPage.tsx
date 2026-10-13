@@ -12,7 +12,6 @@ import {
   PATROL_ITEMS,
   PATROL_WARN_MINUTES,
   suggestPatrol,
-  type PatrolScores,
 } from '../../domain/patrol'
 import { readSlotPreset, type SlotPreset } from '../../domain/duty'
 import { issueTagsToSave, STAFF_ISSUES_ENABLED } from '../../domain/issues'
@@ -23,7 +22,7 @@ import { errorMessage, isNetworkError, storeName } from '../../lib/format'
 import { useStores } from '../../lib/queries'
 import type { Store } from '../../lib/types'
 import { supabase } from '../../lib/supabase'
-import { loadLocalDraft, saveLocalDraft, type PatrolFormState } from './draft'
+import { completeScores, loadLocalDraft, saveLocalDraft, type PatrolFormState } from './draft'
 import { AttachmentPicker } from '../attachments/AttachmentPicker'
 import { useUploadQueue } from '../attachments/uploadQueue'
 import type { PreparedMedia } from '../../lib/media'
@@ -38,12 +37,6 @@ const JUDGEMENT_STYLE = {
   improve: 'bg-amber-100 text-amber-900',
   coaching: 'bg-red-100 text-red-900',
 } as const
-
-function completeScores(s: PatrolFormState['scores']): PatrolScores | null {
-  const { smile, voice, grooming, clean, quality } = s
-  if (!smile || !voice || !grooming || !clean || quality === undefined) return null
-  return { smile, voice, grooming, clean, quality }
-}
 
 function newForm(stores: Store[], preset: SlotPreset): PatrolFormState {
   // "own store" = the store used last time (staff work at both stores)

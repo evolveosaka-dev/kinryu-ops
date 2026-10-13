@@ -1,5 +1,5 @@
 import type { IssueTag } from '../../domain/issues'
-import type { PatrolItem, Score } from '../../domain/patrol'
+import type { PatrolItem, PatrolScores, Score } from '../../domain/patrol'
 import type { PatrolType, Shift } from '../../domain/types'
 
 /** Everything typed into the patrol form, kept in localStorage so a reload or lost signal loses nothing. */
@@ -52,4 +52,11 @@ export function saveLocalDraft(userId: string, state: PatrolFormState | null): v
   } catch {
     // storage unavailable (private mode): the form still works, just without restore
   }
+}
+
+/** All five items answered (⑤ may be null = －). */
+export function completeScores(s: PatrolFormState['scores']): PatrolScores | null {
+  const { smile, voice, grooming, clean, quality } = s
+  if (!smile || !voice || !grooming || !clean || quality === undefined) return null
+  return { smile, voice, grooming, clean, quality }
 }

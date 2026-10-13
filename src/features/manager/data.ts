@@ -9,6 +9,9 @@ import type { IssueStatus, IssueTag } from '../../domain/issues'
 import type { RecordComment } from '../comments/Comments'
 
 export type AdminPatrol = StatPatrol & {
+  /** recorded afterwards by a manager (巡回を後から記録) */
+  entered_by_manager: boolean
+  manager_note: string | null
   good_points: string | null
   improvements: string | null
   remarks: string | null

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { Card, ErrorBox, Spinner, PageTitle } from '../../components/ui'
 import { normalizedTo25 } from '../../domain/patrol'
 import { formatShortDate, formatTokyoTime } from '../../domain/time'
@@ -55,7 +55,12 @@ export function PatrolAdminPage() {
   return (
     <div className="flex flex-col gap-3">
       <ManagerTabs />
-      <PageTitle title={t('patrolList.title')} />
+      <div className="flex items-center justify-between gap-2">
+        <PageTitle title={t('patrolList.title')} />
+        <Link to="/manager/patrol/new" className="flex min-h-11 items-center rounded-xl px-3 text-sm font-bold text-brand ring-1 ring-brand">
+          ＋ {t('patrolBackfill.open')}
+        </Link>
+      </div>
       <PeriodBar period={period} />
 
       <Card className="grid grid-cols-2 gap-2">
