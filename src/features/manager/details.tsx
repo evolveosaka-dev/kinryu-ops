@@ -13,6 +13,7 @@ import type { AttachmentSummary } from '../../lib/types'
 import { RecordComments } from '../comments/Comments'
 import { issueTagsToSave, STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { CustomerResult } from '../patrol/CustomerItem'
+import { AttachmentList } from './AttachmentList'
 import { ChoreiEdit, ChoreiEditHistory } from './ChoreiEdit'
 import { IssueTagsPicker, IssueTagsView, type IssueValue } from '../patrol/IssueTags'
 import { Sheet, Dot } from './common'
@@ -53,19 +54,11 @@ function Original({ texts, field }: { texts: Record<string, string> | null; fiel
   return original ? <p className="mt-1 text-xs text-slate-600">{t('detail.original')}: {original}</p> : null
 }
 
-function Attachments({ list }: { list: AttachmentSummary[] }) {
+function Attachments({ list, parentId }: { list: AttachmentSummary[]; parentId: string }) {
   const { t } = useTranslation('manager')
-  const ok = list.filter((a) => a.status === 'uploaded')
-  if (!ok.length) return <Row label={t('detail.attachments')}>—</Row>
   return (
     <Row label={t('detail.attachments')}>
-      <span className="flex flex-wrap gap-2">
-        {ok.map((a, i) => (
-          <a key={a.id} href={a.drive_url ?? '#'} target="_blank" rel="noreferrer" className="font-bold text-brand underline">
-            {a.kind === 'video' ? '🎥' : '📷'} {i + 1}
-          </a>
-        ))}
-      </span>
+      <AttachmentList list={list} parentId={parentId} />
     </Row>
   )
 }
@@ -187,7 +180,7 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
             <Original texts={p.original_texts} field="remarks" />
           </Row>
         )}
-        <Attachments list={p.attachments} />
+        <Attachments list={p.attachments} parentId={p.id} />
         <RecordComments kind="patrol" recordId={p.id} comments={p.comments ?? []} canWrite={p.status === 'valid'} />
       </Card>
 
@@ -272,7 +265,7 @@ export function ChoreiDetail({ record: r, leaderName, onClose }: { record: Admin
         <Row label={t('detail.skipped')}>{skipped.length ? `${skipped.map((s) => t(`chorei:steps.${s}`)).join('、')}（${r.skip_reason ?? ''}）` : '—'}</Row>
         {r.manager_note && <Row label={t('chorei:backfill.note')}>{r.manager_note}</Row>}
         {r.notes.length > 0 && <Row label={t('chorei:previous.notes')}>{r.notes.map((n) => n.body).join('\n')}</Row>}
-        <Attachments list={r.attachments} />
+        <Attachments list={r.attachments} parentId={r.id} />
         <RecordComments kind="chorei" recordId={r.id} comments={r.comments ?? []} canWrite={r.status === 'valid'} />
       </Card>
       <ChoreiEditHistory record={r} />

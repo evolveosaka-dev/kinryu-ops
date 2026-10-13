@@ -13,6 +13,7 @@ import { AttachmentPicker } from '../attachments/AttachmentPicker'
 import { useUploadQueue } from '../attachments/uploadQueue'
 import { choreiSchema, fieldErrors } from '../chorei/schema'
 import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
+import { AttachmentList } from './AttachmentList'
 import { jstDateTime, usePeople, type AdminChorei } from './data'
 
 const TEXT_FIELDS = ['stock_text', 'caution_text', 'skip_reason'] as const
@@ -35,7 +36,11 @@ export function ChoreiEdit({ record: r, onDone }: { record: AdminChorei; onDone:
   const [media, setMedia] = useState<PreparedMedia[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
   const live = r.attachments.filter((a) => a.status === 'pending' || a.status === 'uploaded')
-  const taken = { images: live.filter((a) => a.kind === 'image').length, videos: live.filter((a) => a.kind === 'video').length }
+  const waiting = uploads.items.filter((i) => i.parentId === r.id && i.status !== 'error' && !live.some((a) => a.id === i.attachmentId))
+  const taken = {
+    images: [...live, ...waiting].filter((a) => a.kind === 'image').length,
+    videos: [...live, ...waiting].filter((a) => a.kind === 'video').length,
+  }
   const allDone = Object.values(steps).every(Boolean)
 
   const save = useMutation({
@@ -130,6 +135,10 @@ export function ChoreiEdit({ record: r, onDone }: { record: AdminChorei; onDone:
         )}
       </div>
       <TextArea label={t('chorei:backfill.note')} value={managerNote} onChange={(e) => setManagerNote(e.target.value)} />
+      <div className="flex flex-col gap-1 rounded-xl bg-slate-50 p-2 text-sm">
+        <span className="font-bold text-slate-700">{t('files.now')}</span>
+        <AttachmentList list={r.attachments} parentId={r.id} />
+      </div>
       <AttachmentPicker value={media} onChange={setMedia} taken={taken} hint={t('choreiEdit.filesHint')} />
       {failed && <ErrorBox message={errorMessage(save.error)} />}
       <div className="grid grid-cols-2 gap-2">

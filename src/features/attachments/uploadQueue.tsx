@@ -102,13 +102,16 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
         replace(null, cur.id)
         void queryClient.invalidateQueries({ queryKey: ['my_chorei'] })
         void queryClient.invalidateQueries({ queryKey: ['my_patrols'] })
+        void queryClient.invalidateQueries({ queryKey: ['admin'] })
       } catch (err) {
         // Expired/invalid session → start a new one next time.
         const sessionGone = err instanceof UploadHttpError && (err.status === 404 || err.status === 410)
         const permanent = err instanceof UploadHttpError && [400, 403, 409, 413].includes(err.status)
+        // signed out / token not refreshable now: keep it queued, the next run (every minute, after sign-in) retries
+        const authLater = err instanceof UploadHttpError && err.status === 401
         cur = {
           ...cur,
-          status: isNetworkError(err) && !permanent ? 'queued' : 'error',
+          status: (isNetworkError(err) && !permanent) || authLater ? 'queued' : 'error',
           error: err instanceof Error ? err.message : String(err),
           ...(sessionGone ? { attachmentId: undefined, uploadUrl: undefined, status: 'queued' as const } : {}),
         }

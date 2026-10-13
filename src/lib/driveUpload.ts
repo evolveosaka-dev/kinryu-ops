@@ -60,11 +60,16 @@ export async function uploadToSession(
 }
 
 /** Call the drive-upload Edge Function and surface its error message. */
-export async function callDriveFunction<T>(body: Record<string, unknown>): Promise<T> {
+export async function callDriveFunction<T>(body: Record<string, unknown>, retried = false): Promise<T> {
   const { data, error } = await supabase.functions.invoke<T>('drive-upload', { body })
   if (error) {
     if (error instanceof FunctionsHttpError) {
       const res = error.context as Response
+      // the sign-in token expired (app left in the background, phone asleep): refresh it and try once more
+      if (res.status === 401 && !retried) {
+        const { error: refreshError } = await supabase.auth.refreshSession()
+        if (!refreshError) return callDriveFunction<T>(body, true)
+      }
       const json = (await res.json().catch(() => ({}))) as { error?: string }
       throw new UploadHttpError(res.status, json.error ?? error.message)
     }

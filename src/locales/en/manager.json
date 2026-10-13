@@ -352,5 +352,14 @@
     "photosHint": "Photos and videos are optional; you can pick them from the gallery.",
     "notePlaceholder": "e.g. Could not be entered at the time because of an app problem.",
     "entered": "Patrol recorded afterwards by a manager"
+  },
+  "files": {
+    "count": "{{images}} photo(s) · {{videos}} video(s)",
+    "pending": "{{n}} uploading",
+    "failed": "{{n}} file(s) failed to upload",
+    "uploading": "uploading {{pct}}%",
+    "waiting": "waiting on this device",
+    "localFailed": "could not be sent from this device",
+    "now": "Photos and videos now"
   }
 }
