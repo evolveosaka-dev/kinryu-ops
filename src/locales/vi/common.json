@@ -86,7 +86,7 @@
   },
   "privacy": {
     "title": "Về thông tin cá nhân",
-    "body1": "Dữ liệu trong app (biên bản họp ca, phiếu tuần tra) dùng để cải thiện phục vụ khách và tính lương cho thời gian tuần tra.",
+    "body1": "Dữ liệu trong app (biên bản họp ca, phiếu tuần tra) dùng để cải thiện phục vụ khách và quản lý thời gian tuần tra.",
     "body2": "Chỉ quản lý của công ty mới xem được. Không nhập thông tin khách hàng. Ảnh và video được lưu trên Google Drive của công ty. Không chụp/quay mặt khách hàng. Nội dung viết bằng ngôn ngữ khác tiếng Nhật sẽ được gửi tới dịch vụ dịch bên ngoài (Anthropic) để dịch sang tiếng Nhật.",
     "body3": "Dữ liệu chỉ dùng trong công ty và không bị xóa.",
     "accept": "Tôi đã hiểu"

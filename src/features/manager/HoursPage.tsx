@@ -12,7 +12,7 @@ import { exportCsv, exportXlsx, jstDateTime, usePeople, useRecords, type AdminPa
 import { PatrolDetail } from './details'
 import { ManagerTabs } from './ManagerTabs'
 
-/** 巡回時間（給与用）: per patroller per month. */
+/** 巡回時間: per patroller per month. */
 export function HoursPage() {
   const { t } = useTranslation('manager')
   const period = usePeriod('month')

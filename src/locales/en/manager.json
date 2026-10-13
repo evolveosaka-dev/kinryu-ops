@@ -166,12 +166,12 @@
     "skipped": "Steps not done"
   },
   "hours": {
-    "title": "Patrol time (payroll)",
+    "title": "Patrol time",
     "minutes": "Total (min)",
     "hours": "Hours",
     "over": "Over 15 min",
     "note": "Actual minutes from Start to End of valid patrols (not rounded up).",
-    "reviewFirst": "Some patrols need a time review. Confirm them before payroll.",
+    "reviewFirst": "Some patrols need a time review. Confirm them before totalling.",
     "flagged": "Over 15 min / time review"
   },
   "settings": {
@@ -342,7 +342,7 @@
   "patrolBackfill": {
     "open": "Record a past patrol",
     "title": "Record a past patrol",
-    "banner": "A manager records a patrol that could not be entered at the time. Patrol time (pay) goes to the patrol member you choose.",
+    "banner": "A manager records a patrol that could not be entered at the time. Patrol time goes to the patrol member you choose.",
     "patroller": "Patrol member",
     "pick": "Choose",
     "times": "Patrol time",
