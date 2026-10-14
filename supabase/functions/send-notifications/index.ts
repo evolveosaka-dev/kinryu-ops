@@ -423,7 +423,7 @@ async function renderShiftChange(admin: Admin, L: Lookup, e: NotifyEvent) {
       `スタッフ: ${r.roster_name}${r.by_manager ? `（${L.person(r.requester_id)}が記録）` : ''}`,
       `勤務: ${where}`,
       `内容: ${what}`,
-      `理由: ${CHANGE_REASON[r.reason] ?? r.reason}${r.note ? `（${r.note}）` : ''}`,
+      `理由: ${(r.reason === 'transport' ? { absence: '電車・バスの原因', early_leave: '交通の原因' }[r.kind as string] : null) ?? CHANGE_REASON[r.reason] ?? r.reason}${r.note ? `（${r.note}）` : ''}`,
       `連絡: ${jst(r.reported_at)}（${noticeText(r.notice_min)}）`,
       `代わり: ${r.kind === 'late' ? '—' : r.proposed_cover ? `本人が指名 ${r.proposed_cover}さん（話し合い済み・承認待ち）` : r.recruit ? `募集中${r.swap_ok ? '（交換も可）' : ''}` : '募集しない（管理者が手配）'}`,
       '',

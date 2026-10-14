@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dateSpan, EMPTY_ANSWERS, formatDayRanges, isRequestOpen, monthDates, nextMonth, paidLeaveConflicts, requestDeadline, sheetCell, sheetDayLabel, sheetRows, validateRequest } from './shiftRequest'
+import { answerCells, dateSpan, EMPTY_ANSWERS, formatDayRanges, formatPeriod, isRequestOpen, monthDates, nextMonth, paidLeaveConflicts, requestDeadline, sheetCell, sheetDayLabel, sheetRows, validateRequest } from './shiftRequest'
 
 describe('dates', () => {
   it('lists every day of the month', () => {
@@ -80,5 +80,17 @@ describe('有給休暇の日', () => {
     expect(validateRequest(['early'], base, days)).toEqual(['paidLeaveDays'])
     expect(validateRequest(['early'], { ...base, paidLeaveDays: ['2026-11-04'] }, days)).toEqual(['paidLeaveConflict'])
     expect(validateRequest(['early'], { ...base, paidLeaveDays: ['2026-11-03'] }, days)).toEqual([])
+  })
+})
+
+describe('学校の長期休暇期間', () => {
+  it('a period over two months, with the pledge', () => {
+    const base = { ...EMPTY_ANSWERS, checkedNotice: true, checkedIrregular: true, schoolHolidayHas: 'yes' as const }
+    expect(validateRequest(['early'], base)).toEqual(['schoolHoliday', 'schoolPledge'])
+    const ok = { ...base, schoolHolidayFrom: '2026-12-20', schoolHolidayTo: '2027-01-10', schoolHolidayPledge: true }
+    expect(validateRequest(['early'], ok)).toEqual([])
+    expect(formatPeriod('2026-12-20', '2027-01-10')).toBe('2026/12/20〜2027/1/10')
+    expect(answerCells(ok)[5]).toBe('2026/12/20〜2027/1/10（誓約済み・証明書提出可）')
+    expect(answerCells({ ...EMPTY_ANSWERS, schoolHoliday: '12/20〜1/10' })[5]).toBe('12/20〜1/10')
   })
 })

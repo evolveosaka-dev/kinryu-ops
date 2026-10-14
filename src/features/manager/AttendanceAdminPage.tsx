@@ -15,7 +15,7 @@ import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import { ChangeForm } from '../shift/ChangeForm'
 import { ScoreView } from '../shift/AbsencePage'
-import { noticeText, STATUS_STYLE, today, useAttendance, useChangeLabel, useChanges, useProblemText, useStaffLimits, type ChangeWithOffers } from '../shift/changeData'
+import { noticeText, STATUS_STYLE, today, useAttendance, useChangeLabel, useChanges, useProblemText, useReasonLabel, useStaffLimits, type ChangeWithOffers } from '../shift/changeData'
 import { jstDateTime } from './data'
 import { ManagerTabs } from './ManagerTabs'
 
@@ -81,6 +81,7 @@ function DecideSheet({ c, onClose }: { c: ChangeWithOffers; onClose: () => void 
   const rows = useAssignments(addDays(c.business_date, -7), addDays(c.business_date, 7), c.status === 'open' && c.kind !== 'late')
   const [pick, setPick] = useState<{ offer?: string; cover?: string } | null>(c.status === 'open' && c.proposed_cover ? { cover: c.proposed_cover } : null)
   const problemText = useProblemText()
+  const reasonLabel = useReasonLabel()
   const [note, setNote] = useState('')
   const [showAll, setShowAll] = useState(false)
   const decide = useMutation({
@@ -108,6 +109,11 @@ function DecideSheet({ c, onClose }: { c: ChangeWithOffers; onClose: () => void 
         <span>{t('attendance.week', { h: Math.round((x.weekMin / 60) * 10) / 10 })}{x.limitMin ? ` / ${t('attendance.limit', { h: x.limitMin / 60 })}` : ''}</span>
         {x.overLimit && <b className="text-red-700">⚠ {t('attendance.overLimit')}</b>}
         {x.chainMin >= 12 * 60 && <b className="text-amber-700">⚠ {t('attendance.chain', { h: Math.round((x.chainMin / 60) * 10) / 10 })}</b>}
+        {x.prev && (
+          <b className="text-amber-700">
+            ⚠ {t('attendance.afterLong', { time: formatRange(x.prev), h: Math.round(((x.prev.end_min - x.prev.start_min) / 60) * 10) / 10 })}
+          </b>
+        )}
         {x.conflict && <b className="text-red-700">✗ {t('attendance.conflict')}</b>}
       </span>
     )
@@ -120,7 +126,7 @@ function DecideSheet({ c, onClose }: { c: ChangeWithOffers; onClose: () => void 
           {dayText(c.business_date, t)} {t(`common:shift.${c.shift}`)} {formatRange(c)} {STORE_BY_MARK[c.store_mark]?.ja ?? c.store_mark}
         </p>
         <p>
-          {REASON_ICON[c.reason]} {ts(`change.reason.${c.reason}`)}
+          {REASON_ICON[c.reason]} {reasonLabel(c.kind, c.reason)}
           {c.note && `：${c.note}`}
         </p>
         {c.note_original && <p className="text-xs text-muted">{t('detail.original')}: {c.note_original}</p>}
@@ -272,6 +278,7 @@ function ReportsTab() {
   const { t } = useTranslation('manager')
   const { t: ts } = useTranslation('shift')
   const label = useChangeLabel()
+  const reasonLabel = useReasonLabel()
   const changes = useChanges(addDays(today(), -14), addDays(today(), 60))
   const [openId, setOpenId] = useState<string | null>(null)
   const [recording, setRecording] = useState(false)
@@ -291,7 +298,7 @@ function ReportsTab() {
           <span className={cx('shrink-0 rounded-full px-2 py-0.5 text-xs font-bold', STATUS_STYLE[c.status])}>{ts(`change.status.${c.status}`)}</span>
         </span>
         <span className="text-sm">
-          {dayText(c.business_date, t)} {t(`common:shift.${c.shift}`)} {formatMin(c.start_min)}– {STORE_BY_MARK[c.store_mark]?.short ?? c.store_mark} ・ {REASON_ICON[c.reason]} {ts(`change.reason.${c.reason}`)}
+          {dayText(c.business_date, t)} {t(`common:shift.${c.shift}`)} {formatMin(c.start_min)}– {STORE_BY_MARK[c.store_mark]?.short ?? c.store_mark} ・ {REASON_ICON[c.reason]} {reasonLabel(c.kind, c.reason)}
         </span>
         <span className="text-xs text-muted">
           📞 {noticeText(ts, c.notice_min)}

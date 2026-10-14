@@ -735,6 +735,7 @@
     "limitHours": "時間／週",
     "visaLimit": "連続7日間で28時間まで（ユーザー画面で設定）",
     "proposed": "本人が指名: {{name}}さん（話し合い済み）",
-    "chooseProposed": "この人で承認する（下で確定）"
+    "chooseProposed": "この人で承認する（下で確定）",
+    "afterLong": "直前に{{time}}（{{h}}時間）勤務"
   }
 }

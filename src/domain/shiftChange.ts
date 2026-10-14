@@ -175,8 +175,14 @@ export function visaRuns(ws: VisaWindow[], limit = VISA_LIMIT_MIN) {
 
 const overlaps = (a: Assignment, b: Assignment) => startAt(a) < endAt(b) && startAt(b) < endAt(a)
 
+/** A cover right after a shift of 8 h or more (ending ≤ 1 h before) gets a warning. */
+export const LONG_PREV_MIN = 8 * 60
+const PREV_GAP_MIN = 60
+
 export interface Candidate {
   name: string
+  /** the shift just before (ends ≤ 1 h before the cover starts) when it is 8 h or longer */
+  prev: Assignment | null
   /** works at that time already */
   conflict: boolean
   /** minutes of the back-to-back chain if they take it (≥ 12 h → warning) */
@@ -204,11 +210,13 @@ export function coverCandidates(
     .map((name) => {
       const own = assignments.filter((a) => a.roster_name === name)
       const conflict = own.some((a) => overlaps(a, part))
+      const gap = (a: Assignment) => (startAt(part).getTime() - endAt(a).getTime()) / 60_000
+      const prev = own.find((a) => !overlaps(a, part) && gap(a) >= 0 && gap(a) <= PREV_GAP_MIN && a.end_min - a.start_min >= LONG_PREV_MIN) ?? null
       const withIt = [...own.filter((a) => !overlaps(a, part)), part]
       const chainMin = chainMinutes(withIt).get(part) ?? part.end_min - part.start_min
       const weekMin = maxRollingWeek(withIt, change.business_date)
       const limitMin = limits.get(name) ?? null
-      return { name, conflict, chainMin, weekMin, limitMin, overLimit: limitMin !== null && weekMin > limitMin }
+      return { name, prev, conflict, chainMin, weekMin, limitMin, overLimit: limitMin !== null && weekMin > limitMin }
     })
     .sort((a, b) => Number(a.conflict) - Number(b.conflict) || Number(a.overLimit) - Number(b.overLimit) || a.weekMin - b.weekMin || a.name.localeCompare(b.name, 'ja'))
 }

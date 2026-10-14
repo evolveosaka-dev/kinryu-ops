@@ -735,6 +735,7 @@
     "limitHours": "hours / week",
     "visaLimit": "at most 28 h in 7 days in a row (set on the user screen)",
     "proposed": "Named by the reporter: {{name}} (agreed)",
-    "chooseProposed": "Approve with this person (confirm below)"
+    "chooseProposed": "Approve with this person (confirm below)",
+    "afterLong": "right after {{time}} ({{h}} h)"
   }
 }

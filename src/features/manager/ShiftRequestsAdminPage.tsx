@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Card, ErrorBox, PageTitle, Segmented, Spinner } from '../../components/ui'
-import { EMPTY_ANSWERS, nextMonth, requestDeadline, SHEET_NAME, sheetRows, type DayChoice, type ExportRequest, type ShiftAnswers, formatDayRanges } from '../../domain/shiftRequest'
+import { EMPTY_ANSWERS, nextMonth, requestDeadline, SHEET_NAME, sheetRows, type DayChoice, type ExportRequest, type ShiftAnswers, formatDayRanges, formatPeriod } from '../../domain/shiftRequest'
 import { tokyoParts } from '../../domain/time'
 import { SHIFTS, type Shift } from '../../domain/types'
 import { errorMessage } from '../../lib/format'
@@ -94,9 +94,9 @@ export function ShiftRequestsAdminPage() {
                 {t('shiftRequests.updated', { at: jstDateTime(r.updated_at).slice(5) })}
               </span>
               {r.answers.message && <span className="text-sm">💬 {r.answers.message}</span>}
-              {(r.answers.homeTrip === 'yes' || r.answers.resign === 'yes' || r.answers.paidLeave === 'want') && (
+              {(r.answers.homeTrip === 'yes' || r.answers.resign === 'yes' || r.answers.paidLeave === 'want' || r.answers.schoolHolidayHas === 'yes') && (
                 <span className="text-sm font-bold text-amber-800">
-                  {[r.answers.homeTrip === 'yes' && `一時帰国 ${r.answers.homeTripWhen ?? ''}`, r.answers.paidLeave === 'want' && `有給 ${r.answers.paidLeaveDays?.length ? `${formatDayRanges(r.answers.paidLeaveDays)}（${r.answers.paidLeaveDays.length}日） ` : ''}${r.answers.paidLeaveComment ?? ''}`, r.answers.resign === 'yes' && `退職 ${r.answers.resignWhen ?? ''}`]
+                  {[r.answers.homeTrip === 'yes' && `一時帰国 ${r.answers.homeTripWhen ?? ''}`, r.answers.paidLeave === 'want' && `有給 ${r.answers.paidLeaveDays?.length ? `${formatDayRanges(r.answers.paidLeaveDays)}（${r.answers.paidLeaveDays.length}日） ` : ''}${r.answers.paidLeaveComment ?? ''}`, r.answers.schoolHolidayHas === 'yes' && `学校休暇 ${formatPeriod(r.answers.schoolHolidayFrom ?? '', r.answers.schoolHolidayTo ?? '')}${r.answers.schoolHolidayPledge ? '（誓約済み）' : ''}`, r.answers.resign === 'yes' && `退職 ${r.answers.resignWhen ?? ''}`]
                     .filter(Boolean)
                     .join(' ／ ')}
                 </span>

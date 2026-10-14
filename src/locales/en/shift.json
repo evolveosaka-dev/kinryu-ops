@@ -56,7 +56,9 @@
     "resignWhen": "Write when you plan to quit.",
     "checks": "Tick both confirmations.",
     "paidLeaveDays": "Choose your paid leave days.",
-    "paidLeaveConflict": "Paid leave days overlap days you can work. Fix one of them."
+    "paidLeaveConflict": "Paid leave days overlap days you can work. Fix one of them.",
+    "schoolHoliday": "Choose the first and last day of the school holiday.",
+    "schoolPledge": "Check the school holiday confirmation."
   },
   "deadline": "Deadline: {{date}} (the 20th)",
   "closed": "The deadline ({{date}}) has passed, so this cannot be changed. Please contact a manager.",
@@ -214,7 +216,19 @@
       "busy": "{{name}} works at that time and cannot cover.",
       "visa": "{{name}} cannot cover: it would make {{h}} h in 7 days in a row ({{from}}–{{to}}), over the 28 h limit (student / dependent visa).",
       "visa_other": "The swap is not possible: {{name}} would have {{h}} h in 7 days in a row ({{from}}–{{to}}), over the 28 h limit (student / dependent visa)."
-    }
+    },
+    "reasonFor": {
+      "absence": {
+        "transport": "Train / bus reasons"
+      },
+      "early_leave": {
+        "transport": "Transport reasons"
+      }
+    },
+    "availableTitle": "Marked as available (shift request) and not on this shift",
+    "availableNone": "Nobody marked this shift as available.",
+    "availableChoice": "available {{time}}",
+    "coverPickOther": "Choose someone else"
   },
   "score": {
     "title": "Attendance score (last {{n}} days)",
@@ -263,5 +277,15 @@
     "selected": "Chosen: {{days}} ({{n}} days)",
     "none": "Nothing chosen yet.",
     "short": "Paid"
+  },
+  "school": {
+    "no": "No",
+    "yes": "Yes",
+    "pickStart": "Tap the first day off (‹ › to change month).",
+    "pickEnd": "From {{d}} — tap the last day (› for the next month).",
+    "period": "Period: {{period}}",
+    "notYet": "Choose the first and the last day.",
+    "old": "Entered before: {{text}}",
+    "pledge": "The school holiday period above is true. If it is not, I accept full responsibility. I can submit the school's certificate of the long holiday (長期休業期間の証明書) when asked."
   }
 }

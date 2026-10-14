@@ -225,3 +225,28 @@ describe('代わりの人を指名 + 28 hours everywhere', () => {
     await expect(t.as(higashi, `select public.offer_shift_cover($1)`, [r!.id])).rejects.toThrow(/cover_problem:.*visa/)
   })
 })
+
+describe('出勤可能 people for naming', () => {
+  it('lists people who marked the shift in シフト希望 but are not scheduled, with problems', async () => {
+    const [r] = await t.admin<{ d: string; m: string }>(`select (${TODAY} + 26)::text as d, date_trunc('month', ${TODAY} + 26)::date::text as m`)
+    const d = r!.d
+    await assign('ミナミ', d, 'early', 420, 1020)
+    await assign('ヒガシ', d, 'late', 1380, 1860)
+    const req = (user: string, days: object) =>
+      t.admin(`insert into public.shift_requests (user_id, month, shifts, days) values ($1, $2, '{early}', $3)
+               on conflict (user_id, month) do update set days = excluded.days`, [user, r!.m, JSON.stringify(days)])
+    await req(kita, { [d]: { early: 'morning' } })
+    await req(higashi, { [d]: { early: 'full', early_until_1730: true } })
+    await req(manager, { [d]: { middle: 'ok' } }) // another shift only
+    const rows = await t.as<{ roster_name: string; choice: string; until_1730: boolean; problem: unknown }>(
+      minami,
+      `select roster_name, choice, until_1730, problem from public.available_covers($1, 'early')`,
+      [d],
+    )
+    expect(rows.map((x) => [x.roster_name, x.choice, x.until_1730])).toEqual([
+      ['キタ', 'morning', false],
+      ['ヒガシ', 'full', true],
+    ])
+    await expect(t.as(kita, `select * from public.available_covers($1, 'early')`, [d])).rejects.toThrow(/no such shift/)
+  })
+})

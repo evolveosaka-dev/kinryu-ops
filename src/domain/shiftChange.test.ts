@@ -57,6 +57,18 @@ describe('休み連絡', () => {
       { name: 'A', visa: 'student', from: '2026-10-25', to: '2026-10-31', maxMin: 1700 },
     ])
   })
+  it('after 8 h or more just before (≤ 1 h gap) → prev', () => {
+    const change = { kind: 'absence' as const, roster_name: 'A', business_date: '2026-10-15', shift: 'middle' as const, store_mark: '⑤', start_min: 1020, end_min: 1380, leave_min: null }
+    const rows = [
+      a('B', '2026-10-15', 'early', 420, 1020), // 10 h, ends at 17:00
+      a('C', '2026-10-15', 'early', 600, 1020), // 7 h
+      a('D', '2026-10-15', 'early', 420, 900), // 8 h but ends 2 h before
+    ]
+    const out = coverCandidates(change, rows, ['B', 'C', 'D'], new Map())
+    expect(out.find((c) => c.name === 'B')!.prev).toMatchObject({ start_min: 420, end_min: 1020 })
+    expect(out.find((c) => c.name === 'C')!.prev).toBeNull()
+    expect(out.find((c) => c.name === 'D')!.prev).toBeNull()
+  })
   it('早退: the replacement only needs the rest of the shift', () => {
     const change = { kind: 'early_leave' as const, roster_name: 'A', business_date: '2026-10-15', shift: 'middle' as const, store_mark: '⑤', start_min: 1020, end_min: 1380, leave_min: 1200 }
     const [c] = coverCandidates(change, [a('B', '2026-10-15', 'middle', 1020, 1200)], ['B'], new Map())

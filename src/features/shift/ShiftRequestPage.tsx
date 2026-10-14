@@ -7,6 +7,7 @@ import { useSentNotice } from '../../components/SentNotice'
 import { Button, Card, Checkbox, ErrorBox, PageTitle, Segmented, SectionTitle, Spinner, StickyActions, TextArea, TextInput } from '../../components/ui'
 import {
   EMPTY_ANSWERS,
+  formatPeriod,
   isRequestOpen,
   monthDates,
   nextMonth,
@@ -24,6 +25,7 @@ import { unwrap, useHolidays } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 import { PaidLeavePicker } from './PaidLeavePicker'
+import { RangeCalendar } from './RangeCalendar'
 
 interface StoredRequest {
   id: string
@@ -149,7 +151,14 @@ function ShiftRequestForm({
         { key: 'schoolHoliday', label: t('q.schoolHoliday'), text: answers.schoolHoliday.trim() || null },
         { key: 'resignWhen', label: t('q.resignWhen'), text: answers.resignWhen.trim() || null },
       ])
-      const finalAnswers: ShiftAnswers = { ...answers, paidLeaveDays: answers.paidLeave === 'want' ? answers.paidLeaveDays : [] }
+      const school = answers.schoolHolidayHas === 'yes'
+      const finalAnswers: ShiftAnswers = {
+        ...answers,
+        paidLeaveDays: answers.paidLeave === 'want' ? answers.paidLeaveDays : [],
+        schoolHolidayFrom: school ? answers.schoolHolidayFrom : '',
+        schoolHolidayTo: school ? answers.schoolHolidayTo : '',
+        schoolHolidayPledge: school && answers.schoolHolidayPledge,
+      }
       for (const k of ['message', 'paidLeaveComment', 'homeTripWhen', 'schoolHoliday', 'resignWhen'] as const) finalAnswers[k] = tr.values[k] ?? ''
       // keep only the chosen shifts in the day data
       const cleanDays = Object.fromEntries(
@@ -321,7 +330,35 @@ function ShiftRequestForm({
               <TextInput label={t('q.paidLeaveComment')} value={answers.paidLeaveComment} onChange={(e) => set({ paidLeaveComment: e.target.value })} />
             </>
           )}
-          <TextInput label={t('q.schoolHoliday')} hint={t('q.schoolHolidayHint')} value={answers.schoolHoliday} onChange={(e) => set({ schoolHoliday: e.target.value })} />
+          <Segmented
+            label={t('q.schoolHoliday')}
+            value={answers.schoolHolidayHas ?? 'no'}
+            onChange={(schoolHolidayHas) => set({ schoolHolidayHas })}
+            options={(['no', 'yes'] as const).map((v) => ({ value: v, label: t(`school.${v}`) }))}
+          />
+          {answers.schoolHolidayHas === 'yes' && (
+            <>
+              <RangeCalendar
+                from={answers.schoolHolidayFrom ?? ''}
+                to={answers.schoolHolidayTo ?? ''}
+                startMonth={month}
+                onChange={(schoolHolidayFrom, schoolHolidayTo) => set({ schoolHolidayFrom, schoolHolidayTo })}
+              />
+              <p className="text-sm font-bold">
+                {answers.schoolHolidayFrom && answers.schoolHolidayTo
+                  ? t('school.period', { period: formatPeriod(answers.schoolHolidayFrom, answers.schoolHolidayTo) })
+                  : t('school.notYet')}
+              </p>
+              {errors.includes('schoolHoliday') && <ErrorBox message={t('err.schoolHoliday')} />}
+              <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-2">
+                <Checkbox checked={Boolean(answers.schoolHolidayPledge)} onChange={(schoolHolidayPledge) => set({ schoolHolidayPledge })}>
+                  {t('school.pledge')}
+                </Checkbox>
+              </div>
+              {errors.includes('schoolPledge') && <ErrorBox message={t('err.schoolPledge')} />}
+            </>
+          )}
+          {answers.schoolHolidayHas !== 'yes' && answers.schoolHoliday && <p className="text-sm text-muted">{t('school.old', { text: answers.schoolHoliday })}</p>}
           <Segmented
             label={t('q.resign')}
             value={answers.resign}

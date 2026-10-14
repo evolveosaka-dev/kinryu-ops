@@ -28,6 +28,13 @@ export const SHEET_VALUE = {
   late: { ok: '出勤可', from_2200: '22:00出勤可' },
 } as const
 
+/** The times shown on the chips (same in every language). */
+export const CHOICE_LABEL: Record<Shift, Record<string, string>> = {
+  early: { full: '7-17', morning: '7-11', afternoon: '11-17' },
+  middle: { ok: '17-23', from_1730: '17:30～' },
+  late: { ok: '23-7', from_2200: '22:00～' },
+}
+
 export const SHEET_NAME: Record<Shift, string> = { early: '早番希望', middle: '中番希望', late: '遅番希望' }
 
 export type YesNoUnknown = 'no' | 'yes' | 'unknown'
@@ -40,7 +47,14 @@ export interface ShiftAnswers {
   /** 有給休暇 days (YYYY-MM-DD), chosen one by one or as a run of days; never a day marked 出勤できる */
   paidLeaveDays: string[]
   paidLeaveComment: string
+  /** free text (requests sent before 2026-10-15) */
   schoolHoliday: string
+  /** 学校の長期休暇 (may run into other months) */
+  schoolHolidayHas: 'no' | 'yes'
+  schoolHolidayFrom: string
+  schoolHolidayTo: string
+  /** 誓約: the period is true; a school certificate can be shown when asked */
+  schoolHolidayPledge: boolean
   resign: 'no' | 'yes'
   resignWhen: string
   checkedNotice: boolean
@@ -55,6 +69,10 @@ export const EMPTY_ANSWERS: ShiftAnswers = {
   paidLeaveDays: [],
   paidLeaveComment: '',
   schoolHoliday: '',
+  schoolHolidayHas: 'no',
+  schoolHolidayFrom: '',
+  schoolHolidayTo: '',
+  schoolHolidayPledge: false,
   resign: 'no',
   resignWhen: '',
   checkedNotice: false,
@@ -82,7 +100,13 @@ export const QUESTIONS_JA = [
   '↑\u3000「イレギュラー対応シート」の記入について」を確認しましたか？',
 ]
 
-export type AnswerError = 'shifts' | 'homeTripWhen' | 'paidLeaveDays' | 'paidLeaveConflict' | 'resignWhen' | 'checks'
+export type AnswerError = 'shifts' | 'homeTripWhen' | 'paidLeaveDays' | 'paidLeaveConflict' | 'schoolHoliday' | 'schoolPledge' | 'resignWhen' | 'checks'
+
+/** 2026/12/20〜2027/1/10 */
+export function formatPeriod(from: string, to: string): string {
+  const f = (d: string) => `${d.slice(0, 4)}/${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}`
+  return from && to ? `${f(from)}〜${f(to)}` : ''
+}
 
 /** Is the day marked 出勤できる for one of the chosen shifts? */
 export const isAvailable = (day: DayChoice | undefined, shifts: Shift[]) => Boolean(day && shifts.some((s) => day[s]))
@@ -125,6 +149,8 @@ export function validateRequest(shifts: Shift[], answers: ShiftAnswers, days: Re
   if (answers.homeTrip === 'yes' && !answers.homeTripWhen.trim()) errors.push('homeTripWhen')
   if (answers.paidLeave === 'want' && (answers.paidLeaveDays ?? []).length === 0) errors.push('paidLeaveDays')
   if (answers.paidLeave === 'want' && paidLeaveConflicts(answers.paidLeaveDays ?? [], days, shifts).length) errors.push('paidLeaveConflict')
+  if (answers.schoolHolidayHas === 'yes' && (!answers.schoolHolidayFrom || !answers.schoolHolidayTo)) errors.push('schoolHoliday')
+  if (answers.schoolHolidayHas === 'yes' && !answers.schoolHolidayPledge) errors.push('schoolPledge')
   if (answers.resign === 'yes' && !answers.resignWhen.trim()) errors.push('resignWhen')
   if (!answers.checkedNotice || !answers.checkedIrregular) errors.push('checks')
   return errors
@@ -178,7 +204,9 @@ export function answerCells(a: ShiftAnswers): string[] {
     a.homeTripWhen,
     ANSWER_VALUE.paidLeave[a.paidLeave],
     [a.paidLeave === 'want' && a.paidLeaveDays?.length ? `${formatDayRanges(a.paidLeaveDays)}（${a.paidLeaveDays.length}日）` : '', a.paidLeaveComment].filter(Boolean).join(' '),
-    a.schoolHoliday,
+    a.schoolHolidayHas === 'yes' && a.schoolHolidayFrom
+      ? `${formatPeriod(a.schoolHolidayFrom, a.schoolHolidayTo)}${a.schoolHolidayPledge ? '（誓約済み・証明書提出可）' : ''}`
+      : a.schoolHoliday,
     ANSWER_VALUE.resign[a.resign],
     a.resignWhen,
     a.checkedNotice ? ANSWER_VALUE.checked : '',

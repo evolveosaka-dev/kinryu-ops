@@ -17,7 +17,7 @@ import { useMySchedule } from '../schedule/data'
 import { ShiftChip, StoreLabel, TimeRange } from '../schedule/parts'
 import { hours, useDayLabel } from '../schedule/style'
 import { ChangeForm } from './ChangeForm'
-import { noticeText, STATUS_STYLE, useAttendance, useChangeLabel, useMyChanges, useProblemText, useRecruits, type ChangeWithOffers } from './changeData'
+import { noticeText, STATUS_STYLE, useAttendance, useChangeLabel, useMyChanges, useProblemText, useReasonLabel, useRecruits, type ChangeWithOffers } from './changeData'
 
 type Tab = 'report' | 'recruit' | 'score'
 
@@ -39,6 +39,7 @@ function MyChange({ c }: { c: ChangeWithOffers }) {
   const toast = useToast()
   const queryClient = useQueryClient()
   const label = useChangeLabel()
+  const reasonLabel = useReasonLabel()
   const cancel = useMutation({
     mutationFn: async () => unwrap(await supabase.rpc('cancel_shift_change', { p_id: c.id })),
     onSuccess: () => {
@@ -54,7 +55,7 @@ function MyChange({ c }: { c: ChangeWithOffers }) {
         <span className={cx('shrink-0 rounded-full px-2 py-0.5 text-sm font-bold', STATUS_STYLE[c.status])}>{t(`change.status.${c.status}`)}</span>
       </span>
       <span className="font-bold">
-        {label(c)} ・ {REASON_ICON[c.reason]} {t(`change.reason.${c.reason}`)}
+        {label(c)} ・ {REASON_ICON[c.reason]} {reasonLabel(c.kind, c.reason)}
       </span>
       {c.note && <span className="text-sm text-muted">{c.note_original ?? c.note}</span>}
       {c.status === 'open' && c.proposed_cover && <span className="text-sm font-bold text-brand-dark">🤝 {t('change.namedPending', { name: c.proposed_cover })}</span>}

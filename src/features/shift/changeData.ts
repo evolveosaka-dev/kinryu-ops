@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { formatMin } from '../../domain/schedule'
 import type { AttendanceEvent } from '../../domain/attendance'
-import { KIND_ICON, type CoverProblem, type ShiftChange, type ShiftOffer, type Recruit, type Visa, type VisaWindow } from '../../domain/shiftChange'
+import { KIND_ICON, type ChangeKind, type ChangeReason, type CoverProblem, type ShiftChange, type ShiftOffer, type Recruit, type Visa, type VisaWindow } from '../../domain/shiftChange'
 import { addDays, tokyoParts } from '../../domain/time'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
@@ -122,4 +122,17 @@ export function useProblemText() {
       from: p.from ? p.from.slice(5).replace('-', '/') : '',
       to: p.to ? p.to.slice(5).replace('-', '/') : '',
     })
+}
+
+/** Reason label; 電車・バス reads differently for 休む / 早退 (owner, 2026-10-15). */
+export function useReasonLabel() {
+  const { t } = useTranslation('shift')
+  return (kind: ChangeKind, r: ChangeReason) => t([`change.reasonFor.${kind}.${r}`, `change.reason.${r}`])
+}
+
+export interface AvailableCover {
+  roster_name: string
+  choice: string
+  until_1730: boolean
+  problem: CoverProblem | null
 }

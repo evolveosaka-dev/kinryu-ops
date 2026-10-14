@@ -23,7 +23,8 @@ import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import { fromLocalInput, toLocalInput } from '../manager/data'
 import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
-import { useProblemText } from './changeData'
+import { useProblemText, useReasonLabel, type AvailableCover } from './changeData'
+import { CHOICE_LABEL } from '../../domain/shiftRequest'
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -57,6 +58,16 @@ export function ChangeForm({ a, rosterName, onDone }: { a: Assignment; rosterNam
   const [coverMode, setCoverMode] = useState<'recruit' | 'named' | 'none'>('recruit')
   const [coverName, setCoverName] = useState('')
   const problemText = useProblemText()
+  const reasonLabel = useReasonLabel()
+  // people who marked this shift 出勤できる in their シフト希望 but are not scheduled for it
+  const available = useQuery({
+    queryKey: ['available_covers', a.business_date, a.shift, kind === 'early_leave' ? leaveMin : null],
+    enabled: !manager && coverMode === 'named' && kind !== 'late',
+    queryFn: async () =>
+      unwrap<AvailableCover[]>(
+        await supabase.rpc('available_covers', { p_date: a.business_date, p_shift: a.shift, p_leave_min: kind === 'early_leave' ? leaveMin : null }),
+      ),
+  })
   const names = useQuery({
     queryKey: ['staff_roster', 'active-names'],
     enabled: !manager && coverMode === 'named',
@@ -162,7 +173,7 @@ export function ChangeForm({ a, rosterName, onDone }: { a: Assignment; rosterNam
               )}
             >
               <span aria-hidden>{REASON_ICON[r]}</span>
-              {t(`change.reason.${r}`)}
+              {reasonLabel(kind, r)}
             </button>
           ))}
         </div>
@@ -214,8 +225,39 @@ export function ChangeForm({ a, rosterName, onDone }: { a: Assignment; rosterNam
           )}
           {coverMode === 'named' && (
             <>
+              <p className="px-1 text-[15px] font-bold">🟢 {t('change.availableTitle')}</p>
+              {available.isLoading ? (
+                <p className="px-1 text-sm text-muted">{t('change.checking')}</p>
+              ) : (available.data ?? []).length === 0 ? (
+                <p className="px-1 text-sm text-muted">{t('change.availableNone')}</p>
+              ) : (
+                <ul className="flex flex-col gap-1">
+                  {available.data!.map((p) => (
+                    <li key={p.roster_name}>
+                      <button
+                        type="button"
+                        onClick={() => setCoverName(p.roster_name)}
+                        className={cx(
+                          'flex w-full flex-col rounded-xl border-[1.5px] px-3 py-2 text-left',
+                          coverName === p.roster_name ? 'border-brand bg-brand-soft' : 'border-line bg-white',
+                          p.problem && 'opacity-70',
+                        )}
+                      >
+                        <span className="flex items-center justify-between gap-2 font-bold">
+                          {p.roster_name}
+                          <span className="text-sm font-normal text-muted">
+                            {t('change.availableChoice', { time: CHOICE_LABEL[a.shift][p.choice] ?? p.choice })}
+                            {p.until_1730 && ' +17:30'}
+                          </span>
+                        </span>
+                        {p.problem && <span className="text-xs font-bold text-red-700">✗ {problemText(p.problem)}</span>}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
               <label className="flex flex-col gap-1 px-1 text-[15px] font-bold">
-                {t('change.coverPick')}
+                {t('change.coverPickOther')}
                 <select className="min-h-12 rounded-xl border border-slate-400 bg-white px-2 font-normal" value={coverName} onChange={(e) => setCoverName(e.target.value)}>
                   <option value="">—</option>
                   {(names.data ?? []).map((n) => (
