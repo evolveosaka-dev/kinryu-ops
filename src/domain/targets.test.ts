@@ -26,6 +26,17 @@ describe('targetDayType', () => {
     expect(targetDayType('2027-08-13', H)).toBe('peak')
     expect(isPeak('2027-01-04')).toBe(false)
   })
+  it('peak: GW and SW except their last day; a normal 3-day weekend in September stays 連休中', () => {
+    const G = new Set(['2026-04-29', '2026-05-03', '2026-05-04', '2026-05-05', '2026-05-06', '2026-09-21', '2026-09-22', '2026-09-23', '2027-09-20'])
+    expect(targetDayType('2026-04-29', G)).toBe('sunday_holiday') // 昭和の日 alone (Wed)
+    expect(targetDayType('2026-05-01', G)).toBe('friday')
+    expect(['2026-05-02', '2026-05-03', '2026-05-04', '2026-05-05'].map((d) => targetDayType(d, G))).toEqual(['peak', 'peak', 'peak', 'peak'])
+    expect(targetDayType('2026-05-06', G)).toBe('sunday_holiday') // last day of GW
+    expect(['2026-09-19', '2026-09-20', '2026-09-21', '2026-09-22'].map((d) => targetDayType(d, G))).toEqual(['peak', 'peak', 'peak', 'peak'])
+    expect(targetDayType('2026-09-23', G)).toBe('sunday_holiday') // last day of SW
+    expect(targetDayType('2027-09-18', G)).toBe('long_holiday') // 3-day weekend, not SW
+    expect(targetDayType('2027-09-20', G)).toBe('sunday_holiday')
+  })
 })
 
 describe('findTarget', () => {

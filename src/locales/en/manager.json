@@ -221,7 +221,32 @@
     "bothStores": "Both stores",
     "note": "Memo",
     "eventInvalid": "Check the name, the date and the % (whole number −90 to 300).",
-    "deleteConfirm": "Delete this event?"
+    "deleteConfirm": "Delete this event?",
+    "basis": {
+      "title": "How the targets are set",
+      "tap": "Tap to open",
+      "whatH": "① What the target is",
+      "what": "The number of bowls to aim for in one shift (morning / evening / night).\nBowls = ramen + chashu-men (coupons not included).\nSet per month for each store × shift × day type.",
+      "typesH": "② Six day types",
+      "typesIntro": "Days off = Saturday, Sunday and public holidays (from the Japanese calendar). Each date gets one type:",
+      "type": {
+        "weekday": "A working day followed by a working day.",
+        "friday": "A working day followed by a day off (usual Friday, day before a holiday).",
+        "saturday": "A Saturday followed by Sunday, not part of a 3-day break.",
+        "sunday_holiday": "The last day off before a working day (usual Sunday, a single holiday).",
+        "long_holiday": "Days of a break of 3+ days off, except the last one.",
+        "peak": "New Year (12/29–1/3) and Obon (8/13–8/16), whatever the weekday.\nAlso Golden Week (the break including 5/3–5/5) and Silver Week (a break of 4+ days in September), except their last day, which is Sunday/holiday (sales drop before work starts again)."
+      },
+      "typesExample": "Example: Sat–Sun–Mon (holiday) → Sat, Sun = long holiday, Mon = Sunday/holiday, the Friday before = Friday/day before a holiday.\nExample: GW 2026, 5/2 (Sat)–5/6 (Wed) → 5/2–5/5 = peak, 5/6 = Sunday/holiday.",
+      "initialH": "③ Initial values",
+      "initial": "The 2025 average per day for the same month and day type (goal: back to the 2025 level).\nWhen the month has fewer than 3 days of that type:\n2025 same-month weekday average × factor (how many times a weekday that type sold over all of 2025).\nExample: weekday 100, Saturday = 1.5 × weekday over the year → Saturday target 150.\nGW / SW peak (April, September): the weekday target × how many times a weekday GW / SW 2026 sold, per shift (about 2–4 ×).\nMay–July 2027 are not set yet (GW 2027 is 5/1–5/5, so it has no target yet).",
+      "eventsH": "④ Events",
+      "events": "Hanshin games, Halloween…: the target of those dates goes up or down by a % (see Events below).\nTarget = day-type target × (1 + %). Two events on the same day are multiplied.\nExample: Saturday 600, Hanshin −20% → 480.\nThe % were measured on the 2025 days of the same events. OFF = not used.",
+      "useH": "⑤ Where it is used",
+      "use": "・Shift-start meeting: the target is filled in (tick 「修正」 to change it).\n・Daily sales report: target and achievement.\n・Manager → Analysis: achievement, month-end forecast…\nWithout a target: 「目標のデータがありません。」",
+      "changeH": "⑥ Changing the numbers",
+      "change": "Edit the table and press Save. 「Copy last month」 also works.\nTargets of meetings and sales reports already sent do not change. Manager → Analysis recalculates with the saved targets (past days too)."
+    }
   },
   "testPeriod": "Before 10/12 is the test period and is not counted",
   "countNote": "Counting starts on 10/12 (operation start). Earlier records are test data and excluded.",

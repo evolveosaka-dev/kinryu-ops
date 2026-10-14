@@ -144,6 +144,45 @@ function EventsCard({ month }: { month: string }) {
   )
 }
 
+/** 「目標杯数の設定基準」: how the day types, initial values and events work (opens on tap). */
+function TargetBasis() {
+  const { t } = useTranslation('manager')
+  const part = (h: string, body: string) => (
+    <section className="flex flex-col gap-1">
+      <h3 className="font-bold">{t(`targets.basis.${h}`)}</h3>
+      <p className="whitespace-pre-line">{t(`targets.basis.${body}`)}</p>
+    </section>
+  )
+  return (
+    <details className="rounded-xl border border-line bg-white p-2">
+      <summary className="min-h-10 cursor-pointer py-2 font-bold text-brand">
+        📏 {t('targets.basis.title')}
+        <span className="ml-2 text-xs font-normal text-muted">{t('targets.basis.tap')}</span>
+      </summary>
+      <div className="flex flex-col gap-3 pt-2 text-sm leading-relaxed">
+        {part('whatH', 'what')}
+        <section className="flex flex-col gap-1">
+          <h3 className="font-bold">{t('targets.basis.typesH')}</h3>
+          <p>{t('targets.basis.typesIntro')}</p>
+          <dl className="flex flex-col gap-1.5">
+            {TARGET_DAY_TYPES.map((dt) => (
+              <div key={dt} className="rounded-lg bg-slate-50 p-2">
+                <dt className="font-bold">{t(`chorei:target.${dt}`)}</dt>
+                <dd className="whitespace-pre-line">{t(`targets.basis.type.${dt}`)}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="whitespace-pre-line text-slate-700">{t('targets.basis.typesExample')}</p>
+        </section>
+        {part('initialH', 'initial')}
+        {part('eventsH', 'events')}
+        {part('useH', 'use')}
+        {part('changeH', 'change')}
+      </div>
+    </details>
+  )
+}
+
 /** 目標杯数 per month (store × day type × shift) and the events of the month. */
 export function TargetsPage() {
   const { t } = useTranslation('manager')
@@ -201,6 +240,7 @@ export function TargetsPage() {
       <PeriodBar period={period} allowModes={false} />
       {(current.data ?? []).length === 0 && <p className="rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-900">⚠️ {t('targets.empty')}</p>}
       {month >= TARGETS_V2_FROM && <p className="text-xs text-muted">{t('targets.typesHelp')}</p>}
+      {month >= TARGETS_V2_FROM && <TargetBasis />}
       {(previous.data ?? []).length > 0 && (
         <Button variant="secondary" onClick={copyPrevious}>
           {t('targets.copyPrevious')}

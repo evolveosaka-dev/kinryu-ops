@@ -30,7 +30,7 @@ export interface TargetEvent {
   note: string | null
 }
 
-/** 年末年始 (12/29–1/3) and お盆 (8/13–16). */
+/** 年末年始 (12/29–1/3) and お盆 (8/13–16), whatever the weekday. GW / SW: see isBigBreak. */
 export function isPeak(date: string): boolean {
   const m = Number(date.slice(5, 7))
   const d = Number(date.slice(8, 10))
@@ -42,16 +42,31 @@ const isOff = (date: string, holidays: ReadonlySet<string>) => {
   return wd === 0 || wd === 6 || holidays.has(date)
 }
 
+/**
+ * ゴールデンウィーク / シルバーウィーク: a run of days off that touches 5/3〜5/5 (GW),
+ * or a run of 4+ days off in September (SW). Measured in 2026: the days sell like 年末年始.
+ */
+function isBigBreak(start: string, end: string, run: number): boolean {
+  const md = (d: string) => d.slice(5)
+  for (let d = start; d <= end; d = addDays(d, 1)) if (md(d) >= '05-03' && md(d) <= '05-05') return true
+  return run >= 4 && start.slice(5, 7) === '09' && end.slice(5, 7) === '09'
+}
+
 /** The day type of a date (Japanese calendar). */
 export function targetDayType(date: string, holidays: ReadonlySet<string>): TargetDayType {
   if (isPeak(date)) return 'peak'
   const next = addDays(date, 1)
   if (!isOff(date, holidays)) return isOff(next, holidays) ? 'friday' : 'weekday'
-  // a day off: the last one before a working day is 日曜・祝日; inside a run of 3+ days off it is 連休中
+  // a day off: the last one before a working day is 日曜・祝日 (also at the end of GW / SW);
+  // inside GW / SW it is 繁忙期, inside another run of 3+ days off 連休中
   if (!isOff(next, holidays)) return 'sunday_holiday'
-  let run = 1
-  for (let d = addDays(date, -1); isOff(d, holidays); d = addDays(d, -1)) run++
-  for (let d = next; isOff(d, holidays); d = addDays(d, 1)) run++
+  let start = date
+  while (isOff(addDays(start, -1), holidays)) start = addDays(start, -1)
+  let end = next
+  while (isOff(addDays(end, 1), holidays)) end = addDays(end, 1)
+  let run = 0
+  for (let d = start; d <= end; d = addDays(d, 1)) run++
+  if (isBigBreak(start, end, run)) return 'peak'
   if (run >= 3) return 'long_holiday'
   return weekdayOf(date) === 6 ? 'saturday' : 'sunday_holiday'
 }
