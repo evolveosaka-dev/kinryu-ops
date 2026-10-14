@@ -1,0 +1,139 @@
+{
+  "title": "販売日報",
+  "saved": "途中保存しました",
+  "submitted": "送信しました",
+  "required": "必須",
+  "toConfirm": "確認へ（送信）",
+  "saveDraft": "途中保存",
+  "status": {
+    "draft": "下書き",
+    "submitted": "送信済み"
+  },
+  "history": {
+    "title": "変更の履歴",
+    "empty": "まだ記録がありません。",
+    "save": "保存",
+    "submit": "送信",
+    "showAll": "すべて表示（{{n}}件）",
+    "showLess": "少なく表示"
+  },
+  "section": {
+    "tickets": "食券枚数",
+    "meals": "食事（まかない）",
+    "otherOut": "その他払出（麺の廃棄・破損）",
+    "noodle": "麺の照合",
+    "staff": "スタッフ",
+    "cash_book": "現金出納帳",
+    "cash": "現金（実際有高）",
+    "water": "水道メーター",
+    "notes": "連絡事項・水道メーター"
+  },
+  "tickets": {
+    "ramen": "ラーメン",
+    "chashu": "チャーシューメン",
+    "coupon": "クーポン",
+    "total": "合計",
+    "target": "目標 {{target}}杯 → {{rate}}%",
+    "noTarget": "この日の目標杯数はまだありません。"
+  },
+  "unit": {
+    "sheets": "枚",
+    "bowls": "杯",
+    "pieces": "個",
+    "bills": "枚",
+    "coins": "枚"
+  },
+  "meals": {
+    "add": "1人追加"
+  },
+  "otherOut": {
+    "none": "麺の廃棄・破損はありません。",
+    "add": "麺の廃棄・破損を記録",
+    "save": "記録する"
+  },
+  "noodle": {
+    "formula": "食券合計 −（麺の出庫 − まかない − 廃棄）= 差引",
+    "notClosed": "在庫・仕入で「終わりの在庫」がまだです。入力すると麺の照合が自動で出ます。",
+    "toStock": "在庫・仕入を開く",
+    "reason": "差引の理由"
+  },
+  "staff": {
+    "help": "シフト表から自動で入ります。遅刻・早退・残業・欠勤は直してください。",
+    "start": "開始",
+    "end": "終了",
+    "status": "状態",
+    "note": "スタッフのメモ",
+    "notePlaceholder": "例：電車の遅れ",
+    "remove": "削除",
+    "add": "追加",
+    "addPlaceholder": "スタッフを選ぶ",
+    "statuses": {
+      "normal": "通常",
+      "late": "遅刻",
+      "early_leave": "早退",
+      "overtime": "残業",
+      "absent": "欠勤"
+    }
+  },
+  "book": {
+    "help": "券売機が故障してお客様にお釣りを渡したとき、業者にその場で支払ったときなど、レジのお金を使ったときに書いてください。返金は理由が必要です。",
+    "add": "1行追加",
+    "time": "時間",
+    "type": "種類",
+    "detail": "明細",
+    "name": "名前",
+    "amount": "金額（円）",
+    "reason": "返金の理由",
+    "reasonPlaceholder": "返金の理由（必須）例：券売機からお釣りが出なかった",
+    "types": {
+      "in": "入金",
+      "out": "出金",
+      "refund": "返金"
+    }
+  },
+  "cash": {
+    "carried": "繰越（前のシフト）",
+    "carriedManual": "金額を入力",
+    "in": "入金合計",
+    "out": "出金合計",
+    "expected": "計算上の合計",
+    "actual": "実際有高（数えた合計）",
+    "diff": "現金過不足",
+    "reason": "過不足の理由",
+    "noPrevious": "前のシフトの日報がないので、繰越の金額を入力してください。",
+    "help": "レジのお金（券売機の故障時のお釣り・業者への支払い用）を数えてください。券売機の売上は入れません。"
+  },
+  "water": {
+    "label": "{{time}}時"
+  },
+  "notes": {
+    "label": "連絡事項",
+    "placeholder": "例：修理業者が来た"
+  },
+  "confirm": {
+    "title": "内容を確認して送信してください",
+    "tickets": "食券合計",
+    "target": "目標 {{target}}杯・{{rate}}%",
+    "noodle": "麺の差引",
+    "cash": "現金過不足",
+    "people": "{{n}}人",
+    "send": "✓ この内容で送信する",
+    "back": "戻って直す"
+  },
+  "error": {
+    "badNumber": "数が正しくありません（整数で入れてください）。",
+    "amount": "金額を入れてください。",
+    "refundReason": "返金の理由を書いてください。",
+    "water": "水道メーターは5桁までの数字で入れてください。",
+    "staffName": "スタッフの名前がありません。",
+    "tickets": "食券の枚数を入れてください。",
+    "counts": "現金を数えて、枚数を入れてください。",
+    "carried": "繰越の金額を入れてください。",
+    "cashReason": "現金過不足の理由を書いてください。",
+    "noodleReason": "麺の差引の理由を書いてください。",
+    "required": "食券と現金を入れてください。",
+    "dateRange": "昨日・今日・明日のシフトだけ記録できます。"
+  },
+  "locked": "送信してから12時間が過ぎたので、管理者だけが直せます。",
+  "toConfirmAgain": "確認へ（もう一度送信）"
+}

@@ -105,6 +105,8 @@
     "name": "{{name}}",
     "shiftRequest": "Shift requests",
     "shiftRequestSub": "Days and hours you can work next month",
+    "sales": "Daily sales report",
+    "salesSub": "End of shift: tickets, noodle check, cash",
     "stock": "Stock & deliveries",
     "stockSub": "Carry-over, deliveries, end count, fridge temperature",
     "schedule": "My schedule",

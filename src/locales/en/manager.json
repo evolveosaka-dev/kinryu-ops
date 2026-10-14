@@ -54,7 +54,8 @@
     "stats": "Reports",
     "hours": "Patrol time",
     "settings": "Settings",
-    "staff": "By staff"
+    "staff": "By staff",
+    "sales": "Sales"
   },
   "period": {
     "weekMode": "Week",
@@ -243,7 +244,8 @@
       "signup": "New sign-up",
       "edit": "Edits / voids",
       "staff_alert": "Coaching alerts",
-      "stock": "Stock (carry-over mismatch, waste / damage; 7:30 summary only)"
+      "stock": "Stock (carry-over mismatch, waste / damage; 7:30 summary only)",
+      "sales": "Daily sales report (differences at once, others in the 7:30 summary)"
     },
     "active": "On",
     "delete": "Delete",
@@ -430,5 +432,18 @@
     "badNumber": "A number is not valid.",
     "none": "none",
     "note": "Renaming an original item does not change its name in other languages."
+  },
+  "sales": {
+    "title": "Daily sales reports",
+    "subtitle": "⚠ = noodle difference or cash over/short is not 0",
+    "allStores": "All stores",
+    "count": "{{n}} reports",
+    "flagged": "{{n}} flagged",
+    "onlyFlagged": "Only days with ⚠",
+    "export": "Export Excel (report layout)",
+    "exportHint": "One sheet per shift (same layout as the paper report) + a list sheet, for the month and store chosen above.",
+    "legend": "✓ sent  ⚠ difference  … draft  — none (tap to open)",
+    "date": "Date",
+    "tab": "Sales"
   }
 }

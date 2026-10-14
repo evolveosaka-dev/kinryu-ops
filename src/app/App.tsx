@@ -42,6 +42,8 @@ const VideoListPage = page(() => import('../features/learn/LearnListPage'), 'Vid
 const SkillsPage = page(() => import('../features/learn/LearnListPage'), 'SkillsPage')
 const LearnItemPage = page(() => import('../features/learn/LearnItemPage'), 'LearnItemPage')
 const LearnEditPage = page(() => import('../features/learn/LearnEditPage'), 'LearnEditPage')
+const SalesPage = page(() => import('../features/sales/SalesPage'), 'SalesPage')
+const SalesAdminPage = page(() => import('../features/manager/SalesAdminPage'), 'SalesAdminPage')
 const StockPage = page(() => import('../features/stock/StockPage'), 'StockPage')
 const StockItemsPage = page(() => import('../features/manager/StockItemsPage'), 'StockItemsPage')
 const ShiftRequestPage = page(() => import('../features/shift/ShiftRequestPage'), 'ShiftRequestPage')
@@ -88,6 +90,7 @@ function Gate() {
         <Route path="shift-request" element={<ShiftRequestPage />} />
         <Route path="schedule" element={<SchedulePage />} />
         <Route path="stock" element={<StockPage />} />
+        <Route path="sales" element={<SalesPage />} />
         {isManager && <Route path="all-shifts" element={<AllShiftsPage />} />}
         <Route path="profile" element={<ProfilePage />} />
         <Route path="learn/manual" element={<ManualListPage />} />
@@ -104,6 +107,7 @@ function Gate() {
             {STAFF_ISSUES_ENABLED && <Route path="staff" element={<StaffPage />} />}
             <Route path="stats" element={<StatsPage />} />
             <Route path="hours" element={<HoursPage />} />
+            <Route path="sales" element={<SalesAdminPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="targets" element={<TargetsPage />} />
             <Route path="stock-items" element={<StockItemsPage />} />

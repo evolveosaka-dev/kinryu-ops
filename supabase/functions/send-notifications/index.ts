@@ -2,7 +2,8 @@
 //  - action "instant" (pg_cron every minute while events wait): one mail per event to the recipients in
 //    'instant' mode, and to everyone for urgent events (即日指導, sign-up).
 //  - action "digest" (pg_cron 7:30 JST): one summary mail per 'digest' recipient. 在庫 (kind 'stock': 繰越のずれ,
-//    廃棄・破損) is sent only here, also to 'instant' recipients who have the kind.
+//    廃棄・破損) is sent only here, also to 'instant' recipients who have the kind. 販売日報 (kind 'sales'): urgent when
+//    麺差引 / 現金過不足 ≠ 0 (sent at once to everyone), otherwise only in the summary, like 在庫.
 //  - action "test" (a manager, 設定 → 通知メール): a test mail to one recipient.
 // The cron caller sends x-cron-secret (checked against Vault); managers send their access token.
 import { adminClient, env, HttpError, requireUser, serve } from '../_shared/http.ts'
@@ -43,7 +44,7 @@ const PATROL_TYPE: Record<string, string> = { before_shift: '勤務前', in_shif
 const STEPS: Record<string, string> = { greeting: 'はじめの挨拶', philosophy: '経営理念', phrases: '接客用語', handover: '引継ぎ', grooming: '身だしなみ', closing: '締めの挨拶' }
 const ITEMS: [string, string][] = [['score_smile', '笑顔'], ['score_voice', '声出し'], ['score_grooming', '身だしなみ'], ['score_clean', '清潔'], ['score_quality', '提供品質']]
 const ACTION: Record<string, string> = { void: '取消', time: '時間の修正', follow_up: '面談済み', update: '修正' }
-const KIND: Record<string, string> = { chorei: '朝礼記録', chorei_note: '朝礼の追記', patrol: '巡回チェック', shift_request: 'シフト希望', signup: '新規登録', edit: '修正・取消', staff_alert: '面談指導の通知', stock: '在庫（繰越のずれ・廃棄・破損）' }
+const KIND: Record<string, string> = { chorei: '朝礼記録', chorei_note: '朝礼の追記', patrol: '巡回チェック', shift_request: 'シフト希望', signup: '新規登録', edit: '修正・取消', staff_alert: '面談指導の通知', stock: '在庫（繰越のずれ・廃棄・破損）', sales: '販売日報' }
 // keep in sync with src/domain/types.ts MISS_REASONS / chorei.json miss.reason
 const MISS_REASON: Record<string, string> = { busy: 'お客様が多かった', no_manager: '管理者がいなかった', alone: '1人だけの勤務だった', forgot: '忘れた', other: 'その他' }
 // keep in sync with src/domain/stock.ts OPEN_REASONS / LOSS_REASONS
@@ -257,6 +258,7 @@ async function renderEvent(admin: Admin, L: Lookup, e: NotifyEvent): Promise<{ s
     }
   }
   if (e.kind === 'stock') return renderStock(admin, L, e)
+  if (e.kind === 'sales') return renderSales(admin, L, e)
   if (e.kind === 'edit') {
     const r = await fetchRow(admin, e.ref_table, e.ref_id)
     if (!r) return null
@@ -319,6 +321,45 @@ async function renderStock(admin: Admin, L: Lookup, e: NotifyEvent) {
   }
 }
 
+const SALES_STATUS: Record<string, string> = { normal: '', late: '遅刻', early_leave: '早退', overtime: '残業', absent: '欠勤' }
+const signedNum = (n: number | null | undefined, unit = '') =>
+  n === null || n === undefined ? '—' : n === 0 ? `0±${unit}` : `${n > 0 ? '+' : '−'}${Math.abs(n).toLocaleString('ja-JP')}${unit}`
+const yenText = (n: number | null | undefined) => (n === null || n === undefined ? '—' : `${n.toLocaleString('ja-JP')}円`)
+
+/** 販売日報 when sent; null when gone. */
+async function renderSales(admin: Admin, L: Lookup, e: NotifyEvent) {
+  const r = await fetchRow(admin, 'sales_reports', e.ref_id)
+  if (!r) return null
+  const { data: store } = await admin.from('stores').select('code').eq('id', r.store_id).maybeSingle()
+  const noodleDiff = r.noodle_diff === null ? null : Number(r.noodle_diff)
+  const bad = Boolean(noodleDiff) || Boolean(r.cash_diff)
+  const t = r.tickets ?? {}
+  const staff = (r.staff ?? []) as { name: string; start: string; end: string; status: string; note?: string }[]
+  const book = (r.cash_book ?? []) as { time: string; type: string; detail: string; name: string; amount: number; reason?: string }[]
+  const rate = r.target_bowls ? `（目標 ${r.target_bowls}杯・${Math.round((r.ticket_total / r.target_bowls) * 100)}%）` : ''
+  const noodle =
+    r.noodle_out === null
+      ? '麺の照合: 在庫の終わりの数が未入力'
+      : `${noodleDiff ? '⚠ ' : ''}麺の照合: ${r.ticket_total} −（${Number(r.noodle_out)} − ${r.noodle_meals ?? 0} − ${Number(r.noodle_lost ?? 0)}）= ${signedNum(noodleDiff)}${r.noodle_reason ? `（理由: ${r.noodle_reason}）` : ''}`
+  const cash = `${r.cash_diff ? '⚠ ' : ''}現金: 繰越 ${yenText(r.cash_carried)} + 入金 ${yenText(r.cash_in)} − 出金 ${yenText(r.cash_out)} = ${yenText(r.cash_expected)} / 実際 ${yenText(r.cash_actual)} → 過不足 ${signedNum(r.cash_diff, '円')}${r.cash_diff_reason ? `（理由: ${r.cash_diff_reason}）` : ''}`
+  const kind = (b: { type: string }) => (b.type === 'in' ? '入金' : b.type === 'refund' ? '返金' : '出金')
+  return {
+    subject: `${bad ? '⚠ ' : ''}販売日報 ${slot(L, r)} 食券${r.ticket_total}枚 麺${signedNum(noodleDiff)} 現金${signedNum(r.cash_diff, '円')} — ${r.submitted_by_name ?? ''}`,
+    lines: [
+      `店舗・勤番: ${slot(L, r)}`,
+      `送信: ${r.submitted_by_name ?? ''}（${jst(r.submitted_at)}）`,
+      `食券: ラーメン ${t.ramen ?? 0} / チャーシューメン ${t.chashu ?? 0} / クーポン ${t.coupon ?? 0} = 合計 ${r.ticket_total}枚${rate}`,
+      noodle,
+      cash,
+      ...book.map((b) => `・${b.time} ${kind(b)} ${yenText(b.amount)} ${b.detail}${b.name ? `（${b.name}）` : ''}${b.reason ? ` 理由: ${b.reason}` : ''}`),
+      `スタッフ: ${staff.map((s) => `${s.name} ${s.start}–${s.end}${SALES_STATUS[s.status] ? `（${SALES_STATUS[s.status]}${s.note ? `: ${s.note}` : ''}）` : ''}`).join('、') || '—'}`,
+      `水道メーター: ${Object.entries((r.water ?? {}) as Record<string, string>).map(([h, v]) => `${Number(h.slice(0, 2))}時 ${v || '—'}`).join(' / ') || '—'}`,
+      ...(r.notes ? [`連絡事項: ${r.notes}`] : []),
+    ],
+    link: appUrl(`/sales?store=${store?.code ?? ''}&date=${r.business_date}&shift=${r.shift}`),
+  }
+}
+
 async function sendBatch(mails: Mail[], idempotencyKey: string) {
   for (let i = 0; i < mails.length; i += 100) {
     const chunk = mails.slice(i, i + 100)
@@ -367,8 +408,9 @@ async function sendInstant(admin: Admin) {
       }
       if (e.kind === 'shift_request' && now - Date.parse(e.created_at) < SHIFT_WAIT_MIN * 60_000) continue
     }
-    // 在庫 goes only into the 7:30 summary
-    const to = e.kind === 'stock' ? [] : people.filter((p) => p.kinds.includes(e.kind) && (p.mode === 'instant' || e.urgent))
+    // 在庫 and ordinary 販売日報 go only into the 7:30 summary; a 販売日報 with a difference goes out at once
+    const summaryOnly = e.kind === 'stock' || (e.kind === 'sales' && !e.urgent)
+    const to = summaryOnly ? [] : people.filter((p) => p.kinds.includes(e.kind) && (p.mode === 'instant' || e.urgent))
     if (!to.length) {
       await done()
       continue
@@ -419,9 +461,9 @@ async function sendDigest(admin: Admin) {
   const latest = new Map<string, NotifyEvent>()
   for (const e of data as NotifyEvent[]) latest.set(e.dedupe_key ?? `id:${e.id}`, e)
   const events = [...latest.values()]
-  // 'instant' recipients get the summary only for 在庫
+  // 'instant' recipients get the summary only for 在庫 and ordinary 販売日報 (urgent ones were sent at once)
   const people = (await recipients(admin))
-    .map((p) => (p.mode === 'digest' ? p : { ...p, kinds: p.kinds.filter((k) => k === 'stock') }))
+    .map((p) => (p.mode === 'digest' ? p : { ...p, kinds: p.kinds.filter((k) => k === 'stock' || k === 'sales') }))
     .filter((p) => p.kinds.length > 0)
   const L = await new Lookup(admin).load()
   const today = tokyoToday()
@@ -433,7 +475,7 @@ async function sendDigest(admin: Admin) {
 
   const mails: Mail[] = []
   for (const p of people) {
-    const mine = events.filter((e) => p.kinds.includes(e.kind) && rendered.get(e.id))
+    const mine = events.filter((e) => p.kinds.includes(e.kind) && rendered.get(e.id) && !(p.mode === 'instant' && e.urgent))
     const sections: string[] = []
     if (p.mode === 'digest' && p.kinds.includes('chorei') && missing) sections.push(`■ 昨日（${day(yesterday)}）の朝礼: ${missing.length ? `未提出 ${missing.join('、')}` : 'すべて提出済み'}`)
     for (const kind of Object.keys(KIND)) {

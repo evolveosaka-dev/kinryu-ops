@@ -14,6 +14,7 @@ export function ManagerTabs() {
     { to: '/manager/patrol', label: `${t('tabs.patrol')}` },
     ...(STAFF_ISSUES_ENABLED ? [{ to: '/manager/staff', label: `${t('tabs.staff')}` }] : []),
     { to: '/manager/stats', label: `${t('tabs.stats')}` },
+    { to: '/manager/sales', label: `${t('tabs.sales')}` },
     { to: '/manager/hours', label: `${t('tabs.hours')}` },
     { to: '/manager/settings', label: `${t('tabs.settings')}`, settings: true },
   ]

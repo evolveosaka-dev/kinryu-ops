@@ -38,15 +38,20 @@ import enStock from './locales/en/stock.json'
 import viStock from './locales/vi/stock.json'
 import siStock from './locales/si/stock.json'
 import neStock from './locales/ne/stock.json'
+import jaSales from './locales/ja/sales.json'
+import enSales from './locales/en/sales.json'
+import viSales from './locales/vi/sales.json'
+import siSales from './locales/si/sales.json'
+import neSales from './locales/ne/sales.json'
 import neChorei from './locales/ne/chorei.json'
 import nePatrol from './locales/ne/patrol.json'
 
 export const resources = {
-  ja: { common: jaCommon, chorei: jaChorei, patrol: jaPatrol, manager: jaManager, genko: jaGenko, shift: jaShift, learn: jaLearn, stock: jaStock },
-  en: { common: enCommon, chorei: enChorei, patrol: enPatrol, manager: enManager, genko: enGenko, shift: enShift, learn: enLearn, stock: enStock },
-  vi: { common: viCommon, chorei: viChorei, patrol: viPatrol, genko: viGenko, shift: viShift, learn: viLearn, stock: viStock },
-  si: { common: siCommon, chorei: siChorei, patrol: siPatrol, genko: siGenko, shift: siShift, learn: siLearn, stock: siStock },
-  ne: { common: neCommon, chorei: neChorei, patrol: nePatrol, genko: neGenko, shift: neShift, learn: neLearn, stock: neStock },
+  ja: { common: jaCommon, chorei: jaChorei, patrol: jaPatrol, manager: jaManager, genko: jaGenko, shift: jaShift, learn: jaLearn, stock: jaStock, sales: jaSales },
+  en: { common: enCommon, chorei: enChorei, patrol: enPatrol, manager: enManager, genko: enGenko, shift: enShift, learn: enLearn, stock: enStock, sales: enSales },
+  vi: { common: viCommon, chorei: viChorei, patrol: viPatrol, genko: viGenko, shift: viShift, learn: viLearn, stock: viStock, sales: viSales },
+  si: { common: siCommon, chorei: siChorei, patrol: siPatrol, genko: siGenko, shift: siShift, learn: siLearn, stock: siStock, sales: siSales },
+  ne: { common: neCommon, chorei: neChorei, patrol: nePatrol, genko: neGenko, shift: neShift, learn: neLearn, stock: neStock, sales: neSales },
 } as const
 
 // Load only the font a locale needs (slow mobile data).
@@ -80,7 +85,7 @@ void i18n
     nonExplicitSupportedLngs: true,
     fallbackLng: 'ja',
     defaultNS: 'common',
-    ns: ['common', 'chorei', 'patrol', 'manager', 'genko', 'shift', 'learn', 'stock'],
+    ns: ['common', 'chorei', 'patrol', 'manager', 'genko', 'shift', 'learn', 'stock', 'sales'],
     interpolation: { escapeValue: false },
     detection: { order: ['localStorage', 'navigator'], caches: ['localStorage'], lookupLocalStorage: 'kinryu.locale' },
   })

@@ -751,3 +751,54 @@ describe('在庫・仕入 (stock)', () => {
     expect(rows[1]!.voided_by_name).not.toBe('スタッフM')
   })
 })
+
+describe('販売日報 (sales_reports)', () => {
+  const save = (date: string, shift: string, data: object, submit = false) =>
+    `select public.save_sales_report($1, ${date}, '${shift}', '${JSON.stringify(data)}'::jsonb, ${submit}) as id`
+  const base = {
+    tickets: { ramen: 154, chashu: 26, coupon: 0 },
+    cash_counts: { '5000': 1, '1000': 11, '500': 7, '100': 52 },
+    cash_carried: 24700,
+    noodle_out: 180,
+    noodle_lost: 0,
+  }
+  it('totals, 繰越 typed when there is no previous shift, 過不足 and 麺差引', async () => {
+    const [r] = await t.as<{ id: string }>(staffS, save(TODAY, 'early', base), [sennichimae])
+    const [row] = await t.admin<Record<string, unknown>>(`select ticket_total, cash_carried, cash_carried_manual, cash_actual, cash_expected, cash_diff, noodle_diff::int as noodle_diff, status from public.sales_reports where id = $1`, [r!.id])
+    expect(row).toEqual({ ticket_total: 180, cash_carried: 24700, cash_carried_manual: true, cash_actual: 24700, cash_expected: 24700, cash_diff: 0, noodle_diff: 0, status: 'draft' })
+  })
+  it('the next shift carries the counted cash; a difference needs a reason to send; every save is logged', async () => {
+    const data = { ...base, cash_carried: 1, cash_book: [{ time: '18:00', type: 'refund', detail: '券売機', name: 'A', amount: 100, reason: 'お釣りが出ない' }], cash_counts: { '1000': 24, '500': 1, '100': 1 } }
+    const [r] = await t.as<{ id: string }>(staffS, save(TODAY, 'middle', data), [sennichimae])
+    const [row] = await t.admin<Record<string, unknown>>(`select cash_carried, cash_carried_manual, cash_out, cash_expected, cash_actual, cash_diff from public.sales_reports where id = $1`, [r!.id])
+    expect(row).toEqual({ cash_carried: 24700, cash_carried_manual: false, cash_out: 100, cash_expected: 24600, cash_actual: 24600, cash_diff: 0 })
+    const off = { ...data, cash_counts: { '1000': 24 } }
+    await expect(t.as(staffS, save(TODAY, 'middle', off, true), [sennichimae])).rejects.toThrow(/needs a reason/)
+    await t.as(staffM, save(TODAY, 'middle', { ...off, cash_diff_reason: '数え間違い' }, true), [sennichimae])
+    const log = await t.as<{ author_name: string; action: string }>(staffM, `select author_name, action from public.sales_report_log where report_id = $1 order by id`, [r!.id])
+    expect(log).toEqual([{ author_name: 'スタッフS', action: 'save' }, { author_name: 'スタッフM', action: 'submit' }])
+  })
+  it('after 送信: writers may change it for 12 hours, then managers only; 送信 notifies (urgent when there is a difference)', async () => {
+    const [r] = await t.as<{ id: string }>(staffS, save(TODAY, 'late', { ...base, cash_counts: { '1000': 24 } }, true), [sennichimae])
+    // staffM never wrote it → locked for staffM; staffS (a writer) may still change it
+    await expect(t.as(staffM, save(TODAY, 'late', base), [sennichimae])).rejects.toThrow(/locked/)
+    await t.as(staffS, save(TODAY, 'late', { ...base, notes: '追記' }), [sennichimae])
+    await t.admin(`update public.sales_reports set submitted_at = now() - interval '13 hours' where id = $1`, [r!.id])
+    await expect(t.as(staffS, save(TODAY, 'late', base), [sennichimae])).rejects.toThrow(/locked/)
+    await t.as(manager, save(TODAY, 'late', { ...base, notes: '管理者が修正' }), [sennichimae])
+    const ev = await t.admin<{ ref_id: string; urgent: boolean }>(`select ref_id, urgent from public.notify_events where kind = 'sales' order by id`)
+    // 中番 was sent with a 現金過不足 (urgent), 遅番 without
+    expect(ev.map((e) => e.urgent)).toEqual([true, false])
+    expect(ev[1]!.ref_id).toBe(r!.id)
+  })
+  it('refunds need a reason; bad values and other days are refused; no direct writes', async () => {
+    await t.as(staffS, save(TODAY, 'early', { ...base, water: { '07:00': '12345' } }), [sennichimae]) // up to 5 digits
+    await expect(t.as(staffS, save(TODAY, 'late', { cash_book: [{ type: 'refund', amount: 100 }] }), [sennichimae])).rejects.toThrow(/bad cash book/)
+    await expect(t.as(staffS, save(TODAY, 'late', { tickets: { ramen: -1 } }), [sennichimae])).rejects.toThrow(/bad tickets/)
+    await expect(t.as(staffS, save(TODAY, 'late', { water: { '23:00': '123456' } }), [sennichimae])).rejects.toThrow(/bad water/)
+    await expect(t.as(staffS, save(`${TODAY} - 5`, 'late', base), [sennichimae])).rejects.toThrow(/date out of range/)
+    await expect(t.as(staffS, `insert into public.sales_reports (store_id, business_date, shift) values ($1, ${TODAY}, 'late')`, [sennichimae])).rejects.toThrow(/row-level security/)
+    const waiting = await t.createUser('sales-wait@example.com')
+    expect(await t.as(waiting, `select id from public.sales_reports`)).toEqual([])
+  })
+})

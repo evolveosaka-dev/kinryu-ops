@@ -1,0 +1,139 @@
+{
+  "title": "Báo cáo bán hàng cuối ca",
+  "saved": "Đã lưu tạm",
+  "submitted": "Đã gửi",
+  "required": "bắt buộc",
+  "toConfirm": "Kiểm tra (gửi)",
+  "saveDraft": "Lưu tạm",
+  "status": {
+    "draft": "Bản nháp",
+    "submitted": "Đã gửi"
+  },
+  "history": {
+    "title": "Lịch sử thay đổi",
+    "empty": "Chưa có ghi chép.",
+    "save": "lưu",
+    "submit": "gửi",
+    "showAll": "Xem tất cả ({{n}})",
+    "showLess": "Thu gọn"
+  },
+  "section": {
+    "tickets": "Số vé ăn",
+    "meals": "Bữa ăn nhân viên",
+    "otherOut": "Xuất khác (mì hủy bỏ・hư hỏng)",
+    "noodle": "Đối chiếu mì",
+    "staff": "Nhân viên",
+    "cash_book": "Sổ thu chi tiền mặt",
+    "cash": "Tiền mặt (đếm thực tế)",
+    "water": "Đồng hồ nước",
+    "notes": "Ghi chú・đồng hồ nước"
+  },
+  "tickets": {
+    "ramen": "ラーメン",
+    "chashu": "チャーシューメン",
+    "coupon": "クーポン",
+    "total": "Tổng",
+    "target": "Mục tiêu {{target}} bát → {{rate}}%",
+    "noTarget": "Ngày này chưa có mục tiêu số bát."
+  },
+  "unit": {
+    "sheets": " vé",
+    "bowls": " bát",
+    "pieces": "",
+    "bills": "tờ",
+    "coins": "xu"
+  },
+  "meals": {
+    "add": "Thêm 1 người"
+  },
+  "otherOut": {
+    "none": "Không có mì hủy bỏ・hư hỏng.",
+    "add": "Ghi mì hủy bỏ・hư hỏng",
+    "save": "Ghi"
+  },
+  "noodle": {
+    "formula": "Tổng vé − (mì xuất − bữa ăn NV − hủy bỏ) = chênh lệch",
+    "notClosed": "Chưa nhập 「終わりの在庫」 ở Tồn kho・Nhập hàng. Khi nhập xong, phần đối chiếu mì sẽ tự hiện.",
+    "toStock": "Mở Tồn kho・Nhập hàng",
+    "reason": "Lý do chênh lệch"
+  },
+  "staff": {
+    "help": "Tự lấy từ bảng ca. Hãy sửa nếu đến muộn, về sớm, về muộn hoặc nghỉ ca.",
+    "start": "Bắt đầu",
+    "end": "Kết thúc",
+    "status": "Tình trạng",
+    "note": "Ghi chú nhân viên",
+    "notePlaceholder": "VD: tàu bị trễ",
+    "remove": "Xóa",
+    "add": "Thêm",
+    "addPlaceholder": "Chọn nhân viên",
+    "statuses": {
+      "normal": "Bình thường",
+      "late": "Đến muộn",
+      "early_leave": "Về sớm",
+      "overtime": "Về muộn",
+      "absent": "Nghỉ ca"
+    }
+  },
+  "book": {
+    "help": "Ghi khi dùng tiền trong két: thối tiền cho khách khi máy bán vé hỏng, trả tiền ngay cho nhà cung cấp, v.v. Trả lại tiền (返金) phải ghi lý do.",
+    "add": "Thêm 1 dòng",
+    "time": "Giờ",
+    "type": "Loại",
+    "detail": "Chi tiết",
+    "name": "Tên",
+    "amount": "Số tiền (yên)",
+    "reason": "Lý do trả lại tiền",
+    "reasonPlaceholder": "Lý do trả lại tiền (bắt buộc) VD: máy bán vé không trả tiền thối",
+    "types": {
+      "in": "Thu (入金)",
+      "out": "Chi (出金)",
+      "refund": "Trả lại (返金)"
+    }
+  },
+  "cash": {
+    "carried": "Tồn từ ca trước (繰越)",
+    "carriedManual": "Nhập số tiền",
+    "in": "Tổng thu",
+    "out": "Tổng chi",
+    "expected": "Tổng theo tính toán",
+    "actual": "Tổng đếm thực tế",
+    "diff": "Thừa / thiếu",
+    "reason": "Lý do thừa / thiếu",
+    "noPrevious": "Ca trước không có báo cáo, hãy nhập số tiền tồn.",
+    "help": "Đếm tiền trong két (dùng để thối tiền khi máy bán vé hỏng và trả tiền cho nhà cung cấp). Không tính tiền bán vé trong máy."
+  },
+  "water": {
+    "label": "{{time}} giờ"
+  },
+  "notes": {
+    "label": "Ghi chú (連絡事項)",
+    "placeholder": "VD: thợ sửa chữa đã đến"
+  },
+  "confirm": {
+    "title": "Hãy kiểm tra rồi gửi",
+    "tickets": "Tổng vé",
+    "target": "mục tiêu {{target}}・{{rate}}%",
+    "noodle": "Chênh lệch mì",
+    "cash": "Tiền thừa / thiếu",
+    "people": "{{n}} người",
+    "send": "✓ Gửi nội dung này",
+    "back": "Quay lại sửa"
+  },
+  "error": {
+    "badNumber": "Số không hợp lệ (chỉ nhập số nguyên).",
+    "amount": "Hãy nhập số tiền.",
+    "refundReason": "Hãy ghi lý do trả lại tiền.",
+    "water": "Đồng hồ nước: tối đa 5 chữ số.",
+    "staffName": "Thiếu tên nhân viên.",
+    "tickets": "Hãy nhập số vé.",
+    "counts": "Hãy đếm tiền và nhập số tờ/xu.",
+    "carried": "Hãy nhập số tiền tồn từ ca trước.",
+    "cashReason": "Hãy ghi lý do tiền thừa / thiếu.",
+    "noodleReason": "Hãy ghi lý do chênh lệch mì.",
+    "required": "Hãy nhập số vé và tiền mặt.",
+    "dateRange": "Chỉ ghi được cho ca của hôm qua, hôm nay hoặc ngày mai."
+  },
+  "locked": "Đã quá 12 giờ kể từ khi gửi, chỉ quản lý mới sửa được.",
+  "toConfirmAgain": "Kiểm tra (gửi lại)"
+}

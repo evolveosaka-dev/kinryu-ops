@@ -105,6 +105,8 @@
     "name": "{{name}} さん",
     "shiftRequest": "シフト希望提出",
     "shiftRequestSub": "来月の出勤できる日と時間",
+    "sales": "販売日報",
+    "salesSub": "シフト終了の報告：食券・麺の照合・現金",
     "stock": "在庫・仕入",
     "stockSub": "繰越・補充・終わりの在庫・冷蔵庫温度",
     "schedule": "勤務予定",

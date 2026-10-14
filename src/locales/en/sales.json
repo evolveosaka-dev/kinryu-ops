@@ -1,0 +1,139 @@
+{
+  "title": "Daily sales report",
+  "saved": "Saved",
+  "submitted": "Sent",
+  "required": "required",
+  "toConfirm": "Check (send)",
+  "saveDraft": "Save for now",
+  "status": {
+    "draft": "Draft",
+    "submitted": "Sent"
+  },
+  "history": {
+    "title": "Change history",
+    "empty": "Nothing recorded yet.",
+    "save": "saved",
+    "submit": "sent",
+    "showAll": "Show all ({{n}})",
+    "showLess": "Show less"
+  },
+  "section": {
+    "tickets": "Meal tickets",
+    "meals": "Staff meals",
+    "otherOut": "Other out (noodle waste / damage)",
+    "noodle": "Noodle check",
+    "staff": "Staff",
+    "cash_book": "Cash book",
+    "cash": "Cash (counted)",
+    "water": "Water meter",
+    "notes": "Notes / water meter"
+  },
+  "tickets": {
+    "ramen": "Ramen",
+    "chashu": "Chashu-men",
+    "coupon": "Coupon",
+    "total": "Total",
+    "target": "Target {{target}} bowls → {{rate}}%",
+    "noTarget": "No target for this day yet."
+  },
+  "unit": {
+    "sheets": "",
+    "bowls": " bowls",
+    "pieces": "",
+    "bills": "pcs",
+    "coins": "pcs"
+  },
+  "meals": {
+    "add": "Add a person"
+  },
+  "otherOut": {
+    "none": "No noodle waste / damage.",
+    "add": "Record noodle waste / damage",
+    "save": "Record"
+  },
+  "noodle": {
+    "formula": "Tickets − (noodles out − staff meals − waste) = difference",
+    "notClosed": "The end count in Stock & deliveries is not entered yet. When it is, the noodle check appears automatically.",
+    "toStock": "Open Stock & deliveries",
+    "reason": "Reason for the difference"
+  },
+  "staff": {
+    "help": "Filled in from the shift table. Fix late arrival, leaving early, overtime or absence.",
+    "start": "Start",
+    "end": "End",
+    "status": "Status",
+    "note": "Staff memo",
+    "notePlaceholder": "e.g. train delay",
+    "remove": "Remove",
+    "add": "Add",
+    "addPlaceholder": "Choose staff",
+    "statuses": {
+      "normal": "Normal",
+      "late": "Late",
+      "early_leave": "Left early",
+      "overtime": "Overtime",
+      "absent": "Absent"
+    }
+  },
+  "book": {
+    "help": "Write when the register cash was used: change for a customer when the ticket machine broke, paying a supplier on the spot, etc. A refund needs a reason.",
+    "add": "Add a line",
+    "time": "Time",
+    "type": "Type",
+    "detail": "Details",
+    "name": "Name",
+    "amount": "Amount (yen)",
+    "reason": "Refund reason",
+    "reasonPlaceholder": "Refund reason (required), e.g. the ticket machine gave no change",
+    "types": {
+      "in": "In",
+      "out": "Out",
+      "refund": "Refund"
+    }
+  },
+  "cash": {
+    "carried": "Carried (previous shift)",
+    "carriedManual": "Enter amount",
+    "in": "Total in",
+    "out": "Total out",
+    "expected": "Expected total",
+    "actual": "Counted total",
+    "diff": "Over / short",
+    "reason": "Reason for over / short",
+    "noPrevious": "There is no report from the previous shift, so enter the carried amount.",
+    "help": "Count the register cash (for change when the ticket machine breaks and for paying suppliers). Ticket-machine sales are not included."
+  },
+  "water": {
+    "label": "{{time}}:00"
+  },
+  "notes": {
+    "label": "Notes",
+    "placeholder": "e.g. a repair person came"
+  },
+  "confirm": {
+    "title": "Please check and send",
+    "tickets": "Tickets total",
+    "target": "target {{target}}・{{rate}}%",
+    "noodle": "Noodle difference",
+    "cash": "Cash over / short",
+    "people": "{{n}} people",
+    "send": "✓ Send this",
+    "back": "Go back and fix"
+  },
+  "error": {
+    "badNumber": "A number is not valid (whole numbers only).",
+    "amount": "Enter the amount.",
+    "refundReason": "Write the refund reason.",
+    "water": "Water meter: up to 5 digits.",
+    "staffName": "A staff name is missing.",
+    "tickets": "Enter the ticket counts.",
+    "counts": "Count the cash and enter the numbers.",
+    "carried": "Enter the carried amount.",
+    "cashReason": "Write the reason for the cash over / short.",
+    "noodleReason": "Write the reason for the noodle difference.",
+    "required": "Enter the tickets and the cash.",
+    "dateRange": "You can record only yesterday’s, today’s or tomorrow’s shifts."
+  },
+  "locked": "More than 12 hours have passed since it was sent, so only managers can change it.",
+  "toConfirmAgain": "Check (send again)"
+}
