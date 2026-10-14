@@ -34,7 +34,7 @@
     "coupon": "クーポン",
     "total": "合計",
     "target": "目標 {{target}}杯 → {{rate}}%",
-    "noTarget": "この日の目標杯数はまだありません。"
+    "noTarget": "目標のデータがありません。"
   },
   "unit": {
     "sheets": "枚",
@@ -81,7 +81,7 @@
     "time": "時間",
     "type": "種類",
     "detail": "明細",
-    "name": "名前",
+    "name": "相手の名前（業者など）",
     "amount": "金額（円）",
     "reason": "返金の理由",
     "reasonPlaceholder": "返金の理由（必須）例：券売機からお釣りが出なかった",
@@ -89,7 +89,9 @@
       "in": "入金",
       "out": "出金",
       "refund": "返金"
-    }
+    },
+    "customer": "お客様",
+    "staff": "担当スタッフ"
   },
   "cash": {
     "carried": "繰越（前のシフト）",
@@ -108,7 +110,8 @@
   },
   "notes": {
     "label": "連絡事項",
-    "placeholder": "例：修理業者が来た"
+    "placeholder": "例：修理業者が来た",
+    "none": "なし（連絡事項・メーターなし）"
   },
   "confirm": {
     "title": "内容を確認して送信してください",

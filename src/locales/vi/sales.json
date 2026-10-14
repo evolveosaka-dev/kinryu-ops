@@ -34,7 +34,7 @@
     "coupon": "クーポン",
     "total": "Tổng",
     "target": "Mục tiêu {{target}} bát → {{rate}}%",
-    "noTarget": "Ngày này chưa có mục tiêu số bát."
+    "noTarget": "Không có dữ liệu mục tiêu."
   },
   "unit": {
     "sheets": " vé",
@@ -81,7 +81,7 @@
     "time": "Giờ",
     "type": "Loại",
     "detail": "Chi tiết",
-    "name": "Tên",
+    "name": "Tên người nhận/trả (nhà cung cấp…)",
     "amount": "Số tiền (yên)",
     "reason": "Lý do trả lại tiền",
     "reasonPlaceholder": "Lý do trả lại tiền (bắt buộc) VD: máy bán vé không trả tiền thối",
@@ -89,7 +89,9 @@
       "in": "Thu (入金)",
       "out": "Chi (出金)",
       "refund": "Trả lại (返金)"
-    }
+    },
+    "customer": "Khách hàng",
+    "staff": "Nhân viên thực hiện"
   },
   "cash": {
     "carried": "Tồn từ ca trước (繰越)",
@@ -108,7 +110,8 @@
   },
   "notes": {
     "label": "Ghi chú (連絡事項)",
-    "placeholder": "VD: thợ sửa chữa đã đến"
+    "placeholder": "VD: thợ sửa chữa đã đến",
+    "none": "Không có (không ghi chú, không đọc đồng hồ)"
   },
   "confirm": {
     "title": "Hãy kiểm tra rồi gửi",

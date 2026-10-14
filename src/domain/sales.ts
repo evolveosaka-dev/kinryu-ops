@@ -34,10 +34,17 @@ export interface CashRow {
   time: string
   type: CashType
   detail: string
+  /** who received / paid (a supplier…); 'お客様' when `customer` */
   name: string
+  customer?: boolean
+  /** the staff member who handled the money */
+  staff?: string
   amount: number
   reason?: string
 }
+
+/** 連絡事項 「なし」: nothing to report and no meter reading. */
+export const NOTES_NONE = 'なし'
 export interface MealRow {
   name: string
   qty: number

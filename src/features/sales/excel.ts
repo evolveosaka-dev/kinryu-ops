@@ -68,7 +68,7 @@ function reportSheet(r: SalesReport, store: string, losses: { e: StockEvent; qty
   book.forEach((b, i) =>
     rows.push(
       b
-        ? [c(i + 1, { align: 'center' }), c(b.time), ...span(c(`${CASH_JA[b.type]}：${b.detail}${b.reason ? `（理由：${b.reason}）` : ''}`, { wrap: true }), 3), c(b.name), ...span(c(`${b.type === 'in' ? '' : '−'}${b.amount.toLocaleString('ja-JP')}円`, { align: 'right' }), 2)]
+        ? [c(i + 1, { align: 'center' }), c(b.time), ...span(c(`${CASH_JA[b.type]}：${b.detail}${b.reason ? `（理由：${b.reason}）` : ''}${b.staff ? `（担当：${b.staff}）` : ''}`, { wrap: true }), 3), c(b.customer ? 'お客様' : b.name), ...span(c(`${b.type === 'in' ? '' : '−'}${b.amount.toLocaleString('ja-JP')}円`, { align: 'right' }), 2)]
         : pad([c(i + 1, { align: 'center' })]),
     ),
   )
@@ -81,10 +81,10 @@ function reportSheet(r: SalesReport, store: string, losses: { e: StockEvent; qty
     ['現金過不足', `${diffText(r.cash_diff)}円`],
     ['過不足の理由', r.cash_diff_reason ?? ''],
   ]
-  const notes = [
-    ...WATER_TIMES[r.shift].map((h) => `水道メーター検針：${Number(h.slice(0, 2))}時 ${r.water[h] || ''}`),
-    ...(r.notes ?? '').split('\n').filter(Boolean),
-  ]
+  const notesNone = r.notes === 'なし' && Object.values(r.water).every((v) => !v)
+  const notes = notesNone
+    ? ['なし']
+    : [...WATER_TIMES[r.shift].map((h) => `水道メーター検針：${Number(h.slice(0, 2))}時 ${r.water[h] || ''}`), ...(r.notes ?? '').split('\n').filter(Boolean)]
   rows.push([head('現金実際有高'), head('枚'), ...span(head('現金集計'), 2), head(''), ...span(head('連絡事項'), 3)])
   DENOMS.forEach(([k, label], i) => {
     const s = summary[i]

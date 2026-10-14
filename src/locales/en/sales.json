@@ -34,7 +34,7 @@
     "coupon": "Coupon",
     "total": "Total",
     "target": "Target {{target}} bowls → {{rate}}%",
-    "noTarget": "No target for this day yet."
+    "noTarget": "There is no target data."
   },
   "unit": {
     "sheets": "",
@@ -81,7 +81,7 @@
     "time": "Time",
     "type": "Type",
     "detail": "Details",
-    "name": "Name",
+    "name": "Name (supplier etc.)",
     "amount": "Amount (yen)",
     "reason": "Refund reason",
     "reasonPlaceholder": "Refund reason (required), e.g. the ticket machine gave no change",
@@ -89,7 +89,9 @@
       "in": "In",
       "out": "Out",
       "refund": "Refund"
-    }
+    },
+    "customer": "Customer",
+    "staff": "Handled by"
   },
   "cash": {
     "carried": "Carried (previous shift)",
@@ -108,7 +110,8 @@
   },
   "notes": {
     "label": "Notes",
-    "placeholder": "e.g. a repair person came"
+    "placeholder": "e.g. a repair person came",
+    "none": "None (no notes, no meter reading)"
   },
   "confirm": {
     "title": "Please check and send",

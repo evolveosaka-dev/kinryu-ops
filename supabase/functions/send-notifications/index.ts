@@ -335,7 +335,7 @@ async function renderSales(admin: Admin, L: Lookup, e: NotifyEvent) {
   const bad = Boolean(noodleDiff) || Boolean(r.cash_diff)
   const t = r.tickets ?? {}
   const staff = (r.staff ?? []) as { name: string; start: string; end: string; status: string; note?: string }[]
-  const book = (r.cash_book ?? []) as { time: string; type: string; detail: string; name: string; amount: number; reason?: string }[]
+  const book = (r.cash_book ?? []) as { time: string; type: string; detail: string; name: string; customer?: boolean; staff?: string; amount: number; reason?: string }[]
   const rate = r.target_bowls ? `（目標 ${r.target_bowls}杯・${Math.round((r.ticket_total / r.target_bowls) * 100)}%）` : ''
   const noodle =
     r.noodle_out === null
@@ -351,7 +351,7 @@ async function renderSales(admin: Admin, L: Lookup, e: NotifyEvent) {
       `食券: ラーメン ${t.ramen ?? 0} / チャーシューメン ${t.chashu ?? 0} / クーポン ${t.coupon ?? 0} = 合計 ${r.ticket_total}枚${rate}`,
       noodle,
       cash,
-      ...book.map((b) => `・${b.time} ${kind(b)} ${yenText(b.amount)} ${b.detail}${b.name ? `（${b.name}）` : ''}${b.reason ? ` 理由: ${b.reason}` : ''}`),
+      ...book.map((b) => `・${b.time} ${kind(b)} ${yenText(b.amount)} ${b.detail}${b.customer ? '（お客様）' : b.name ? `（${b.name}）` : ''}${b.staff ? ` 担当: ${b.staff}` : ''}${b.reason ? ` 理由: ${b.reason}` : ''}`),
       `スタッフ: ${staff.map((s) => `${s.name} ${s.start}–${s.end}${SALES_STATUS[s.status] ? `（${SALES_STATUS[s.status]}${s.note ? `: ${s.note}` : ''}）` : ''}`).join('、') || '—'}`,
       `水道メーター: ${Object.entries((r.water ?? {}) as Record<string, string>).map(([h, v]) => `${Number(h.slice(0, 2))}時 ${v || '—'}`).join(' / ') || '—'}`,
       ...(r.notes ? [`連絡事項: ${r.notes}`] : []),

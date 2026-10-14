@@ -12,6 +12,7 @@ import {
   DENOMINATIONS,
   MEALS_ENABLED,
   minutesToTime,
+  NOTES_NONE,
   noodleCheck,
   parseInteger,
   signedDiff,
@@ -49,6 +50,7 @@ interface Slot {
 }
 
 const nowHm = () => formatTokyoTime(new Date())
+const CUSTOMER = 'お客様'
 // as on the paper sheet
 const DENOM_LABEL: Record<number, string> = { 10000: '1万円', 5000: '5千円', 2000: '2千円', 1000: '千円' }
 const numText = (n: number | null | undefined) => (n === null || n === undefined ? '' : String(n))
@@ -224,6 +226,8 @@ function SalesForm({
   const translation = useTranslationGate()
   const errorText = useErrorText()
   const roster = useRoster()
+  const me = useMe()
+  const myName = me.roster_name || me.display_name
 
   const [tickets, setTickets] = useState<Record<TicketKind, string>>(() => ({
     ramen: numText(report?.tickets.ramen),
@@ -246,7 +250,8 @@ function SalesForm({
   const [cashReason, setCashReason] = useState(report?.cash_diff_reason ?? '')
   const [noodleReason, setNoodleReason] = useState(report?.noodle_reason ?? '')
   const [water, setWater] = useState<Record<string, string>>(() => ({ ...Object.fromEntries(WATER_TIMES[slot.shift].map((h) => [h, ''])), ...(report?.water ?? {}) }))
-  const [notes, setNotes] = useState(report?.notes ?? '')
+  const [notesNone, setNotesNone] = useState(report?.notes === NOTES_NONE && Object.values(report.water ?? {}).every((v) => !v))
+  const [notes, setNotes] = useState(report?.notes === NOTES_NONE ? '' : (report?.notes ?? ''))
   const [step, setStep] = useState<'edit' | 'confirm'>('edit')
   const [error, setError] = useState<string | null>(null)
   const [addName, setAddName] = useState('')
@@ -259,7 +264,7 @@ function SalesForm({
   const lost = noodleLosses.reduce((s, l) => s + l.qty, 0)
   const check = noodleCheck(total, noodleUsed, lost, mealCount)
   const carried = prevActual ?? (parseInteger(carriedText) ?? null)
-  const bookRows: CashRow[] = book.map((r) => ({ ...r, amount: parseInteger(r.amount) ?? 0 }))
+  const bookRows: CashRow[] = book.map((r) => ({ ...r, staff: r.staff ?? myName, amount: parseInteger(r.amount) ?? 0 }))
   const countNums = Object.fromEntries(Object.entries(counts).map(([k, v]) => [k, parseInteger(v)]))
   const cash = cashSummary(Number.isNaN(carried) ? null : carried, bookRows, countNums)
   const noodleBad = check !== null && check.diff !== 0
@@ -278,8 +283,8 @@ function SalesForm({
     noodle_lost: noodleUsed === null ? null : lost,
     noodle_meals: MEALS_ENABLED ? mealCount : null,
     noodle_reason: noodleReason,
-    water,
-    notes,
+    water: notesNone ? {} : water,
+    notes: notesNone ? NOTES_NONE : notes,
   })
 
   const validate = (forSubmit: boolean) => {
@@ -287,7 +292,7 @@ function SalesForm({
       return t('error.badNumber')
     if (book.some((r) => !(parseInteger(r.amount)! > 0))) return t('error.amount')
     if (book.some((r) => r.type === 'refund' && !r.reason?.trim())) return t('error.refundReason')
-    if (Object.values(water).some((v) => v !== '' && !/^\d{1,5}$/.test(v.normalize('NFKC')))) return t('error.water')
+    if (!notesNone && Object.values(water).some((v) => v !== '' && !/^\d{1,5}$/.test(v.normalize('NFKC')))) return t('error.water')
     if (staff.some((s) => !s.name.trim())) return t('error.staffName')
     if (!forSubmit) return null
     if (TICKETS.every((k) => ticketNums[k] === undefined)) return t('error.tickets')
@@ -302,7 +307,7 @@ function SalesForm({
     mutationFn: async (submit: boolean) => {
       // free text in another language → Japanese, confirmed by the writer
       const fields: GateField[] = [
-        { key: 'notes', label: t('section.notes'), text: notes.trim() || null },
+        { key: 'notes', label: t('section.notes'), text: notesNone ? null : notes.trim() || null },
         { key: 'cash_diff_reason', label: t('cash.reason'), text: cashBad ? cashReason.trim() || null : null },
         { key: 'noodle_reason', label: t('noodle.reason'), text: noodleBad ? noodleReason.trim() || null : null },
         ...book.map((r, i) => ({ key: `refund_${i}`, label: t('book.reason'), text: r.type === 'refund' ? r.reason?.trim() || null : null })),
@@ -310,7 +315,7 @@ function SalesForm({
       ]
       const tr = await translation.prepare(fields)
       const data = payload()
-      data.notes = tr.values.notes ?? ''
+      data.notes = notesNone ? NOTES_NONE : (tr.values.notes ?? '')
       data.cash_diff_reason = cashBad ? (tr.values.cash_diff_reason ?? '') : ''
       data.noodle_reason = noodleBad ? (tr.values.noodle_reason ?? '') : ''
       data.cash_book = bookRows.map((r, i) => (r.type === 'refund' ? { ...r, reason: tr.values[`refund_${i}`] ?? '' } : { ...r, reason: undefined }))
@@ -397,7 +402,7 @@ function SalesForm({
             <span className="text-base">{t('unit.sheets')}</span>
           </span>
         </p>
-        {target ? (
+        {target && target > 0 ? (
           <p className={cx('rounded-xl px-3 py-2 font-bold', rate !== null && rate >= 100 ? 'bg-green-50 text-green-900' : 'bg-amber-50 text-amber-900')}>
             🎯 {t('tickets.target', { target, rate })}
           </p>
@@ -505,7 +510,7 @@ function SalesForm({
         <p className="text-sm text-muted">{t('book.help')}</p>
         {book.map((r, i) => (
           <div key={i} className="flex flex-col gap-2 rounded-xl border border-line p-2">
-            <div className="grid grid-cols-[5.5rem_1fr_auto] gap-2">
+            <div className="grid grid-cols-[7rem_1fr_auto] gap-2">
               <input type="time" aria-label={t('book.time')} className={smallInput} value={r.time} onChange={(e) => setBookRow(i, { time: e.target.value })} />
               <select aria-label={t('book.type')} className={smallInput} value={r.type} onChange={(e) => setBookRow(i, { type: e.target.value as CashType })}>
                 {CASH_TYPES.map((ct) => (
@@ -519,16 +524,35 @@ function SalesForm({
               </button>
             </div>
             <input className={smallInput} placeholder={t('book.detail')} value={r.detail} maxLength={200} onChange={(e) => setBookRow(i, { detail: e.target.value })} />
+            <div className="flex items-center gap-2">
+              <label className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-slate-300 px-2 text-sm font-bold">
+                <input type="checkbox" className="size-5 accent-brand" checked={Boolean(r.customer)} onChange={(e) => setBookRow(i, { customer: e.target.checked, name: e.target.checked ? CUSTOMER : '' })} />
+                {t('book.customer')}
+              </label>
+              {!r.customer && <input className={smallInput} placeholder={t('book.name')} value={r.name} maxLength={40} onChange={(e) => setBookRow(i, { name: e.target.value })} />}
+            </div>
             <div className="grid grid-cols-2 gap-2">
-              <input className={smallInput} placeholder={t('book.name')} value={r.name} maxLength={40} onChange={(e) => setBookRow(i, { name: e.target.value })} />
-              <input className={`${smallInput} text-right font-bold`} inputMode="numeric" placeholder={t('book.amount')} value={r.amount} onChange={(e) => setBookRow(i, { amount: e.target.value })} />
+              <label className="flex flex-col gap-0.5 text-xs font-bold text-slate-700">
+                {t('book.staff')}
+                <select className={smallInput} value={r.staff ?? myName} onChange={(e) => setBookRow(i, { staff: e.target.value })}>
+                  {[...new Set([myName, r.staff ?? myName, ...staff.filter((s) => s.status !== 'absent').map((s) => s.name)])].map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex flex-col gap-0.5 text-xs font-bold text-slate-700">
+                {t('book.amount')}
+                <input className={`${smallInput} text-right font-bold`} inputMode="numeric" value={r.amount} onChange={(e) => setBookRow(i, { amount: e.target.value })} />
+              </label>
             </div>
             {r.type === 'refund' && (
               <input className={cx(smallInput, !r.reason?.trim() && 'border-red-500')} placeholder={t('book.reasonPlaceholder')} value={r.reason ?? ''} maxLength={300} onChange={(e) => setBookRow(i, { reason: e.target.value })} />
             )}
           </div>
         ))}
-        <Button variant="secondary" onClick={() => setBook((xs) => [...xs, { time: nowHm(), type: 'out', detail: '', name: '', amount: '', reason: '' }])}>
+        <Button variant="secondary" onClick={() => setBook((xs) => [...xs, { time: nowHm(), type: 'out', detail: '', name: '', customer: false, staff: myName, amount: '', reason: '' }])}>
           ＋ {t('book.add')}
         </Button>
       </Section>
@@ -582,12 +606,22 @@ function SalesForm({
       </Section>
 
       <Section title={`📝 ${t('section.notes')}`}>
+        <button
+          type="button"
+          aria-pressed={notesNone}
+          onClick={() => setNotesNone((v) => !v)}
+          className={cx('min-h-12 rounded-xl border-[1.5px] font-bold', notesNone ? 'border-brand bg-brand text-white' : 'border-brand bg-white text-brand-dark')}
+        >
+          {notesNone ? `✓ ${t('notes.none')}` : t('notes.none')}
+        </button>
+        <fieldset disabled={notesNone} className={cx('flex min-w-0 flex-col gap-3', notesNone && 'opacity-50')}>
         <div className="grid grid-cols-2 gap-2">
           {WATER_TIMES[slot.shift].map((h) => (
             <TextInput key={h} label={t('water.label', { time: h.slice(0, 2) })} inputMode="numeric" maxLength={5} value={water[h] ?? ''} onChange={(e) => setWater((w) => ({ ...w, [h]: e.target.value }))} className="text-right font-bold" />
           ))}
         </div>
         <TextArea label={t('notes.label')} placeholder={t('notes.placeholder')} value={notes} rows={3} onChange={(e) => setNotes(e.target.value)} />
+        </fieldset>
       </Section>
 
       {error && <ErrorBox message={error} />}
