@@ -191,3 +191,37 @@ describe('留学・家族滞在: 28 hours in 7 days', () => {
     expect(w[0]!.minutes).toBe(1680)
   })
 })
+
+describe('代わりの人を指名 + 28 hours everywhere', () => {
+  let day22 = ''
+  it('the form checks the named person: visa over 28 h is refused with the reason', async () => {
+    const [r] = await t.admin<{ d: string }>(`select (${TODAY} + 22)::text as d`)
+    day22 = r!.d
+    await assign('ミナミ', day22, 'middle', 1020, 1380)
+    const check = (name: string) => t.as<{ p: Record<string, unknown> | null }>(minami, `select public.check_cover($1, 'middle', 'absence', null, $2) as p`, [day22, name])
+    const [visa] = await check('ヒガシ') // 28 h already + 6 h
+    expect(visa!.p).toMatchObject({ problem: 'visa', name: 'ヒガシ', minutes: 2040 })
+    expect((await check('ミナミ'))[0]!.p).toMatchObject({ problem: 'self' })
+    expect((await check('だれか'))[0]!.p).toMatchObject({ problem: 'unknown' })
+    await t.admin(`insert into public.staff_roster (name) values ('キタ') on conflict do nothing`)
+    expect((await check('キタ'))[0]!.p).toBeNull()
+    await expect(t.as(minami, report(`'absence', '${day22}', 'middle', 'personal', p_cover => 'ヒガシ'`))).rejects.toThrow(/cover_problem:.*visa/)
+  })
+  it('naming creates a pending request; the named person sees it; a manager approves', async () => {
+    const [r] = await t.as<{ id: string }>(minami, report(`'absence', '${day22}', 'middle', 'personal', p_cover => 'キタ', p_recruit => true`))
+    const [c] = await t.admin<{ proposed_cover: string; recruit: boolean }>(`select proposed_cover, recruit from public.shift_changes where id = $1`, [r!.id])
+    expect(c).toEqual({ proposed_cover: 'キタ', recruit: false })
+    const rec = await t.as<{ id: string; designated: boolean }>(kita, `select id, designated from public.shift_recruits() where id = $1`, [r!.id])
+    expect(rec).toEqual([{ id: r!.id, designated: true }])
+    await expect(t.as(manager, `select public.decide_shift_change($1, true, p_cover => 'ヒガシ')`, [r!.id])).rejects.toThrow(/cover_problem:.*visa/)
+    await t.as(manager, `select public.decide_shift_change($1, true, p_cover => 'キタ')`, [r!.id])
+    expect((await who(day22, 'middle')).map((x) => x.roster_name)).toEqual(['キタ'])
+  })
+  it('「代われます」 is refused when it would take a visa holder over 28 h', async () => {
+    await assign('キタ', day22, 'late', 1380, 1860)
+    const [r] = await t.as<{ id: string }>(kita, report(`'absence', '${day22}', 'late', 'sick', p_recruit => true`))
+    const [rec] = await t.as<{ my_over_min: number | null }>(higashi, `select my_over_min from public.shift_recruits() where id = $1`, [r!.id])
+    expect(rec!.my_over_min).toBe(2160)
+    await expect(t.as(higashi, `select public.offer_shift_cover($1)`, [r!.id])).rejects.toThrow(/cover_problem:.*visa/)
+  })
+})

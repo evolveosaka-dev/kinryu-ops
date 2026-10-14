@@ -8,7 +8,7 @@ import { useToast } from '../../components/Toast'
 import { Button, Card, ErrorBox, PageTitle, Segmented, SectionTitle, Spinner } from '../../components/ui'
 import { attendanceScores, GRADE_STYLE, labelOf, WINDOW_DAYS, type AttendanceEvent } from '../../domain/attendance'
 import { chainMinutes, formatMin, LONG_CHAIN_MIN, type Assignment } from '../../domain/schedule'
-import { coverPart, REASON_ICON, reportable, type Recruit } from '../../domain/shiftChange'
+import { coverPart, coverProblemOf, REASON_ICON, reportable, type Recruit } from '../../domain/shiftChange'
 import { cx } from '../../lib/cx'
 import { errorMessage } from '../../lib/format'
 import { unwrap } from '../../lib/queries'
@@ -17,7 +17,7 @@ import { useMySchedule } from '../schedule/data'
 import { ShiftChip, StoreLabel, TimeRange } from '../schedule/parts'
 import { hours, useDayLabel } from '../schedule/style'
 import { ChangeForm } from './ChangeForm'
-import { noticeText, STATUS_STYLE, useAttendance, useChangeLabel, useMyChanges, useRecruits, type ChangeWithOffers } from './changeData'
+import { noticeText, STATUS_STYLE, useAttendance, useChangeLabel, useMyChanges, useProblemText, useRecruits, type ChangeWithOffers } from './changeData'
 
 type Tab = 'report' | 'recruit' | 'score'
 
@@ -57,6 +57,7 @@ function MyChange({ c }: { c: ChangeWithOffers }) {
         {label(c)} ・ {REASON_ICON[c.reason]} {t(`change.reason.${c.reason}`)}
       </span>
       {c.note && <span className="text-sm text-muted">{c.note_original ?? c.note}</span>}
+      {c.status === 'open' && c.proposed_cover && <span className="text-sm font-bold text-brand-dark">🤝 {t('change.namedPending', { name: c.proposed_cover })}</span>}
       {c.status === 'open' && c.recruit && <span className="text-sm">🙋 {offers ? t('change.offersN', { n: offers }) : t('change.waiting')}</span>}
       {c.status === 'approved' && c.kind !== 'late' && (
         <span className="text-sm font-bold text-green-800">{c.cover_name ? `✅ ${t('change.coveredBy', { name: c.cover_name })}` : `✅ ${t('change.approvedNoCover')}`}</span>
@@ -154,6 +155,7 @@ function RecruitCardItem({ r, mySchedule }: { r: Recruit; mySchedule: (Assignmen
   const label = useChangeLabel()
   const dayLabel = useDayLabel()
   const [give, setGive] = useState('')
+  const problemText = useProblemText()
   const part = coverPart({ ...r, leave_min: r.kind === 'early_leave' ? r.start_min : null })
   const chain = chainMinutes([...mySchedule, part]).get(part) ?? 0
   const giveable = reportable(mySchedule, new Date())
@@ -172,8 +174,16 @@ function RecruitCardItem({ r, mySchedule }: { r: Recruit; mySchedule: (Assignmen
     mutationFn: async () => unwrap(await supabase.rpc('withdraw_shift_offer', { p_offer: r.my_offer_id! })),
     onSuccess: done,
   })
-  const state =
-    r.assigned ? 'assigned' : r.my_offer_status === 'offered' ? 'offered' : r.my_offer_status === 'declined' || (r.status !== 'open' && r.my_offer_id) ? 'declined' : 'open'
+  const state = r.assigned
+    ? 'assigned'
+    : r.designated && r.status === 'open'
+      ? 'designated'
+      : r.my_offer_status === 'offered'
+        ? 'offered'
+        : r.my_offer_status === 'declined' || (r.status !== 'open' && (r.my_offer_id || r.designated))
+          ? 'declined'
+          : 'open'
+  const over = r.my_over_min !== null && state === 'open'
   return (
     <li className={cx('flex flex-col gap-2 rounded-xl border bg-white p-3', state === 'assigned' ? 'border-green-400' : 'border-line')}>
       <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -188,6 +198,8 @@ function RecruitCardItem({ r, mySchedule }: { r: Recruit; mySchedule: (Assignmen
       </span>
       {chain >= LONG_CHAIN_MIN && <p className="rounded-lg bg-amber-50 px-2 py-1 text-sm font-bold text-amber-900">⚠️ {t('schedule.long', { h: hours(chain) })}</p>}
       {state === 'assigned' && <p className="font-bold text-green-800">✅ {t('change.youCover')}</p>}
+      {state === 'designated' && <p className="font-bold text-brand-dark">🤝 {t('change.designatedYou', { name: r.roster_name })}</p>}
+      {over && <p className="rounded-lg bg-red-50 px-2 py-1.5 text-sm font-bold text-red-800">✗ {t('change.visaBlockedYou', { h: Math.round((r.my_over_min! / 60) * 10) / 10 })}</p>}
       {state === 'declined' && <p className="text-sm text-muted">{t('change.otherChosen')}</p>}
       {state === 'offered' && (
         <>
@@ -200,7 +212,7 @@ function RecruitCardItem({ r, mySchedule }: { r: Recruit; mySchedule: (Assignmen
           </Button>
         </>
       )}
-      {state === 'open' && (
+      {state === 'open' && !over && (
         <>
           {r.swap_ok && giveable.length > 0 && (
             <label className="flex flex-col gap-1 text-sm font-bold">
@@ -220,7 +232,9 @@ function RecruitCardItem({ r, mySchedule }: { r: Recruit; mySchedule: (Assignmen
           </Button>
         </>
       )}
-      {(offer.error ?? withdraw.error) && <ErrorBox message={errorMessage(offer.error ?? withdraw.error)} />}
+      {(offer.error ?? withdraw.error) && (
+        <ErrorBox message={coverProblemOf(offer.error) ? problemText(coverProblemOf(offer.error)!) : errorMessage(offer.error ?? withdraw.error)} />
+      )}
     </li>
   )
 }
@@ -319,7 +333,7 @@ export function AbsencePage() {
   const [params, setParams] = useSearchParams()
   const tab = (params.get('tab') as Tab | null) ?? 'report'
   const recruits = useRecruits(Boolean(me.roster_name))
-  const openCount = (recruits.data ?? []).filter((r) => r.status === 'open' && !r.my_offer_id).length
+  const openCount = (recruits.data ?? []).filter((r) => r.status === 'open' && !r.my_offer_id && r.my_over_min === null).length
   return (
     <div className="flex flex-col gap-4">
       <PageTitle title={t('change.title')} subtitle={t('change.subtitle')} />

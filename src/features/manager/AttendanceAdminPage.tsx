@@ -7,7 +7,7 @@ import { useToast } from '../../components/Toast'
 import { Button, Card, ErrorBox, PageTitle, Segmented, Spinner, TextArea, TextInput } from '../../components/ui'
 import { attendanceScores, GRADE_STYLE, labelOf, WINDOW_DAYS, type AttendanceEvent } from '../../domain/attendance'
 import { formatMin, formatRange, STORE_BY_MARK, type Assignment } from '../../domain/schedule'
-import { coverCandidates, REASON_ICON, VISA_LIMIT_MIN } from '../../domain/shiftChange'
+import { coverCandidates, coverProblemOf, REASON_ICON, VISA_LIMIT_MIN } from '../../domain/shiftChange'
 import { addDays, formatShortDate, weekdayOf } from '../../domain/time'
 import { cx } from '../../lib/cx'
 import { errorMessage } from '../../lib/format'
@@ -15,7 +15,7 @@ import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import { ChangeForm } from '../shift/ChangeForm'
 import { ScoreView } from '../shift/AbsencePage'
-import { noticeText, STATUS_STYLE, today, useAttendance, useChangeLabel, useChanges, useStaffLimits, type ChangeWithOffers } from '../shift/changeData'
+import { noticeText, STATUS_STYLE, today, useAttendance, useChangeLabel, useChanges, useProblemText, useStaffLimits, type ChangeWithOffers } from '../shift/changeData'
 import { jstDateTime } from './data'
 import { ManagerTabs } from './ManagerTabs'
 
@@ -79,7 +79,8 @@ function DecideSheet({ c, onClose }: { c: ChangeWithOffers; onClose: () => void 
   const names = useRosterNames()
   const limits = useLimits()
   const rows = useAssignments(addDays(c.business_date, -7), addDays(c.business_date, 7), c.status === 'open' && c.kind !== 'late')
-  const [pick, setPick] = useState<{ offer?: string; cover?: string } | null>(null)
+  const [pick, setPick] = useState<{ offer?: string; cover?: string } | null>(c.status === 'open' && c.proposed_cover ? { cover: c.proposed_cover } : null)
+  const problemText = useProblemText()
   const [note, setNote] = useState('')
   const [showAll, setShowAll] = useState(false)
   const decide = useMutation({
@@ -134,6 +135,15 @@ function DecideSheet({ c, onClose }: { c: ChangeWithOffers; onClose: () => void 
         {c.manager_note && <p>💬 {c.manager_note}</p>}
       </Card>
 
+      {c.status === 'open' && c.proposed_cover && (
+        <Card className="flex flex-col gap-1 border-2 border-brand">
+          <h3 className="font-bold">🤝 {t('attendance.proposed', { name: c.proposed_cover })}</h3>
+          {checks(c.proposed_cover)}
+          <Button variant={pick?.cover === c.proposed_cover ? 'primary' : 'secondary'} className="min-h-10 py-1 text-sm" onClick={() => setPick({ cover: c.proposed_cover! })}>
+            {t('attendance.chooseProposed')}
+          </Button>
+        </Card>
+      )}
       {c.status === 'open' && c.kind !== 'late' && (
         <>
           <h3 className="font-bold">🙋 {t('attendance.offers', { n: offers.filter((o) => o.status === 'offered').length })}</h3>
@@ -190,7 +200,7 @@ function DecideSheet({ c, onClose }: { c: ChangeWithOffers; onClose: () => void 
       {c.status === 'open' && (
         <Card className="flex flex-col gap-2">
           <TextArea label={t('attendance.managerNote')} value={note} onChange={(e) => setNote(e.target.value)} />
-          {decide.error && <ErrorBox message={errorMessage(decide.error)} />}
+          {decide.error && <ErrorBox message={coverProblemOf(decide.error) ? problemText(coverProblemOf(decide.error)!) : errorMessage(decide.error)} />}
           {pickedName && (
             <Button onClick={() => decide.mutate({ approve: true, offer: pick?.offer, cover: pick?.cover })} disabled={decide.isPending}>
               ✅ {t('attendance.approveWith', { name: pickedName })}
@@ -286,6 +296,7 @@ function ReportsTab() {
         <span className="text-xs text-muted">
           📞 {noticeText(ts, c.notice_min)}
           {c.status === 'open' && c.recruit && ` ・ 🙋 ${t('attendance.offers', { n: c.offers.filter((o) => o.status === 'offered').length })}`}
+          {c.status === 'open' && c.proposed_cover && ` ・ 🤝 ${t('attendance.proposed', { name: c.proposed_cover })}`}
           {c.cover_name && ` ・ ${ts('change.coveredBy', { name: c.cover_name })}`}
         </span>
       </button>

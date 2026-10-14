@@ -27,7 +27,7 @@
     "homeTripWhen": "When will you go home?",
     "homeTripWhenHint": "e.g. 4/30–5/5",
     "paidLeave": "Paid leave",
-    "paidLeaveComment": "Comment (number of days, etc.)",
+    "paidLeaveComment": "Comment (optional)",
     "schoolHoliday": "School holidays",
     "schoolHolidayHint": "e.g. 2026/9/26–10/8",
     "resign": "Do you plan to quit (leave Kinryu)?",
@@ -54,7 +54,9 @@
     "shifts": "Choose at least one shift.",
     "homeTripWhen": "Write when you will go home.",
     "resignWhen": "Write when you plan to quit.",
-    "checks": "Tick both confirmations."
+    "checks": "Tick both confirmations.",
+    "paidLeaveDays": "Choose your paid leave days.",
+    "paidLeaveConflict": "Paid leave days overlap days you can work. Fix one of them."
   },
   "deadline": "Deadline: {{date}} (the 20th)",
   "closed": "The deadline ({{date}}) has passed, so this cannot be changed. Please contact a manager.",
@@ -193,7 +195,26 @@
     "noticeMin": "told {{n}} min before",
     "noticeHours": "told {{n}} h before",
     "homeRecruit": "{{n}} cover request(s)",
-    "homeCovering": "You cover {{n}} shift(s)"
+    "homeCovering": "You cover {{n}} shift(s)",
+    "coverLabel": "Replacement",
+    "coverRecruit": "Ask in the app",
+    "coverNamed": "Already found someone (we talked)",
+    "coverNone": "Do not ask (a manager will arrange)",
+    "coverPick": "Who will cover",
+    "checking": "Checking…",
+    "coverOk": "{{name}} can cover. A manager approves after you send.",
+    "namedHint": "Choose this when you agreed with the person. The shift changes when a manager approves.",
+    "namedPending": "Named {{name}} — waiting for a manager",
+    "designatedYou": "{{name}} named you as the replacement. Waiting for a manager.",
+    "visaBlockedYou": "Taking this shift would make {{h}} h in 7 days in a row, over the 28 h limit (student / dependent visa), so you cannot.",
+    "homeNamed": "{{name}} named you as the replacement",
+    "problem": {
+      "self": "You cannot choose yourself.",
+      "unknown": "{{name}} is not on the staff list.",
+      "busy": "{{name}} works at that time and cannot cover.",
+      "visa": "{{name}} cannot cover: it would make {{h}} h in 7 days in a row ({{from}}–{{to}}), over the 28 h limit (student / dependent visa).",
+      "visa_other": "The swap is not possible: {{name}} would have {{h}} h in 7 days in a row ({{from}}–{{to}}), over the 28 h limit (student / dependent visa)."
+    }
   },
   "score": {
     "title": "Attendance score (last {{n}} days)",
@@ -229,5 +250,18 @@
       "A 95+ / B 85–94 / C 70–84 (talk with a manager) / D below 70"
     ],
     "notReported": "not reported (from the 販売日報)"
+  },
+  "paid": {
+    "label": "Paid leave days",
+    "single": "One by one",
+    "range": "Days in a row",
+    "singleHint": "Tap the days you want off (tap again to undo).",
+    "rangeStart": "Tap the first day.",
+    "rangeEnd": "From {{d}} — tap the last day.",
+    "work": "work",
+    "refused": "{{days}} is marked as a day you can work above, so it cannot be paid leave.",
+    "selected": "Chosen: {{days}} ({{n}} days)",
+    "none": "Nothing chosen yet.",
+    "short": "Paid"
   }
 }

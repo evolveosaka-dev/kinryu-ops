@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { attendanceScores, gradeOf, labelOf, type AttendanceEvent } from './attendance'
-import { coverCandidates, leaveOptions, maxRollingWeek, noticeMinutes, reasonsFor, reportable, visaRuns } from './shiftChange'
+import { coverCandidates, coverProblemOf, leaveOptions, maxRollingWeek, noticeMinutes, reasonsFor, reportable, visaRuns } from './shiftChange'
 
 const a = (roster_name: string, business_date: string, shift: 'early' | 'middle' | 'late', start_min: number, end_min: number) => ({
   roster_name,
@@ -13,8 +13,8 @@ const a = (roster_name: string, business_date: string, shift: 'early' | 'middle'
 const jst = (s: string) => new Date(`${s}+09:00`)
 
 describe('休み連絡', () => {
-  it('reasons: 店の都合 for managers, 有給 only for a day off', () => {
-    expect(reasonsFor('absence', false)).toEqual(['sick', 'family', 'transport', 'personal', 'paid_leave', 'other'])
+  it('reasons: 店の都合 for managers, no 有給 (requested with シフト希望)', () => {
+    expect(reasonsFor('absence', false)).toEqual(['sick', 'family', 'transport', 'personal', 'other'])
     expect(reasonsFor('late', true)).toEqual(['sick', 'family', 'transport', 'personal', 'store', 'other'])
   })
   it('reportable shifts: not over, within the window, in order', () => {
@@ -119,5 +119,14 @@ describe('出勤評価', () => {
     expect(s.find((p) => p.name === 'A')!.score).toBe(100)
     expect(s.find((p) => p.name === 'B')).toMatchObject({ score: 80, urgent: true })
     expect(s.find((p) => p.name === 'C')).toMatchObject({ score: 100, counts: expect.objectContaining({ noShow: 0 }) })
+  })
+})
+
+describe('cover problems from the server', () => {
+  it('parses cover_problem:{json}', () => {
+    const err = new Error('cover_problem:{"name": "キタ", "problem": "visa", "minutes": 2040, "from": "2026-10-20", "to": "2026-10-26"}')
+    expect(coverProblemOf(err)).toEqual({ name: 'キタ', problem: 'visa', minutes: 2040, from: '2026-10-20', to: '2026-10-26' })
+    expect(coverProblemOf({ message: 'cover_problem:{"name":"A","problem":"busy"}' })).toEqual({ name: 'A', problem: 'busy' })
+    expect(coverProblemOf(new Error('not open'))).toBeNull()
   })
 })

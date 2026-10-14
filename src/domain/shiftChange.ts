@@ -9,9 +9,12 @@ export type ChangeKind = (typeof CHANGE_KINDS)[number]
 // keep in sync with report_shift_change (SQL) and send-notifications CHANGE_REASON
 export const CHANGE_REASONS = ['sick', 'family', 'transport', 'personal', 'paid_leave', 'store', 'other'] as const
 export type ChangeReason = (typeof CHANGE_REASONS)[number]
-/** 店の都合 is set by managers only; 有給 only for a day off. */
-export const reasonsFor = (kind: ChangeKind, manager: boolean): ChangeReason[] =>
-  CHANGE_REASONS.filter((r) => (r !== 'store' || manager) && (r !== 'paid_leave' || kind === 'absence'))
+/**
+ * 店の都合 is set by managers only. 有給 is not chosen here (owner, 2026-10-15): paid leave days are
+ * requested with シフト希望提出 for the next month; the value stays for older reports.
+ */
+export const reasonsFor = (_kind: ChangeKind, manager: boolean): ChangeReason[] =>
+  CHANGE_REASONS.filter((r) => r !== 'paid_leave' && (r !== 'store' || manager))
 
 export const REASON_ICON: Record<ChangeReason, string> = { sick: '🤒', family: '👪', transport: '🚃', personal: '📌', paid_leave: '🏖️', store: '🏪', other: '✏️' }
 export const KIND_ICON: Record<ChangeKind, string> = { absence: '🛌', late: '⏰', early_leave: '🏃' }
@@ -49,6 +52,29 @@ export interface ShiftChange {
   decided_at: string | null
   manager_note: string | null
   by_manager: boolean
+  /** named by the reporter (代わりの人を指名), waiting for a manager */
+  proposed_cover: string | null
+}
+
+/** Why someone cannot take a shift (SQL cover_problem / visa_over). */
+export interface CoverProblem {
+  problem: 'self' | 'unknown' | 'busy' | 'visa' | 'visa_other'
+  name: string
+  minutes?: number
+  from?: string
+  to?: string
+}
+
+/** The server refuses with 'cover_problem:{json}'. */
+export function coverProblemOf(err: unknown): CoverProblem | null {
+  const msg = err instanceof Error ? err.message : typeof err === 'object' && err && 'message' in err ? String((err as { message: unknown }).message) : ''
+  const m = /cover_problem:(\{.*\})/.exec(msg)
+  if (!m) return null
+  try {
+    return JSON.parse(m[1]!) as CoverProblem
+  } catch {
+    return null
+  }
 }
 
 export interface ShiftOffer {
@@ -80,6 +106,10 @@ export interface Recruit {
   my_give_date: string | null
   my_give_shift: Shift | null
   assigned: boolean
+  /** the reporter named me */
+  designated: boolean
+  /** minutes in the worst 7 days if I took it, when over 28 h (留学 / 家族滞在) */
+  my_over_min: number | null
 }
 
 /** The part of the shift a replacement would work (from the leave time for 早退). */

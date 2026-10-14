@@ -23,6 +23,7 @@ import { errorMessage, isNetworkError } from '../../lib/format'
 import { unwrap, useHolidays } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
+import { PaidLeavePicker } from './PaidLeavePicker'
 
 interface StoredRequest {
   id: string
@@ -137,7 +138,7 @@ function ShiftRequestForm({
 
   const submit = useMutation({
     mutationFn: async () => {
-      const problems = validateRequest(shifts, answers)
+      const problems = validateRequest(shifts, answers, days)
       setErrors(problems)
       if (problems.length) throw new Error('validation')
       // free text in other languages → Japanese, confirmed by the writer
@@ -148,7 +149,7 @@ function ShiftRequestForm({
         { key: 'schoolHoliday', label: t('q.schoolHoliday'), text: answers.schoolHoliday.trim() || null },
         { key: 'resignWhen', label: t('q.resignWhen'), text: answers.resignWhen.trim() || null },
       ])
-      const finalAnswers: ShiftAnswers = { ...answers }
+      const finalAnswers: ShiftAnswers = { ...answers, paidLeaveDays: answers.paidLeave === 'want' ? answers.paidLeaveDays : [] }
       for (const k of ['message', 'paidLeaveComment', 'homeTripWhen', 'schoolHoliday', 'resignWhen'] as const) finalAnswers[k] = tr.values[k] ?? ''
       // keep only the chosen shifts in the day data
       const cleanDays = Object.fromEntries(
@@ -257,6 +258,9 @@ function ShiftRequestForm({
                     <span className={cx('w-11 shrink-0 pt-2 font-bold', isOff(date) && 'text-red-700')}>
                       {Number(date.slice(8, 10))}
                       <span className="ml-1 text-xs">{t(`common:wd.${weekdayOf(date)}`)}</span>
+                      {answers.paidLeave === 'want' && answers.paidLeaveDays?.includes(date) && (
+                        <span className="mt-0.5 block rounded bg-sky-100 text-center text-[10px] text-sky-900">{t('paid.short')}</span>
+                      )}
                     </span>
                     <div className="flex flex-1 flex-col gap-1.5">
                       {shifts.map((s) => (
@@ -311,7 +315,11 @@ function ShiftRequestForm({
             options={(['none', 'want'] as const).map((v) => ({ value: v, label: t(`opt.paidLeave.${v}`) }))}
           />
           {answers.paidLeave === 'want' && (
-            <TextInput label={t('q.paidLeaveComment')} value={answers.paidLeaveComment} onChange={(e) => set({ paidLeaveComment: e.target.value })} />
+            <>
+              <PaidLeavePicker month={month} value={answers.paidLeaveDays ?? []} onChange={(paidLeaveDays) => set({ paidLeaveDays })} days={days} shifts={shifts} />
+              {errors.includes('paidLeaveDays') && <ErrorBox message={t('err.paidLeaveDays')} />}
+              <TextInput label={t('q.paidLeaveComment')} value={answers.paidLeaveComment} onChange={(e) => set({ paidLeaveComment: e.target.value })} />
+            </>
           )}
           <TextInput label={t('q.schoolHoliday')} hint={t('q.schoolHolidayHint')} value={answers.schoolHoliday} onChange={(e) => set({ schoolHoliday: e.target.value })} />
           <Segmented

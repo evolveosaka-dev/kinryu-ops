@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { EMPTY_ANSWERS, isRequestOpen, monthDates, nextMonth, requestDeadline, sheetCell, sheetDayLabel, sheetRows, validateRequest } from './shiftRequest'
+import { dateSpan, EMPTY_ANSWERS, formatDayRanges, isRequestOpen, monthDates, nextMonth, paidLeaveConflicts, requestDeadline, sheetCell, sheetDayLabel, sheetRows, validateRequest } from './shiftRequest'
 
 describe('dates', () => {
   it('lists every day of the month', () => {
@@ -46,7 +46,7 @@ describe('sheetRows', () => {
     submittedAt: '2026/10/20 10:00:00',
     shifts: ['early' as const],
     days: { '2026-11-02': { early: 'afternoon' as const } },
-    answers: { ...EMPTY_ANSWERS, paidLeave: 'want' as const, paidLeaveComment: '2日', checkedNotice: true, checkedIrregular: true },
+    answers: { ...EMPTY_ANSWERS, paidLeave: 'want' as const, paidLeaveDays: ['2026-11-04', '2026-11-03'], paidLeaveComment: '理由: 帰省', checkedNotice: true, checkedIrregular: true },
   }
   it('one column per person who requested the shift, rows like the sheet', () => {
     const rows = sheetRows('early', '2026-11-01', [req])
@@ -67,5 +67,18 @@ describe('validateRequest', () => {
       'resignWhen',
     ])
     expect(validateRequest(['late'], { ...EMPTY_ANSWERS, checkedNotice: true, checkedIrregular: true })).toEqual([])
+  })
+})
+
+describe('有給休暇の日', () => {
+  it('runs of days, conflicts with 出勤できる日, validation', () => {
+    expect(dateSpan('2026-11-05', '2026-11-03')).toEqual(['2026-11-03', '2026-11-04', '2026-11-05'])
+    expect(formatDayRanges(['2026-11-14', '2026-11-03', '2026-11-04', '2026-11-05', '2026-11-20'])).toBe('11/3〜11/5、11/14、11/20')
+    const days = { '2026-11-04': { early: 'full' as const }, '2026-11-05': { late: 'ok' as const } }
+    expect(paidLeaveConflicts(['2026-11-03', '2026-11-04', '2026-11-05'], days, ['early'])).toEqual(['2026-11-04'])
+    const base = { ...EMPTY_ANSWERS, checkedNotice: true, checkedIrregular: true, paidLeave: 'want' as const }
+    expect(validateRequest(['early'], base, days)).toEqual(['paidLeaveDays'])
+    expect(validateRequest(['early'], { ...base, paidLeaveDays: ['2026-11-04'] }, days)).toEqual(['paidLeaveConflict'])
+    expect(validateRequest(['early'], { ...base, paidLeaveDays: ['2026-11-03'] }, days)).toEqual([])
   })
 })

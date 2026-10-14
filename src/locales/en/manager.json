@@ -695,7 +695,7 @@
     "noOffers": "No offers yet. Pick from the candidates below.",
     "notRecruiting": "Not asking for a replacement. Pick from the candidates below.",
     "candidates": "Candidates (not working then)",
-    "candidatesHelp": "Check the weekly hours (with this shift), the weekly limit and 12 h in a row. Someone you asked by phone can be chosen here too.",
+    "candidatesHelp": "Check the hours in 7 days in a row (with this shift), the limit (28 h for student / dependent visas) and 12 h in a row. People over 28 h cannot be approved. Someone you asked by phone can be chosen here too.",
     "week": "{{h}} h in 7 days",
     "limit": "limit {{h}} h",
     "overLimit": "over the limit",
@@ -733,6 +733,8 @@
     "limitTitle": "Weekly limit",
     "limitHelp": "Student / dependent visas: check them on 管理 → 設定 → ユーザー (28 h in 7 days in a row). For other limits enter the hours here. Empty = no limit.",
     "limitHours": "hours / week",
-    "visaLimit": "at most 28 h in 7 days in a row (set on the user screen)"
+    "visaLimit": "at most 28 h in 7 days in a row (set on the user screen)",
+    "proposed": "Named by the reporter: {{name}} (agreed)",
+    "chooseProposed": "Approve with this person (confirm below)"
   }
 }

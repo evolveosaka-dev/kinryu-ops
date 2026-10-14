@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { formatMin } from '../../domain/schedule'
 import type { AttendanceEvent } from '../../domain/attendance'
-import { KIND_ICON, type ShiftChange, type ShiftOffer, type Recruit, type Visa, type VisaWindow } from '../../domain/shiftChange'
+import { KIND_ICON, type CoverProblem, type ShiftChange, type ShiftOffer, type Recruit, type Visa, type VisaWindow } from '../../domain/shiftChange'
 import { addDays, tokyoParts } from '../../domain/time'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
@@ -110,4 +110,16 @@ export function useVisaWindows() {
     queryKey: ['admin', 'visa_windows', d],
     queryFn: async () => unwrap<VisaWindow[]>(await supabase.rpc('visa_hour_windows', { p_from: addDays(d, -6), p_to: addDays(d, 42) })),
   })
+}
+
+/** 「キタさんは連続7日間で28時間を超えます（10/20〜10/26 最大34時間）」 */
+export function useProblemText() {
+  const { t } = useTranslation('shift')
+  return (p: CoverProblem) =>
+    t(`change.problem.${p.problem}`, {
+      name: p.name,
+      h: p.minutes ? Math.round((p.minutes / 60) * 10) / 10 : '',
+      from: p.from ? p.from.slice(5).replace('-', '/') : '',
+      to: p.to ? p.to.slice(5).replace('-', '/') : '',
+    })
 }

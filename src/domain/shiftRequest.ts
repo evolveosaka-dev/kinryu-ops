@@ -37,6 +37,8 @@ export interface ShiftAnswers {
   homeTrip: YesNoUnknown
   homeTripWhen: string
   paidLeave: 'none' | 'want'
+  /** 有給休暇 days (YYYY-MM-DD), chosen one by one or as a run of days; never a day marked 出勤できる */
+  paidLeaveDays: string[]
   paidLeaveComment: string
   schoolHoliday: string
   resign: 'no' | 'yes'
@@ -50,6 +52,7 @@ export const EMPTY_ANSWERS: ShiftAnswers = {
   homeTrip: 'no',
   homeTripWhen: '',
   paidLeave: 'none',
+  paidLeaveDays: [],
   paidLeaveComment: '',
   schoolHoliday: '',
   resign: 'no',
@@ -79,12 +82,49 @@ export const QUESTIONS_JA = [
   '↑\u3000「イレギュラー対応シート」の記入について」を確認しましたか？',
 ]
 
-export type AnswerError = 'shifts' | 'homeTripWhen' | 'resignWhen' | 'checks'
+export type AnswerError = 'shifts' | 'homeTripWhen' | 'paidLeaveDays' | 'paidLeaveConflict' | 'resignWhen' | 'checks'
 
-export function validateRequest(shifts: Shift[], answers: ShiftAnswers): AnswerError[] {
+/** Is the day marked 出勤できる for one of the chosen shifts? */
+export const isAvailable = (day: DayChoice | undefined, shifts: Shift[]) => Boolean(day && shifts.some((s) => day[s]))
+
+/** 有給 days that are also marked 出勤できる. */
+export function paidLeaveConflicts(paidDays: string[], days: Record<string, DayChoice>, shifts: Shift[]): string[] {
+  return paidDays.filter((d) => isAvailable(days[d], shifts)).sort()
+}
+
+/** Every date from a to b (either order), inclusive. */
+export function dateSpan(a: string, b: string): string[] {
+  const [from, to] = a <= b ? [a, b] : [b, a]
+  const out: string[] = []
+  for (let d = from; d <= to; d = addDays(d, 1)) out.push(d)
+  return out
+}
+
+/** "10/5、10/12〜10/14" — runs of consecutive days joined. */
+export function formatDayRanges(dates: string[]): string {
+  const xs = [...new Set(dates)].sort()
+  const md = (d: string) => `${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}`
+  const parts: string[] = []
+  let start = xs[0]
+  let prev = xs[0]
+  for (const d of [...xs.slice(1), null]) {
+    if (d && addDays(prev!, 1) === d) {
+      prev = d
+      continue
+    }
+    if (start) parts.push(start === prev ? md(start) : `${md(start)}〜${md(prev!)}`)
+    start = d ?? undefined
+    prev = d ?? undefined
+  }
+  return parts.join('、')
+}
+
+export function validateRequest(shifts: Shift[], answers: ShiftAnswers, days: Record<string, DayChoice> = {}): AnswerError[] {
   const errors: AnswerError[] = []
   if (shifts.length === 0) errors.push('shifts')
   if (answers.homeTrip === 'yes' && !answers.homeTripWhen.trim()) errors.push('homeTripWhen')
+  if (answers.paidLeave === 'want' && (answers.paidLeaveDays ?? []).length === 0) errors.push('paidLeaveDays')
+  if (answers.paidLeave === 'want' && paidLeaveConflicts(answers.paidLeaveDays ?? [], days, shifts).length) errors.push('paidLeaveConflict')
   if (answers.resign === 'yes' && !answers.resignWhen.trim()) errors.push('resignWhen')
   if (!answers.checkedNotice || !answers.checkedIrregular) errors.push('checks')
   return errors
@@ -137,7 +177,7 @@ export function answerCells(a: ShiftAnswers): string[] {
     ANSWER_VALUE.homeTrip[a.homeTrip],
     a.homeTripWhen,
     ANSWER_VALUE.paidLeave[a.paidLeave],
-    a.paidLeaveComment,
+    [a.paidLeave === 'want' && a.paidLeaveDays?.length ? `${formatDayRanges(a.paidLeaveDays)}（${a.paidLeaveDays.length}日）` : '', a.paidLeaveComment].filter(Boolean).join(' '),
     a.schoolHoliday,
     ANSWER_VALUE.resign[a.resign],
     a.resignWhen,

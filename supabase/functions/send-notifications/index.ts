@@ -425,7 +425,7 @@ async function renderShiftChange(admin: Admin, L: Lookup, e: NotifyEvent) {
       `内容: ${what}`,
       `理由: ${CHANGE_REASON[r.reason] ?? r.reason}${r.note ? `（${r.note}）` : ''}`,
       `連絡: ${jst(r.reported_at)}（${noticeText(r.notice_min)}）`,
-      `代わり: ${r.kind === 'late' ? '—' : r.recruit ? `募集中${r.swap_ok ? '（交換も可）' : ''}` : '募集しない（管理者が手配）'}`,
+      `代わり: ${r.kind === 'late' ? '—' : r.proposed_cover ? `本人が指名 ${r.proposed_cover}さん（話し合い済み・承認待ち）` : r.recruit ? `募集中${r.swap_ok ? '（交換も可）' : ''}` : '募集しない（管理者が手配）'}`,
       '',
       'アプリの 管理 → 出勤 で、代わりの人を選んで承認してください。',
     ],

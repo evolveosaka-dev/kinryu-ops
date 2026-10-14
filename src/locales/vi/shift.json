@@ -27,7 +27,7 @@
     "homeTripWhen": "Khi nào bạn về nước?",
     "homeTripWhenHint": "Ví dụ: 4/30～5/5",
     "paidLeave": "Nghỉ phép có lương",
-    "paidLeaveComment": "Ghi chú (số ngày…)",
+    "paidLeaveComment": "Ghi chú (không bắt buộc)",
     "schoolHoliday": "Kỳ nghỉ dài của trường",
     "schoolHolidayHint": "Ví dụ: 26/9/2026～8/10",
     "resign": "Bạn có dự định nghỉ việc ở Kinryu không?",
@@ -54,7 +54,9 @@
     "shifts": "Hãy chọn ít nhất 1 ca.",
     "homeTripWhen": "Hãy ghi thời gian về nước.",
     "resignWhen": "Hãy ghi thời gian dự định nghỉ việc.",
-    "checks": "Hãy đánh dấu cả 2 mục xác nhận."
+    "checks": "Hãy đánh dấu cả 2 mục xác nhận.",
+    "paidLeaveDays": "Hãy chọn ngày nghỉ phép có lương.",
+    "paidLeaveConflict": "Ngày nghỉ phép trùng với ngày có thể đi làm. Hãy sửa một bên."
   },
   "deadline": "Hạn nộp: {{date}} (ngày 20)",
   "closed": "Đã quá hạn nộp ({{date}}) nên không sửa được. Nếu cần thay đổi, hãy liên hệ quản lý.",
@@ -193,7 +195,26 @@
     "noticeMin": "báo trước {{n}} phút",
     "noticeHours": "báo trước {{n}} tiếng",
     "homeRecruit": "Có {{n}} ca cần người thay",
-    "homeCovering": "Bạn làm thay {{n}} ca"
+    "homeCovering": "Bạn làm thay {{n}} ca",
+    "coverLabel": "Người làm thay",
+    "coverRecruit": "Tìm trong app",
+    "coverNamed": "Đã có người (đã nói chuyện)",
+    "coverNone": "Không tìm (để quản lý sắp xếp)",
+    "coverPick": "Người làm thay",
+    "checking": "Đang kiểm tra…",
+    "coverOk": "{{name}} có thể làm thay. Gửi xong quản lý sẽ duyệt.",
+    "namedHint": "Chọn khi bạn đã thỏa thuận với người đó. Khi quản lý duyệt, ca sẽ được đổi.",
+    "namedPending": "Đã chỉ định {{name}} — chờ quản lý duyệt",
+    "designatedYou": "{{name}} đã chỉ định bạn làm thay. Đang chờ quản lý duyệt.",
+    "visaBlockedYou": "Nếu nhận ca này, bạn sẽ làm {{h}} tiếng trong 7 ngày liên tục, vượt giới hạn 28 tiếng (visa du học / gia đình), nên không thể nhận.",
+    "homeNamed": "{{name}} đã chỉ định bạn làm thay",
+    "problem": {
+      "self": "Không thể chọn chính mình.",
+      "unknown": "{{name}} không có trong danh sách nhân viên.",
+      "busy": "{{name}} có ca khác vào giờ đó nên không thể làm thay.",
+      "visa": "{{name}} không thể làm thay: sẽ làm {{h}} tiếng trong 7 ngày liên tục ({{from}}–{{to}}), vượt giới hạn 28 tiếng (visa du học / gia đình).",
+      "visa_other": "Không thể đổi ca: {{name}} sẽ làm {{h}} tiếng trong 7 ngày liên tục ({{from}}–{{to}}), vượt giới hạn 28 tiếng (visa du học / gia đình)."
+    }
   },
   "score": {
     "title": "Điểm đi làm ({{n}} ngày gần nhất)",
@@ -229,5 +250,18 @@
       "A từ 95 / B 85–94 / C 70–84 (nói chuyện với quản lý) / D dưới 70"
     ],
     "notReported": "không báo (theo 販売日報)"
+  },
+  "paid": {
+    "label": "Ngày nghỉ phép có lương",
+    "single": "Từng ngày",
+    "range": "Nhiều ngày liên tục",
+    "singleHint": "Bấm vào ngày muốn nghỉ (bấm lại để bỏ).",
+    "rangeStart": "Bấm ngày đầu tiên.",
+    "rangeEnd": "Từ {{d}} — bấm ngày cuối cùng.",
+    "work": "đi làm",
+    "refused": "{{days}} đã được chọn là ngày có thể đi làm ở trên, nên không thể nghỉ phép.",
+    "selected": "Đã chọn: {{days}} ({{n}} ngày)",
+    "none": "Chưa chọn ngày nào.",
+    "short": "Phép"
   }
 }

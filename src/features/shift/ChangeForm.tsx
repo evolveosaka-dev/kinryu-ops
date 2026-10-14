@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Checkbox, ErrorBox, Segmented, TextArea, TextInput } from '../../components/ui'
@@ -12,8 +12,10 @@ import {
   noticeMinutes,
   REASON_ICON,
   reasonsFor,
+  coverProblemOf,
   type ChangeKind,
   type ChangeReason,
+  type CoverProblem,
 } from '../../domain/shiftChange'
 import { cx } from '../../lib/cx'
 import { errorMessage } from '../../lib/format'
@@ -21,6 +23,7 @@ import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import { fromLocalInput, toLocalInput } from '../manager/data'
 import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
+import { useProblemText } from './changeData'
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -50,12 +53,32 @@ export function ChangeForm({ a, rosterName, onDone }: { a: Assignment; rosterNam
   const [leaveMin, setLeaveMin] = useState<number | null>(null)
   const [note, setNote] = useState('')
   const [recruit, setRecruit] = useState(true)
+  // 代わり: 募集する / もう決まっている (named) / 募集しない; a manager records a call without naming
+  const [coverMode, setCoverMode] = useState<'recruit' | 'named' | 'none'>('recruit')
+  const [coverName, setCoverName] = useState('')
+  const problemText = useProblemText()
+  const names = useQuery({
+    queryKey: ['staff_roster', 'active-names'],
+    enabled: !manager && coverMode === 'named',
+    staleTime: 5 * 60_000,
+    queryFn: async () => unwrap<{ name: string }[]>(await supabase.from('staff_roster').select('name').eq('active', true).order('name')).map((r) => r.name),
+  })
+  const check = useQuery({
+    queryKey: ['check_cover', a.business_date, a.shift, kind, leaveMin, coverName],
+    enabled: !manager && coverMode === 'named' && Boolean(coverName) && kind !== 'late' && (kind !== 'early_leave' || Boolean(leaveMin)),
+    queryFn: async () =>
+      unwrap<CoverProblem | null>(
+        await supabase.rpc('check_cover', { p_date: a.business_date, p_shift: a.shift, p_kind: kind, p_leave_min: leaveMin, p_name: coverName }),
+      ),
+  })
+  const named = !manager && kind !== 'late' && coverMode === 'named'
+  const namedOk = !named || (Boolean(coverName) && check.isSuccess && check.data === null)
   const [swapOk, setSwapOk] = useState(false)
   const [reportedAt, setReportedAt] = useState(() => toLocalInput(new Date().toISOString()))
   const notice = noticeMinutes(a, manager ? new Date(fromLocalInput(reportedAt)) : new Date())
   const reasons = reasonsFor(kind, manager)
   const needNote = reason === 'other' && !note.trim()
-  const ready = reason !== null && reasons.includes(reason) && !needNote && (kind !== 'late' || lateMin) && (kind !== 'early_leave' || leaveMin)
+  const ready = reason !== null && reasons.includes(reason) && !needNote && (kind !== 'late' || lateMin) && (kind !== 'early_leave' || leaveMin) && namedOk
 
   const send = useMutation({
     mutationFn: async () => {
@@ -71,8 +94,9 @@ export function ChangeForm({ a, rosterName, onDone }: { a: Assignment; rosterNam
           p_source_lang: g.sourceLang,
           p_late_min: kind === 'late' ? lateMin : null,
           p_leave_min: kind === 'early_leave' ? leaveMin : null,
-          p_recruit: kind !== 'late' && recruit,
-          p_swap_ok: kind === 'absence' && recruit && swapOk,
+          p_recruit: kind !== 'late' && (manager ? recruit : coverMode === 'recruit'),
+          p_swap_ok: kind === 'absence' && (manager ? recruit : coverMode === 'recruit') && swapOk,
+          p_cover: named ? coverName : null,
           ...(manager ? { p_roster_name: rosterName, p_reported_at: fromLocalInput(reportedAt) } : {}),
         }),
       )
@@ -142,7 +166,6 @@ export function ChangeForm({ a, rosterName, onDone }: { a: Assignment; rosterNam
             </button>
           ))}
         </div>
-        {reason === 'paid_leave' && <p className="text-sm text-muted">{t('change.paidHint')}</p>}
       </fieldset>
 
       <TextArea
@@ -153,7 +176,7 @@ export function ChangeForm({ a, rosterName, onDone }: { a: Assignment; rosterNam
         error={needNote ? t('common:error.required') : null}
       />
 
-      {kind !== 'late' && (
+      {kind !== 'late' && manager && (
         <div className="rounded-xl bg-surface p-2">
           <Checkbox checked={recruit} onChange={setRecruit}>
             🙋 {t('change.recruit')}
@@ -166,6 +189,49 @@ export function ChangeForm({ a, rosterName, onDone }: { a: Assignment; rosterNam
           <p className="px-1 text-sm text-muted">{recruit ? t('change.recruitHint') : t('change.noRecruitHint')}</p>
         </div>
       )}
+      {kind !== 'late' && !manager && (
+        <div className="flex flex-col gap-2 rounded-xl bg-surface p-2">
+          <Segmented
+            label={t('change.coverLabel')}
+            value={coverMode}
+            onChange={setCoverMode}
+            columns={1}
+            options={[
+              { value: 'recruit', label: `🙋 ${t('change.coverRecruit')}` },
+              { value: 'named', label: `🤝 ${t('change.coverNamed')}` },
+              { value: 'none', label: t('change.coverNone') },
+            ]}
+          />
+          {coverMode === 'recruit' && (
+            <>
+              {kind === 'absence' && (
+                <Checkbox checked={swapOk} onChange={setSwapOk}>
+                  🔁 {t('change.swapOk')}
+                </Checkbox>
+              )}
+              <p className="px-1 text-sm text-muted">{t('change.recruitHint')}</p>
+            </>
+          )}
+          {coverMode === 'named' && (
+            <>
+              <label className="flex flex-col gap-1 px-1 text-[15px] font-bold">
+                {t('change.coverPick')}
+                <select className="min-h-12 rounded-xl border border-slate-400 bg-white px-2 font-normal" value={coverName} onChange={(e) => setCoverName(e.target.value)}>
+                  <option value="">—</option>
+                  {(names.data ?? []).map((n) => (
+                    <option key={n}>{n}</option>
+                  ))}
+                </select>
+              </label>
+              {coverName && check.isLoading && <p className="px-1 text-sm text-muted">{t('change.checking')}</p>}
+              {coverName && check.isSuccess && check.data === null && <p className="rounded-lg bg-green-50 px-2 py-1.5 font-bold text-green-800">✓ {t('change.coverOk', { name: coverName })}</p>}
+              {coverName && check.data && <p className="rounded-lg bg-red-50 px-2 py-1.5 font-bold text-red-800">✗ {problemText(check.data)}</p>}
+              <p className="px-1 text-sm text-muted">{t('change.namedHint')}</p>
+            </>
+          )}
+          {coverMode === 'none' && <p className="px-1 text-sm text-muted">{t('change.noRecruitHint')}</p>}
+        </div>
+      )}
 
       {manager && <TextInput type="datetime-local" label={t('change.reportedAt')} value={reportedAt} onChange={(e) => setReportedAt(e.target.value)} />}
 
@@ -176,7 +242,9 @@ export function ChangeForm({ a, rosterName, onDone }: { a: Assignment; rosterNam
       )}
       <p className="text-sm text-muted">{t('change.scoreHint')}</p>
 
-      {send.error && !(send.error instanceof TranslationCancelled) && <ErrorBox message={errorMessage(send.error)} />}
+      {send.error && !(send.error instanceof TranslationCancelled) && (
+        <ErrorBox message={coverProblemOf(send.error) ? problemText(coverProblemOf(send.error)!) : errorMessage(send.error)} />
+      )}
       <Button onClick={() => send.mutate()} disabled={!ready || send.isPending}>
         {send.isPending ? t('common:action.loading') : t('change.send')}
       </Button>
