@@ -790,8 +790,18 @@
       "flag-open-patrols": "Patrol time check (every 15 min)",
       "purge-test-accounts": "Delete test data (4:00)",
       "check-visa-hours": "28 h check (hourly)",
-      "check-pending-changes": "Reminders for waiting reports (every 10 min)"
-    }
+      "check-pending-changes": "Reminders for waiting reports (every 10 min)",
+      "ai-report": "AI report (8:00)",
+      "backup-weekly": "Backup (Monday 4:30)"
+    },
+    "backupTitle": "Backup (Google Drive)",
+    "backupLast": "Last backup",
+    "backupNever": "none yet",
+    "backupResult": "{{tables}} tables, {{rows}} rows, {{kb}} KB",
+    "backupOpen": "Open the Drive folder",
+    "backupNote": "Every Monday 4:30 all data is saved to 「金龍 朝礼・巡回 / バックアップ」 (12 weeks kept). ⚠ after 8 days.",
+    "backupNow": "Back up now",
+    "backupRunning": "Backing up… (about 1 min)"
   },
   "incidents": {
     "title": "Complaints / accidents",
@@ -853,5 +863,17 @@
     "loss": "Waste / breakage",
     "diffs": "日報 differences (noodles / cash)",
     "incidents": "Complaints / accidents"
+  },
+  "forecast": {
+    "title": "Forecast (next 7 days)",
+    "titleShort": "Forecast today / tomorrow",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "bowls": " bowls",
+    "vsTarget": "{{n}}% of target",
+    "how": "Forecast = average of the same day type in the last 6 weeks × events × rain (shifts with ≥ 1 mm forecast).",
+    "error": "Error tested on the last 4 weeks ±{{n}}%.",
+    "rain": "Rain effect (measured): morning {{early}}% / evening {{middle}}% / night {{late}}%.",
+    "weatherError": "Could not get the weather forecast. Open again later."
   }
 }

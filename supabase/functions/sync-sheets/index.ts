@@ -1,6 +1,6 @@
 // Rewrites the Google Sheets copy of all records (daily at 07:30 JST via pg_cron, or on demand by a manager).
 // Values are written RAW so free text such as "=..." is never evaluated as a formula.
-import { ensureFolder, google, kvGet, kvSet, ROOT_FOLDER_NAME } from '../_shared/google.ts'
+import { ensureFolder, google, googleToken, kvGet, kvSet, ROOT_FOLDER_NAME } from '../_shared/google.ts'
 import { adminClient, env, HttpError, requireUser, serve } from '../_shared/http.ts'
 
 const TITLE = '金龍 朝礼・巡回 データ'
@@ -69,6 +69,86 @@ async function ensureSpreadsheet(admin: ReturnType<typeof adminClient>, sheetNam
   return id
 }
 
+// ---- バックアップ (owner, 2026-10-15): every Monday 4:30 JST (and from 管理 → システム状態) every business
+// table goes to Drive as one gzip-compressed JSON file per table in 金龍 朝礼・巡回/バックアップ/<date>/.
+// Backups older than 12 weeks are deleted. No secrets are in these tables; photos are already in Drive.
+
+const BACKUP_TABLES = [
+  'stores', 'profiles', 'bootstrap_accounts', 'staff_roster', 'holidays', 'target_bowls', 'target_events',
+  'chorei_records', 'chorei_notes', 'chorei_comments', 'chorei_misses', 'patrol_checks', 'patrol_comments', 'staff_interviews',
+  'attachments', 'shift_requests', 'shift_assignments', 'duty_assignments', 'shift_changes', 'shift_offers', 'staff_limits',
+  'attendance_overrides', 'stock_items', 'stock_events', 'sales_reports', 'sales_report_log', 'daily_sales', 'incidents',
+  'learn_items', 'notify_recipients', 'ai_reports', 'audit_log',
+]
+const KEEP_DAYS = 84
+
+async function gzipJson(value: unknown): Promise<Uint8Array> {
+  const stream = new Blob([JSON.stringify(value)]).stream().pipeThrough(new CompressionStream('gzip'))
+  return new Uint8Array(await new Response(stream).arrayBuffer())
+}
+
+async function uploadFile(folderId: string, name: string, bytes: Uint8Array) {
+  const boundary = `kinryu${crypto.randomUUID()}`
+  const meta = JSON.stringify({ name, parents: [folderId], mimeType: 'application/gzip' })
+  const body = new Blob([
+    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: application/gzip\r\n\r\n`,
+    bytes,
+    `\r\n--${boundary}--`,
+  ])
+  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${await googleToken()}`, 'Content-Type': `multipart/related; boundary=${boundary}` },
+    body,
+  })
+  if (!res.ok) throw new HttpError(502, `drive upload ${res.status}: ${(await res.text()).slice(0, 200)}`)
+}
+
+async function allRows(admin: ReturnType<typeof adminClient>, table: string) {
+  const out: unknown[] = []
+  for (let i = 0; ; i += 1000) {
+    const { data, error } = await admin.from(table).select('*').range(i, i + 999)
+    if (error) throw new Error(error.message)
+    out.push(...data)
+    if (data.length < 1000) return out
+  }
+}
+
+async function runBackup(admin: ReturnType<typeof adminClient>) {
+  const date = new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10)
+  const folderId = await ensureFolder(admin, ['バックアップ', date])
+  const tables: Record<string, number> = {}
+  const errors: Record<string, string> = {}
+  let bytes = 0
+  for (const t of BACKUP_TABLES) {
+    try {
+      const rows = await allRows(admin, t)
+      const gz = await gzipJson({ table: t, exported_at: new Date().toISOString(), rows })
+      await uploadFile(folderId, `${t}.json.gz`, gz)
+      tables[t] = rows.length
+      bytes += gz.length
+    } catch (err) {
+      errors[t] = err instanceof Error ? err.message : String(err)
+    }
+  }
+  // keep 12 weeks: the date folders under バックアップ older than that go to the trash
+  const parent = await ensureFolder(admin, ['バックアップ'])
+  const cutoff = new Date(Date.now() + 9 * 3600_000 - KEEP_DAYS * 86400_000).toISOString().slice(0, 10)
+  const list = await google<{ files: { id: string; name: string }[] }>(
+    `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(`'${parent}' in parents and trashed = false`)}&fields=files(id,name)&pageSize=200`,
+  )
+  let removed = 0
+  for (const f of list.files) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(f.name) && f.name < cutoff) {
+      await google(`https://www.googleapis.com/drive/v3/files/${f.id}`, { method: 'PATCH', body: JSON.stringify({ trashed: true }) })
+      removed++
+    }
+  }
+  await kvSet(admin, 'backup_at', new Date().toISOString())
+  await kvSet(admin, 'backup_url', `https://drive.google.com/drive/folders/${folderId}`)
+  await kvSet(admin, 'backup_result', JSON.stringify({ tables: Object.keys(tables).length, rows: Object.values(tables).reduce((a, b) => a + b, 0), bytes, errors }))
+  return { date, tables, bytes, errors, removed, url: `https://drive.google.com/drive/folders/${folderId}` }
+}
+
 serve(async (req) => {
   const admin = adminClient()
   const cronSecret = req.headers.get('x-cron-secret')
@@ -79,6 +159,8 @@ serve(async (req) => {
     if (!caller.isManager) throw new HttpError(403, 'managers only')
     if (caller.isTestAccount) throw new HttpError(403, 'test account: read only')
   }
+  const body = (await req.clone().json().catch(() => ({}))) as { action?: string }
+  if (body.action === 'backup') return runBackup(admin)
 
   const [stores, profiles, chorei, patrols, attachments, misses, stockLosses] = await Promise.all([
     admin.from('stores').select('id, name_ja'),

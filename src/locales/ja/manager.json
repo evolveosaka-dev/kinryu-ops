@@ -790,8 +790,18 @@
       "flag-open-patrols": "巡回の時間確認（15分ごと）",
       "purge-test-accounts": "テストデータ削除（4:00）",
       "check-visa-hours": "週28時間チェック（毎時）",
-      "check-pending-changes": "確認待ちの連絡の催促（10分ごと）"
-    }
+      "check-pending-changes": "確認待ちの連絡の催促（10分ごと）",
+      "ai-report": "AIレポート（8:00）",
+      "backup-weekly": "バックアップ（月曜4:30）"
+    },
+    "backupTitle": "バックアップ（Googleドライブ）",
+    "backupLast": "最後のバックアップ",
+    "backupNever": "まだありません",
+    "backupResult": "{{tables}}個の表・{{rows}}件・{{kb}}KB",
+    "backupOpen": "ドライブのフォルダを開く",
+    "backupNote": "毎週月曜4:30に全データを「金龍 朝礼・巡回 / バックアップ」へ保存（12週間分）。8日以上なければ⚠。",
+    "backupNow": "今すぐバックアップ",
+    "backupRunning": "バックアップ中…（1分ほど）"
   },
   "incidents": {
     "title": "クレーム・事故",
@@ -853,5 +863,17 @@
     "loss": "廃棄・破損（件）",
     "diffs": "日報の差異（麺 / 現金）",
     "incidents": "クレーム・事故"
+  },
+  "forecast": {
+    "title": "来週の予測（今日から7日間）",
+    "titleShort": "今日・明日の予測",
+    "today": "今日",
+    "tomorrow": "明日",
+    "bowls": "杯",
+    "vsTarget": "目標の{{n}}%",
+    "how": "予測 = 同じ日の種類の直近6週の平均 × イベント × 雨（1mm以上の予報の勤番）。",
+    "error": "過去4週で試した誤差 ±{{n}}%。",
+    "rain": "雨の影響（実績から）：早番 {{early}}% / 中番 {{middle}}% / 遅番 {{late}}%。",
+    "weatherError": "天気予報を取得できませんでした。しばらくしてから開いてください。"
   }
 }

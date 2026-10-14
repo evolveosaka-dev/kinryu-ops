@@ -28,7 +28,9 @@ describe('systemProblems', () => {
       uploads_pending: 1,
       jobs: [{ ...base.jobs[0]!, status: 'failed' }],
       sheets_synced_at: '2026-10-13T22:30:00Z',
+      backup_at: '2026-10-05T19:30:00Z',
     }
-    expect(systemProblems(s, now)).toEqual(['mails', 'notifyFailed', 'notifyWaiting', 'uploadsFailed', 'uploadsPending', 'jobs', 'sheets'])
+    expect(systemProblems(s, now)).toEqual(['mails', 'notifyFailed', 'notifyWaiting', 'uploadsFailed', 'uploadsPending', 'jobs', 'sheets', 'backup'])
+    expect(systemProblems({ ...base, backup_at: '2026-10-12T19:30:00Z', backup_result: { tables: 30, rows: 9, bytes: 1, errors: { audit_log: 'x' } } }, now)).toEqual(['backup'])
   })
 })

@@ -26,6 +26,7 @@ import { cx } from '../../../lib/cx'
 import { errorMessage, storeName } from '../../../lib/format'
 import { useHolidays, useStores, useTargetEvents, useTargets } from '../../../lib/queries'
 import { PeriodBar, Stat } from '../common'
+import { ForecastCard } from './ForecastCard'
 import { exportXlsx, today, usePeriod } from '../data'
 import { ManagerTabs } from '../ManagerTabs'
 import { DailyChart, LineChart } from './charts'
@@ -336,6 +337,7 @@ export function AnalysisPage() {
     <div className="flex flex-col gap-3">
       <ManagerTabs />
       <PageTitle title={t('analysis.title')} subtitle={t('analysis.note')} />
+      <ForecastCard days={7} />
       <PeriodBar period={period} allowModes={false} />
       <Segmented label="" value={store} onChange={setStore} options={[{ value: 'all', label: t('analysis.bothStores') }, ...(stores.data ?? []).map((s) => ({ value: s.id, label: storeName(s, 'ja') }))]} />
       <Segmented label="" value={shift} onChange={setShift} options={[{ value: 'all' as const, label: t('analysis.allShifts') }, ...SHIFTS.map((s) => ({ value: s, label: t(`common:shift.${s}`) }))]} />

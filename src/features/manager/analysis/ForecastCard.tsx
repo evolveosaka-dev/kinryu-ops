@@ -1,0 +1,128 @@
+import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Card, Spinner } from '../../../components/ui'
+import { backtest, dayTypeCache, forecastSlot, rainFactors, RAINY_MM } from '../../../domain/forecast'
+import { dayView, DATA_FROM, indexSales, type Ctx } from '../../../domain/salesAnalysis'
+import { addDays, formatShortDate, weekdayOf } from '../../../domain/time'
+import { SHIFTS } from '../../../domain/types'
+import { cx } from '../../../lib/cx'
+import { storeName } from '../../../lib/format'
+import { useHolidays, useStores, useTargetEvents, useTargets } from '../../../lib/queries'
+import { today } from '../data'
+import { useDailySales, useRain } from './data'
+
+/**
+ * 杯数の予測 for the next `days` days (today included), store × shift, with the target and the rain.
+ * `compact`: only today and tomorrow, for the ダッシュボード.
+ */
+export function ForecastCard({ days, compact = false }: { days: number; compact?: boolean }) {
+  const { t } = useTranslation('manager')
+  const stores = useStores()
+  const holidays = useHolidays()
+  const targets = useTargets()
+  const events = useTargetEvents()
+  const sales = useDailySales()
+  const rain = useRain()
+  const [open, setOpen] = useState<string | null>(null)
+  const now = today()
+
+  const result = useMemo(() => {
+    if (!stores.data || !holidays.data || !targets.data || !events.data || !sales.data || !rain.data) return null
+    const ctx: Ctx = {
+      sales: indexSales(sales.data),
+      targets: targets.data,
+      events: events.data,
+      holidays: holidays.data,
+      storeIds: stores.data.map((s) => s.id),
+      shifts: [...SHIFTS],
+    }
+    const typeOf = dayTypeCache(holidays.data)
+    const factors = rainFactors(ctx, typeOf, rain.data, DATA_FROM, addDays(now, -1))
+    const check = backtest(ctx, typeOf, rain.data, factors, now)
+    const dates = Array.from({ length: days }, (_, i) => addDays(now, i))
+    const rows = dates.map((date) => {
+      const view = dayView(ctx, date)
+      const slots = ctx.storeIds.flatMap((store) =>
+        SHIFTS.map((shift) => ({ ...forecastSlot(ctx, typeOf, date, store, shift, rain.data, factors), target: view.slots.find((s) => s.store === store && s.shift === shift)?.target ?? null })),
+      )
+      const value = slots.reduce((a, s) => a + (s.value ?? 0), 0)
+      const target = slots.every((s) => s.target !== null) ? slots.reduce((a, s) => a + s.target!, 0) : null
+      return { date, dayType: view.dayType, slots, value, target }
+    })
+    return { rows, factors, check }
+  }, [stores.data, holidays.data, targets.data, events.data, sales.data, rain.data, days, now])
+
+  if (rain.error) return <Card className="text-sm text-muted">🔮 {t('forecast.weatherError')}</Card>
+  if (!result) return compact ? null : <Spinner />
+  const short = (id: string) => storeName(stores.data?.find((s) => s.id === id), 'ja').replace('店', '')
+  const pct = (v: number | null, tg: number | null) => (v !== null && tg ? Math.round((v / tg) * 100) : null)
+  const rows = compact ? result.rows.slice(0, 2) : result.rows
+
+  return (
+    <Card className="flex flex-col gap-2">
+      <h2 className="font-bold">🔮 {compact ? t('forecast.titleShort') : t('forecast.title')}</h2>
+      <ul className="flex flex-col gap-1.5">
+        {rows.map((r) => {
+          const rate = pct(r.value, r.target)
+          const isOpen = compact || open === r.date
+          return (
+            <li key={r.date} className="rounded-xl border border-line">
+              <button
+                type="button"
+                disabled={compact}
+                onClick={() => setOpen(isOpen ? null : r.date)}
+                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left"
+              >
+                <span className="font-bold">
+                  {r.date === now ? t('forecast.today') : r.date === addDays(now, 1) ? t('forecast.tomorrow') : ''} {formatShortDate(r.date)}({t(`weekday.${weekdayOf(r.date)}`)})
+                  <span className="ml-1 text-xs font-normal text-muted">{t(`chorei:target.${r.dayType}`)}</span>
+                  {r.slots.some((s) => (s.rainMm ?? 0) >= RAINY_MM) && ' 🌧'}
+                </span>
+                <span className="text-right">
+                  <b className="tabular-nums">{r.value.toLocaleString()}</b>
+                  <span className="text-xs text-muted">
+                    {t('forecast.bowls')}
+                    {rate !== null && ` ・ ${t('forecast.vsTarget', { n: rate })}`}
+                  </span>
+                </span>
+              </button>
+              {isOpen && (
+                <table className="mb-2 w-full text-sm">
+                  <tbody>
+                    {r.slots.map((s) => {
+                      const sr = pct(s.value, s.target)
+                      return (
+                        <tr key={`${s.store}${s.shift}`} className="border-t border-line">
+                          <td className="px-3 py-1">
+                            {short(s.store)} {t(`common:shift.${s.shift}`)}
+                            {(s.rainMm ?? 0) >= RAINY_MM && <span className="ml-1 text-xs text-sky-700">🌧{s.rainMm}mm</span>}
+                            {s.events.length > 0 && <span className="block text-[11px] text-violet-700">{s.events.join('・')}</span>}
+                          </td>
+                          <td className="text-right font-bold tabular-nums">{s.value ?? '—'}</td>
+                          <td className="px-3 text-right text-xs tabular-nums">
+                            {s.target ? `/${s.target}` : ''}
+                            {sr !== null && <b className={cx('ml-1', sr < 90 ? 'text-amber-700' : sr >= 105 ? 'text-green-700' : 'text-slate-600')}>{sr < 90 && '⚠'}{sr}%</b>}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+      <p className="text-xs text-muted">
+        {t('forecast.how')}
+        {result.check.error !== null && ` ${t('forecast.error', { n: result.check.error })}`}
+        {!compact &&
+          ` ${t('forecast.rain', {
+            early: Math.round((result.factors.early.factor - 1) * 100),
+            middle: Math.round((result.factors.middle.factor - 1) * 100),
+            late: Math.round((result.factors.late.factor - 1) * 100),
+          })}`}
+      </p>
+    </Card>
+  )
+}

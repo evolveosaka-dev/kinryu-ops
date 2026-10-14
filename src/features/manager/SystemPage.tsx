@@ -1,8 +1,12 @@
+import { FunctionsHttpError } from '@supabase/supabase-js'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Card, ErrorBox, PageTitle, Spinner } from '../../components/ui'
-import { MAIL_DAY_LIMIT, MAIL_WARN, systemProblems } from '../../domain/systemStatus'
+import { useMe } from '../../app/auth'
+import { Button, Card, ErrorBox, PageTitle, Spinner } from '../../components/ui'
+import { MAIL_DAY_LIMIT, MAIL_WARN, systemProblems, type SystemStatus } from '../../domain/systemStatus'
 import { cx } from '../../lib/cx'
 import { errorMessage } from '../../lib/format'
+import { supabase } from '../../lib/supabase'
 import { jstDateTime, useSystemStatus } from './data'
 import { ManagerTabs } from './ManagerTabs'
 
@@ -18,6 +22,51 @@ function Row({ label, value, bad, children }: { label: string; value: React.Reac
       </span>
       {children}
     </div>
+  )
+}
+
+/** Weekly backup to Drive: last one, its result, 今すぐバックアップ. */
+function BackupCard({ s, bad }: { s: SystemStatus; bad: boolean }) {
+  const { t } = useTranslation('manager')
+  const me = useMe()
+  const queryClient = useQueryClient()
+  const run = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke<{ tables: Record<string, number> }>('sync-sheets', { body: { action: 'backup' } })
+      if (error) {
+        const detail = error instanceof FunctionsHttpError ? ((await (error.context as Response).json().catch(() => ({}))) as { error?: string }).error : null
+        throw new Error(detail ?? error.message)
+      }
+      return data!
+    },
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['admin', 'system_status'] }),
+  })
+  const r = s.backup_result
+  const errors = Object.entries(r?.errors ?? {})
+  return (
+    <Card className="flex flex-col gap-2">
+      <h2 className="font-bold">💾 {t('system.backupTitle')}</h2>
+      <Row label={t('system.backupLast')} value={s.backup_at ? jstDateTime(s.backup_at).slice(5) : t('system.backupNever')} bad={bad}>
+        {r && <span className="text-xs text-muted">{t('system.backupResult', { tables: r.tables, rows: r.rows.toLocaleString(), kb: Math.round(r.bytes / 1024) })}</span>}
+        {errors.map(([k, v]) => (
+          <span key={k} className="text-xs text-red-800">
+            {k}: {v}
+          </span>
+        ))}
+        {s.backup_url && (
+          <a href={s.backup_url} target="_blank" rel="noreferrer" className="text-sm font-bold text-brand underline">
+            {t('system.backupOpen')} ↗
+          </a>
+        )}
+      </Row>
+      <p className="text-xs text-muted">{t('system.backupNote')}</p>
+      {!me.is_test_account && (
+        <Button variant="secondary" onClick={() => run.mutate()} disabled={run.isPending}>
+          {run.isPending ? t('system.backupRunning') : t('system.backupNow')}
+        </Button>
+      )}
+      {run.error && <ErrorBox message={errorMessage(run.error)} />}
+    </Card>
   )
 }
 
@@ -90,6 +139,8 @@ export function SystemPage() {
         )}
         <Row label={t('system.sheets')} value={s.sheets_synced_at ? jstDateTime(s.sheets_synced_at).slice(5) : '—'} bad={has('sheets')} />
       </Card>
+
+      <BackupCard s={s} bad={has('backup')} />
 
       <Card className="flex flex-col gap-1 text-sm">
         <h2 className="font-bold">🤖 {t('system.aiTitle')}</h2>

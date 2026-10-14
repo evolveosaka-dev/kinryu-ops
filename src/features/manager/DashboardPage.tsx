@@ -13,6 +13,7 @@ import { errorMessage, storeName } from '../../lib/format'
 import { unwrap, useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import { Dot } from './common'
+import { ForecastCard } from './analysis/ForecastCard'
 import { ChoreiSlotSheets, DrillSheet, TapStat } from './drill'
 import { avgHow, score25Line, useDrill } from './drillState'
 import { visaRuns } from '../../domain/shiftChange'
@@ -273,6 +274,8 @@ export function DashboardPage() {
           </ul>
         )}
       </Card>
+
+      <ForecastCard days={2} compact />
 
       <h2 className="font-bold">{t('dashboard.thisWeek', { from: formatShortDate(thisWeek.from), to: formatShortDate(thisWeek.to) })}</h2>
       <div className="grid grid-cols-2 gap-2">

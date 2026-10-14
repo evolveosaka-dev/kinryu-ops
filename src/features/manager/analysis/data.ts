@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { normalizedTo25 } from '../../../domain/patrol'
-import type { PatrolScore, Sale } from '../../../domain/salesAnalysis'
+import { DATA_FROM, type PatrolScore, type Sale } from '../../../domain/salesAnalysis'
+import { shiftRain } from '../../../domain/forecast'
+import { addDays, tokyoParts } from '../../../domain/time'
 import type { Shift } from '../../../domain/types'
 import { unwrap } from '../../../lib/queries'
 import { supabase } from '../../../lib/supabase'
@@ -62,3 +64,40 @@ export function useMonthReports(from: string, to: string) {
       ),
   })
 }
+
+/** Osaka (道頓堀 area) */
+const LAT = 34.67
+const LON = 135.5
+interface Hourly {
+  hourly: { time: string[]; precipitation: (number | null)[] }
+}
+
+/**
+ * Rain per date × shift from Open-Meteo (free, no key): the archive from 2025 until 60 days ago, then the
+ * forecast API (92 past days + 8 days ahead). Hours are Asia/Tokyo.
+ */
+export function useRain() {
+  return useQuery({
+    queryKey: ['analysis', 'rain', today()],
+    staleTime: 60 * 60 * 1000,
+    retry: 1,
+    queryFn: async () => {
+      const q = `latitude=${LAT}&longitude=${LON}&hourly=precipitation&timezone=Asia%2FTokyo`
+      const archiveTo = addDays(today(), -60)
+      const [archive, forecast] = await Promise.all([
+        fetch(`https://archive-api.open-meteo.com/v1/archive?${q}&start_date=${DATA_FROM}&end_date=${archiveTo}`),
+        fetch(`https://api.open-meteo.com/v1/forecast?${q}&past_days=92&forecast_days=8`),
+      ])
+      if (!archive.ok || !forecast.ok) throw new Error(`weather ${archive.status} / ${forecast.status}`)
+      const a = (await archive.json()) as Hourly
+      const f = (await forecast.json()) as Hourly
+      // the two overlap: one value per hour (the forecast API wins)
+      const byHour = new Map<string, number | null>()
+      a.hourly.time.forEach((t, i) => byHour.set(t, a.hourly.precipitation[i] ?? null))
+      f.hourly.time.forEach((t, i) => byHour.set(t, f.hourly.precipitation[i] ?? null))
+      return shiftRain({ time: [...byHour.keys()], precipitation: [...byHour.values()] })
+    },
+  })
+}
+
+const today = () => tokyoParts(new Date()).date
