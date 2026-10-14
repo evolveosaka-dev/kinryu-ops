@@ -116,8 +116,11 @@
     "duty": "Duty",
     "inProgress": "In progress (draft)",
     "plannedShort": "plan",
-    "legend": "Number = patrol score (tap for details, colour = judgement) / … in progress / ✗ a duty without a patrol (from 1 h after the shift) / plan = duty, not yet / ― no duty. Hold a cell to see who had the duty.",
-    "listTitle": "Patrol list"
+    "legend": "Number = average patrol score of the shift (on 25, colour = judgement, ×2 = two patrols). Tap for each patrol and the item scores / … in progress / ✗ a duty without a patrol (from 1 h after the shift) / plan = duty, not yet / ― no duty.",
+    "listTitle": "Patrol list",
+    "average": "Average {{avg}} ({{n}} patrols)",
+    "staff": "Staff",
+    "openDetail": "Open details (comments, photos)"
   },
   "choreiList": {
     "title": "Meeting records",
