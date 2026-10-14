@@ -44,6 +44,7 @@ const LearnItemPage = page(() => import('../features/learn/LearnItemPage'), 'Lea
 const LearnEditPage = page(() => import('../features/learn/LearnEditPage'), 'LearnEditPage')
 const SalesPage = page(() => import('../features/sales/SalesPage'), 'SalesPage')
 const SalesAdminPage = page(() => import('../features/manager/SalesAdminPage'), 'SalesAdminPage')
+const AnalysisPage = page(() => import('../features/manager/analysis/AnalysisPage'), 'AnalysisPage')
 const StockPage = page(() => import('../features/stock/StockPage'), 'StockPage')
 const StockItemsPage = page(() => import('../features/manager/StockItemsPage'), 'StockItemsPage')
 const ShiftRequestPage = page(() => import('../features/shift/ShiftRequestPage'), 'ShiftRequestPage')
@@ -108,6 +109,7 @@ function Gate() {
             <Route path="stats" element={<StatsPage />} />
             <Route path="hours" element={<HoursPage />} />
             <Route path="sales" element={<SalesAdminPage />} />
+            <Route path="analysis" element={<AnalysisPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="targets" element={<TargetsPage />} />
             <Route path="stock-items" element={<StockItemsPage />} />
