@@ -28,11 +28,14 @@ import { exportXlsx, today, usePeriod } from '../data'
 import { ManagerTabs } from '../ManagerTabs'
 import { DailyChart, LineChart } from './charts'
 import { useAnalysisPatrols, useDailySales, useMonthReports, type ReportFigures } from './data'
+import { SummaryDetail, type SummaryKind } from './SummaryDetail'
 
 /** 朝礼・巡回 started on this day (改善の効果 compares before / after). */
 const START = '2026-10-12'
 
 const eventIcon = (name: string) => (name.includes('阪神') ? '⚾' : name.includes('ハロウィン') ? '🎃' : name.includes('クリスマス') ? '🎄' : name.includes('戎') ? '⛩️' : '🎉')
+/** bowls with the unit: 1,250杯 */
+const bw = (v: number | null | undefined) => (v === null || v === undefined ? '—' : `${v.toLocaleString()}杯`)
 const pct = (v: number | null) => (v === null ? '—' : `${v > 0 ? '+' : ''}${v}%`)
 const rateCls = (r: number | null) => (r === null ? 'text-slate-500' : r >= 100 ? 'text-green-700' : r >= 90 ? 'text-amber-700' : 'text-red-700')
 const rateBg = (r: number | null) => (r === null ? 'bg-slate-50' : r >= 100 ? 'bg-green-100' : r >= 90 ? 'bg-amber-100' : 'bg-red-100')
@@ -71,19 +74,19 @@ function DaySheet({ day, reports, storeLabel, onClose }: { day: DayView; reports
                   {storeLabel(s.store)} {t(`common:shift.${s.shift}`)}
                   {s.events.length > 0 && <span className="block text-[11px] text-slate-600">{s.events.map((e) => `${e.name} ${pct(e.pct)}`).join('・')}</span>}
                 </td>
-                <td className="text-right font-bold tabular-nums">{s.actual ?? '—'}</td>
-                <td className="text-right tabular-nums">{s.target ?? '—'}</td>
+                <td className="text-right font-bold tabular-nums">{bw(s.actual)}</td>
+                <td className="text-right tabular-nums">{bw(s.target)}</td>
                 <td className={cx('text-right font-bold tabular-nums', rateCls(r))}>{r === null ? '—' : `${r}%`}</td>
-                <td className="text-right text-slate-600 tabular-nums">{s.lastYear ?? '—'}</td>
+                <td className="text-right text-slate-600 tabular-nums">{bw(s.lastYear)}</td>
               </tr>
             )
           })}
           <tr className="border-t-2 border-line font-bold">
             <td className="py-1.5">{t('analysis.total')}</td>
-            <td className="text-right tabular-nums">{day.actual ?? '—'}</td>
-            <td className="text-right tabular-nums">{day.target ?? day.targetAll ?? '—'}</td>
+            <td className="text-right tabular-nums">{bw(day.actual)}</td>
+            <td className="text-right tabular-nums">{bw(day.target ?? day.targetAll)}</td>
             <td className={cx('text-right tabular-nums', rateCls(rateOf(day.actual, day.target)))}>{rateOf(day.actual, day.target) ?? '—'}%</td>
-            <td className="text-right text-slate-600 tabular-nums">{day.lastYear ?? '—'}</td>
+            <td className="text-right text-slate-600 tabular-nums">{bw(day.lastYear)}</td>
           </tr>
         </tbody>
       </table>
@@ -117,6 +120,7 @@ export function AnalysisPage() {
   const [store, setStore] = useState('all')
   const [shift, setShift] = useState<'all' | Shift>('all')
   const [openDay, setOpenDay] = useState<string | null>(null)
+  const [openStat, setOpenStat] = useState<SummaryKind | null>(null)
 
   const storeLabel = (id: string) => storeName(stores.data?.find((s) => s.id === id), 'ja').replace('店', '')
   const ready = stores.data && holidays.data && targets.data && events.data && sales.data
@@ -183,17 +187,30 @@ export function AnalysisPage() {
       <Segmented label="" value={store} onChange={setStore} options={[{ value: 'all', label: t('analysis.bothStores') }, ...(stores.data ?? []).map((s) => ({ value: s.id, label: storeName(s, 'ja') }))]} />
       <Segmented label="" value={shift} onChange={setShift} options={[{ value: 'all' as const, label: t('analysis.allShifts') }, ...SHIFTS.map((s) => ({ value: s, label: t(`common:shift.${s}`) }))]} />
 
-      {/* ① summary */}
+      {/* ① summary: each figure opens how it is calculated */}
       <div className="grid grid-cols-2 gap-2">
-        <Stat label={t('analysis.achievement')} value={summary.rate === null ? '—' : `${summary.rate}%`} sub={`${summary.actual.toLocaleString()} / ${summary.target.toLocaleString()}${t('analysis.bowls')}`} tone={summary.rate === null ? undefined : summary.rate >= 100 ? 'good' : summary.rate >= 90 ? 'warn' : 'bad'} />
-        <Stat label={t('analysis.yoy')} value={pct(summary.yoy)} sub={t('analysis.yoySub')} tone={summary.yoy === null ? undefined : summary.yoy >= 0 ? 'good' : 'warn'} />
-        <Stat label={t('analysis.forecast')} value={summary.forecast === null ? '—' : `${summary.forecast.toLocaleString()}`} sub={t('analysis.forecastSub')} />
-        <Stat
-          label={t('analysis.bestWorst')}
-          value={summary.best ? `${formatShortDate(summary.best.date)} ${summary.best.actual}` : '—'}
-          sub={summary.worst ? `${t('analysis.lowest')} ${formatShortDate(summary.worst.date)} ${summary.worst.actual}` : undefined}
-        />
+        {(
+          [
+            ['achievement', <Stat label={t('analysis.achievement')} value={summary.rate === null ? '—' : `${summary.rate}%`} sub={summary.target ? `${bw(summary.actual)} / ${bw(summary.target)}` : t('analysis.noTarget')} tone={summary.rate === null ? undefined : summary.rate >= 100 ? 'good' : summary.rate >= 90 ? 'warn' : 'bad'} />],
+            ['yoy', <Stat label={t('analysis.yoy')} value={pct(summary.yoy)} sub={t('analysis.yoySub')} tone={summary.yoy === null ? undefined : summary.yoy >= 0 ? 'good' : 'warn'} />],
+            ['forecast', <Stat label={t('analysis.forecast')} value={bw(summary.forecast)} sub={t('analysis.forecastSub')} />],
+            [
+              'best',
+              <Stat
+                label={t('analysis.bestWorst')}
+                value={summary.best ? <span className="text-lg whitespace-nowrap">{formatShortDate(summary.best.date)} {bw(summary.best.actual)}</span> : '—'}
+                sub={summary.worst ? `${t('analysis.lowest')} ${formatShortDate(summary.worst.date)} ${bw(summary.worst.actual)}` : undefined}
+              />,
+            ],
+          ] as [SummaryKind, ReactNode][]
+        ).map(([k, stat]) => (
+          <button key={k} type="button" onClick={() => setOpenStat(k)} className="relative text-left" aria-label={t('analysis.how.open')}>
+            {stat}
+            <span className="absolute top-2 right-3 text-xs font-bold text-brand">ⓘ</span>
+          </button>
+        ))}
       </div>
+      <p className="-mt-1 text-xs text-muted">{t('analysis.how.tap')}</p>
 
       {/* ② calendar */}
       <Section title={`② ${t('analysis.calendar')}`} help={t('analysis.calendarHelp')}>
@@ -215,7 +232,7 @@ export function AnalysisPage() {
                   {d.events.length > 0 && eventIcon(d.events[0]!)}
                 </span>
                 <b className={cx('text-sm', rateCls(r))}>{r === null ? (d.date >= now ? '' : '—') : `${Math.round(r)}%`}</b>
-                <span className="text-[10px] text-slate-600">{d.actual ?? d.targetAll ?? ''}</span>
+                <span className="text-[10px] text-slate-600">{(d.actual ?? d.targetAll) === null ? '' : bw(d.actual ?? d.targetAll)}</span>
               </button>
             )
           })}
@@ -250,7 +267,7 @@ export function AnalysisPage() {
                   {[...SHIFTS.map((s) => r.cells[s]), r.total].map((c, i) => (
                     <td key={i} className={cx('p-0.5', rateBg(c.rate))}>
                       <b className={rateCls(c.rate)}>{c.rate === null ? '—' : `${Math.round(c.rate)}%`}</b>
-                      <span className="block text-[10px] text-slate-600 tabular-nums">{c.actual === null ? '' : `${c.actual}/${c.target}`}</span>
+                      <span className="block text-[10px] text-slate-600 tabular-nums">{c.actual === null ? '' : `${c.actual}/${c.target}杯`}</span>
                     </td>
                   ))}
                 </tr>
@@ -263,7 +280,8 @@ export function AnalysisPage() {
       {/* ⑤ monthly trend */}
       <Section title={`⑤ ${t('analysis.trend')}`} help={t('analysis.trendHelp')}>
         <LineChart
-          labels={Array.from({ length: 12 }, (_, i) => `${i + 1}`)}
+          unit="杯"
+          labels={Array.from({ length: 12 }, (_, i) => `${i + 1}月`)}
           series={years.map((y, i) => ({
             label: y,
             color: yearColor(i),
@@ -342,6 +360,7 @@ export function AnalysisPage() {
       {download.error && <ErrorBox message={errorMessage(download.error)} />}
       <p className="text-xs text-muted">{t('analysis.note')}</p>
 
+      {openStat && <SummaryDetail kind={openStat} days={days} summary={summary} today={now} onClose={() => setOpenStat(null)} />}
       {dayOpen && (
         <DaySheet
           day={dayOpen}

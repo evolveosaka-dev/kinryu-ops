@@ -524,6 +524,28 @@
     "cashDiff": "Cash over/short",
     "coupons": "Coupons",
     "draft": "draft",
-    "tab": "Analysis"
+    "tab": "Analysis",
+    "how": {
+      "tap": "ⓘ Tap a figure to see how it is calculated and the numbers of each day.",
+      "open": "How it is calculated",
+      "day": "Date",
+      "dayType": "Day type",
+      "partial": "some shifts only",
+      "achievement": "Actual {{actual}} ÷ target {{target}} = {{rate}}%",
+      "achievementNote": "Only days and shifts with figures are counted (the target of the same days and shifts). Targets include the event %. Bowls = ramen + chashu-men (coupons not included).",
+      "yoy": "(this year {{cur}} ÷ last year {{ly}} − 1) = {{yoy}}%",
+      "yoyNote": "Last year = 364 days before (same weekday). Only days and shifts with figures in both years. Grey days have no figure last year.",
+      "thisYear": "This year",
+      "lastYearDay": "Last year (−364 days)",
+      "diff": "Diff.",
+      "notCompared": "not compared",
+      "forecast": "Actual {{actual}} + targets of the {{days}} days left {{rest}} = forecast {{forecast}}",
+      "forecastNote": "Days from today without figures are counted at their target (day type and event %).",
+      "restTotal": "Targets left",
+      "best": "Days with all shifts filled in, from the highest. First = best day, last = lowest.",
+      "bestNote": "Days with a missing shift are left out.",
+      "rank": "Rank"
+    },
+    "noTarget": "No target for this month"
   }
 }

@@ -12,9 +12,9 @@ const niceMax = (v: number) => {
 
 /** Bars = actual (colour = 達成率), dashed blue = target, grey = same weekday last year. */
 export function DailyChart({ days }: { days: DayView[] }) {
-  const W = 30 + days.length * 12
+  const W = 40 + days.length * 12
   const H = 170
-  const top = 10, bottom = 150, left = 30
+  const top = 10, bottom = 150, left = 40
   const max = niceMax(Math.max(1, ...days.flatMap((d) => [d.actual ?? 0, d.target ?? d.targetAll ?? 0, d.lastYear ?? 0])) * 1.05)
   const y = (v: number) => bottom - (v / max) * (bottom - top)
   const x = (i: number) => left + i * 12 + 6
@@ -33,7 +33,7 @@ export function DailyChart({ days }: { days: DayView[] }) {
         <g key={f}>
           <line x1={left} x2={W} y1={y(max * f)} y2={y(max * f)} stroke="#e2e8f0" strokeWidth="0.6" />
           <text x={left - 3} y={y(max * f) + 3} fontSize="7" textAnchor="end" fill="#64748b">
-            {Math.round(max * f)}
+            {Math.round(max * f).toLocaleString()}杯
           </text>
         </g>
       ))}
@@ -69,7 +69,7 @@ export interface Series {
 /** Simple multi-line chart; `marker` = index of a vertical line (e.g. the start of 朝礼・巡回). */
 export function LineChart({ series, labels, marker, zero, unit = '' }: { series: Series[]; labels: string[]; marker?: number; zero?: boolean; unit?: string }) {
   const n = labels.length
-  const W = 320, H = 170, top = 12, bottom = 145, left = 34, right = 16
+  const W = 320, H = 170, top = 12, bottom = 145, left = 42, right = 16
   const vals = series.flatMap((s) => s.values.filter((v): v is number => v !== null))
   let lo = Math.min(...vals, zero ? 0 : Infinity)
   let hi = Math.max(...vals, zero ? 0 : -Infinity)
