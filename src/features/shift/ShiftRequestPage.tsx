@@ -27,7 +27,7 @@ import { TranslationCancelled, useTranslationGate } from '../translate/useTransl
 import { PaidLeavePicker } from './PaidLeavePicker'
 import { RangeCalendar } from './RangeCalendar'
 
-interface StoredRequest {
+export interface StoredRequest {
   id: string
   month: string
   shifts: Shift[]
@@ -86,12 +86,13 @@ export function ShiftRequestPage() {
   return <ShiftRequestForm key={month} month={month} months={months} onMonth={setMonth} saved={existing.data ?? null} open={isRequestOpen(month, today)} />
 }
 
-function ShiftRequestForm({
+export function ShiftRequestForm({
   month,
   months,
   onMonth,
   saved,
   open,
+  forUser,
 }: {
   month: string
   months: string[]
@@ -99,6 +100,8 @@ function ShiftRequestForm({
   saved: StoredRequest | null
   /** false after the deadline: read-only */
   open: boolean
+  /** 管理 → シフト希望: a manager corrects someone's request (keeps their 提出日時) */
+  forUser?: { id: string; name: string; onDone: () => void }
 }) {
   const { t } = useTranslation('shift')
   const me = useMe()
@@ -175,20 +178,24 @@ function ShiftRequestForm({
       unwrap(
         await supabase.from('shift_requests').upsert(
           {
-            user_id: me.id,
+            user_id: forUser?.id ?? me.id,
             month,
             shifts,
             days: cleanDays,
             answers: finalAnswers,
             original_texts: tr.originals,
             source_lang: tr.sourceLang,
-            submitted_at: new Date().toISOString(),
+            submitted_at: forUser ? (saved?.submitted_at ?? new Date().toISOString()) : new Date().toISOString(),
           },
           { onConflict: 'user_id,month' },
         ),
       )
     },
     onSuccess: () => {
+      if (forUser) {
+        void queryClient.invalidateQueries({ queryKey: ['admin', 'shift_requests'] })
+        return forUser.onDone()
+      }
       sent({ kind: t('common:sent.shiftRequest'), detail: t('common:sent.month', { y: month.slice(0, 4), m: Number(month.slice(5, 7)) }) })
       void queryClient.invalidateQueries({ queryKey: ['shift_request'] })
       void navigate('/')
@@ -208,7 +215,7 @@ function ShiftRequestForm({
   return (
     <div className="flex flex-col gap-4">
       {translation.review}
-      <PageTitle title={t('title')} />
+      <PageTitle title={forUser ? `${t('title')}：${forUser.name}` : t('title')} />
       {saved && (
         <p className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm font-bold text-green-900">
           ✓ {t('submitted', { date: `${saved.updated_at.slice(5, 10).replace('-', '/')} ${formatTokyoTime(new Date(saved.updated_at))}` })}
@@ -216,7 +223,7 @@ function ShiftRequestForm({
       )}
 
       <Card className="flex flex-col gap-2">
-        <Segmented label={t('month')} value={month} onChange={onMonth} options={months.map((m) => ({ value: m, label: monthLabel(m) }))} />
+        {forUser ? <p className="font-bold">{monthLabel(month)}</p> : <Segmented label={t('month')} value={month} onChange={onMonth} options={months.map((m) => ({ value: m, label: monthLabel(m) }))} />}
         <p className={open ? 'text-sm font-bold text-ink' : 'text-sm font-bold text-red-700'}>{t('deadline', { date: deadlineLabel })}</p>
       </Card>
       {!open && <ErrorBox message={t('closed', { date: deadlineLabel })} />}

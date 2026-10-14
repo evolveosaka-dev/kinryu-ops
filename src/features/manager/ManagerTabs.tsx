@@ -2,12 +2,15 @@ import { useTranslation } from 'react-i18next'
 import { NavLink, useLocation } from 'react-router'
 import { STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { cx } from '../../lib/cx'
+import { useFillTargets } from './useFillTargets'
 
 const SETTINGS_PATHS = ['/manager/settings', '/manager/users', '/manager/roster', '/manager/sync', '/manager/system', '/manager/targets', '/manager/shift-requests', '/manager/shift-import']
 
 export function ManagerTabs() {
   const { t } = useTranslation('manager')
   const { pathname } = useLocation()
+  // every 管理 page: 朝礼 records without 目標杯数 get it from the targets
+  useFillTargets()
   const tabs = [
     { to: '/manager', label: `${t('tabs.dashboard')}`, end: true },
     { to: '/manager/chorei', label: `${t('tabs.chorei')}` },

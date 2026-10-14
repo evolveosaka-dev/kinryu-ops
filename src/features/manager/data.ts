@@ -45,7 +45,7 @@ export type AdminChorei = StatChorei & {
   void_reason: string | null
   original_texts: Record<string, string> | null
   attachments: AttachmentSummary[]
-  notes: { body: string; created_at: string }[]
+  notes: { id: string; author_id: string; body: string; original_body: string | null; created_at: string }[]
   comments: RecordComment[]
 }
 
@@ -72,7 +72,7 @@ export function useRecords(range: Range) {
       unwrap<AdminChorei[]>(
         await supabase
           .from('chorei_records')
-          .select(`*, ${ATT}, notes:chorei_notes(body, created_at), comments:chorei_comments(id, body, author_id, author_name, created_at, read_at)`)
+          .select(`*, ${ATT}, notes:chorei_notes(id, author_id, body, original_body, created_at), comments:chorei_comments(id, body, author_id, author_name, created_at, read_at)`)
           .eq('is_test', false)
           .gte('business_date', range.from)
           .lte('business_date', range.to)

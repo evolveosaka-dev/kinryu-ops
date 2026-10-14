@@ -1,4 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
+import { Sheet } from '../../components/Sheet'
+import { useToast } from '../../components/Toast'
+import { ShiftRequestForm } from '../shift/ShiftRequestPage'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Card, ErrorBox, PageTitle, Segmented, Spinner } from '../../components/ui'
@@ -29,6 +32,8 @@ export function ShiftRequestsAdminPage() {
   const [month, setMonth] = useState(months[1]!)
   const people = usePeople()
   const [exportError, setExportError] = useState<string | null>(null)
+  const [editId, setEditId] = useState<string | null>(null)
+  const toast = useToast()
   const emails = useQuery({
     queryKey: ['admin', 'emails'],
     queryFn: async () => unwrap<{ id: string; email: string | null }[]>(await supabase.from('profiles').select('id, email')),
@@ -42,6 +47,7 @@ export function ShiftRequestsAdminPage() {
   if (requests.error) return <ErrorBox message={errorMessage(requests.error)} />
 
   const rows = requests.data ?? []
+  const editing = rows.find((r) => r.id === editId) ?? null
   const submittedIds = new Set(rows.map((r) => r.user_id))
   const missing = (people.data ?? []).filter((p) => p.status === 'active' && !submittedIds.has(p.id))
   const emailOf = (id: string) => emails.data?.find((e) => e.id === id)?.email ?? ''
@@ -85,7 +91,12 @@ export function ShiftRequestsAdminPage() {
         <ul className="divide-y divide-line">
           {rows.map((r) => (
             <li key={r.id} className="flex flex-col py-2">
-              <span className="font-bold">{people.name(r.user_id)}</span>
+              <span className="flex items-center justify-between gap-2">
+                <span className="font-bold">{people.name(r.user_id)}</span>
+                <Button variant="secondary" className="min-h-9 py-1 text-xs" onClick={() => setEditId(r.id)}>
+                  ✏️ {t('shiftRequests.edit')}
+                </Button>
+              </span>
               <span className="text-sm text-muted">
                 {r.shifts
                   .map((s) => t('shiftRequests.days', { shift: t(`common:shift.${s}`), n: Object.values(r.days).filter((d) => d[s]).length }))
@@ -105,6 +116,27 @@ export function ShiftRequestsAdminPage() {
           ))}
         </ul>
       </Card>
+
+      {editing && (
+        <Sheet title={t('shiftRequests.editTitle', { name: people.name(editing.user_id) })} onClose={() => setEditId(null)}>
+          <ShiftRequestForm
+            key={editing.id}
+            month={month}
+            months={[month]}
+            onMonth={() => undefined}
+            saved={{ ...editing, month }}
+            open
+            forUser={{
+              id: editing.user_id,
+              name: people.name(editing.user_id),
+              onDone: () => {
+                toast(t('shiftRequests.saved'))
+                setEditId(null)
+              },
+            }}
+          />
+        </Sheet>
+      )}
 
       {missing.length > 0 && (
         <Card className="flex flex-col gap-2">

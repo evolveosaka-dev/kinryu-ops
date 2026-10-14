@@ -86,6 +86,30 @@ export function useStockPhotos(ids: string[]) {
   })
 }
 
+/** 管理者が修正: same slot and kind, new figures; the old row is cancelled, the writer and time are kept. */
+export async function replaceStockEvent(args: {
+  id: string
+  lines: { item: string; qty: number }[]
+  place?: string | null
+  note?: string | null
+  reason?: string | null
+  noteOriginal?: string | null
+  sourceLang?: string | null
+}): Promise<string> {
+  return unwrap<string>(
+    await supabase.rpc('replace_stock_event', {
+      p_id: args.id,
+      p_lines: args.lines,
+      p_place: args.place ?? null,
+      p_note: args.note ?? null,
+      p_temps: null,
+      p_reason: args.reason ?? null,
+      p_note_original: args.noteOriginal ?? null,
+      p_source_lang: args.sourceLang ?? null,
+    }),
+  )
+}
+
 export async function voidStockEvent(id: string) {
   return unwrap(await supabase.rpc('void_stock_event', { p_id: id }))
 }

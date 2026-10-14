@@ -274,7 +274,9 @@
     "send": "Send comment",
     "delete": "Delete",
     "deleteConfirm": "Delete this comment?",
-    "homeCard": "You have {{n}} new comment(s) from a manager"
+    "homeCard": "You have {{n}} new comment(s) from a manager",
+    "original": "Original",
+    "jaNote": "A comment in another language is translated into Japanese before it is sent (you check it first)."
   },
   "incident": {
     "title": "Complaints / accidents",

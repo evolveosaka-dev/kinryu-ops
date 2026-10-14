@@ -3,10 +3,11 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { StaffPicker } from '../../components/StaffPicker'
 import { useToast } from '../../components/Toast'
-import { Button, Card, Checkbox, ErrorBox, TextArea, TextInput } from '../../components/ui'
-import { CHOREI_STEPS, type StepsDone } from '../../domain/types'
-import { errorMessage } from '../../lib/format'
-import { unwrap } from '../../lib/queries'
+import { Button, Card, Checkbox, ErrorBox, Segmented, TextArea, TextInput } from '../../components/ui'
+import { CHOREI_STEPS, SHIFTS, type Shift, type StepsDone } from '../../domain/types'
+import { currentLocale } from '../../i18n'
+import { errorMessage, storeName } from '../../lib/format'
+import { unwrap, useStores } from '../../lib/queries'
 import type { PreparedMedia } from '../../lib/media'
 import { supabase } from '../../lib/supabase'
 import { AttachmentPicker } from '../attachments/AttachmentPicker'
@@ -14,6 +15,7 @@ import { useUploadQueue } from '../attachments/uploadQueue'
 import { choreiSchema, fieldErrors } from '../chorei/schema'
 import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 import { AttachmentList } from './AttachmentList'
+import { PersonSelect } from './common'
 import { jstDateTime, usePeople, type AdminChorei } from './data'
 import { checkParticipants } from '../../domain/participants'
 import { useSlotSchedule } from '../../lib/queries'
@@ -28,6 +30,12 @@ export function ChoreiEdit({ record: r, onDone }: { record: AdminChorei; onDone:
   const toast = useToast()
   const uploads = useUploadQueue()
   const translation = useTranslationGate()
+  const stores = useStores()
+  // who and which slot: managers correct everything the leader sent
+  const [leaderId, setLeaderId] = useState(r.leader_id)
+  const [storeId, setStoreId] = useState(r.store_id)
+  const [shift, setShift] = useState<Shift>(r.shift)
+  const [businessDate, setBusinessDate] = useState(r.business_date)
   const [participants, setParticipants] = useState<string[]>(r.participants_extra)
   const [stockNone, setStockNone] = useState(r.stock_none)
   const [stockText, setStockText] = useState(r.stock_text ?? '')
@@ -47,17 +55,17 @@ export function ChoreiEdit({ record: r, onDone }: { record: AdminChorei; onDone:
   const allDone = Object.values(steps).every(Boolean)
   // 参加者 vs the shift table: the manager confirms too when they differ
   const people = usePeople()
-  const leader = people.data?.find((p) => p.id === r.leader_id)
-  const schedule = useSlotSchedule(r.store_id, r.business_date, r.shift)
+  const leader = people.data?.find((p) => p.id === leaderId)
+  const schedule = useSlotSchedule(storeId, businessDate, shift)
   const scheduleCheck = checkParticipants(r.shift, participants, [leader?.roster_name, leader?.display_name], schedule.data ?? [])
   const [checking, setChecking] = useState(false)
 
   const save = useMutation({
     mutationFn: async () => {
       const parsed = choreiSchema.safeParse({
-        store_id: r.store_id,
-        business_date: r.business_date,
-        shift: r.shift,
+        store_id: storeId,
+        business_date: businessDate,
+        shift,
         participants: r.participants,
         participants_extra: participants.filter(Boolean),
         stock_none: stockNone,
@@ -74,17 +82,26 @@ export function ChoreiEdit({ record: r, onDone }: { record: AdminChorei; onDone:
       setErrors({})
       // only changed text goes through translation; an unchanged field keeps its 原文
       const changed = TEXT_FIELDS.filter((k) => (parsed.data[k] ?? null) !== (r[k] ?? null))
-      const tr = await translation.prepare(
-        changed.map((k) => ({ key: k, label: t(`choreiEdit.field.${k}`), text: parsed.data[k] })),
-      )
-      const originals = Object.fromEntries(Object.entries(r.original_texts ?? {}).filter(([k]) => !changed.includes(k as (typeof TEXT_FIELDS)[number])))
+      // the manager's own note is translated to Japanese too (owner, 2026-10-16)
+      const note = managerNote.trim() || null
+      const noteChanged = note !== (r.manager_note ?? null)
+      const tr = await translation.prepare([
+        ...changed.map((k) => ({ key: k, label: t(`choreiEdit.field.${k}`), text: parsed.data[k] })),
+        ...(noteChanged ? [{ key: 'manager_note', label: t('chorei:backfill.note'), text: note }] : []),
+      ])
+      const retranslated = [...changed, ...(noteChanged ? ['manager_note'] : [])] as string[]
+      const originals = Object.fromEntries(Object.entries(r.original_texts ?? {}).filter(([k]) => !retranslated.includes(k)))
       Object.assign(originals, tr.originals ?? {})
       const patch = {
+        leader_id: leaderId,
+        store_id: storeId,
+        business_date: businessDate,
+        shift,
         participants_extra: parsed.data.participants_extra,
         stock_none: parsed.data.stock_none,
         target_bowls: parsed.data.target_bowls,
         steps_done: parsed.data.steps_done,
-        manager_note: managerNote.trim() || null,
+        manager_note: noteChanged ? (tr.values.manager_note ?? null) : (r.manager_note ?? null),
         ...Object.fromEntries(TEXT_FIELDS.map((k) => [k, changed.includes(k) ? (tr.values[k] ?? null) : (r[k] ?? null)])),
         original_texts: Object.keys(originals).length ? originals : null,
         ...(tr.sourceLang ? { source_lang: tr.sourceLang } : {}),
@@ -117,7 +134,11 @@ export function ChoreiEdit({ record: r, onDone }: { record: AdminChorei; onDone:
         />
       )}
       <h3 className="font-bold">{t('choreiEdit.title')}</h3>
-      <StaffPicker label={t('chorei:participants.label')} value={participants} onChange={setParticipants} storeId={r.store_id} slot={{ date: r.business_date, shift: r.shift }} />
+      <PersonSelect label={t('detail.leader')} value={leaderId} onChange={setLeaderId} />
+      <Segmented label={t('common:field.store')} value={storeId} onChange={setStoreId} options={(stores.data ?? []).map((s) => ({ value: s.id, label: storeName(s, currentLocale()) }))} />
+      <Segmented label={t('common:field.shift')} value={shift} onChange={setShift} options={SHIFTS.map((s) => ({ value: s, label: t(`common:shift.${s}`) }))} />
+      <TextInput label={t('common:field.date')} type="date" value={businessDate} onChange={(e) => setBusinessDate(e.target.value)} />
+      <StaffPicker label={t('chorei:participants.label')} value={participants} onChange={setParticipants} storeId={storeId} slot={{ date: businessDate, shift }} />
       <Checkbox checked={stockNone} onChange={setStockNone}>
         {t('chorei:stock.label')}：<b>{t('chorei:stock.none')}</b>
       </Checkbox>
@@ -183,6 +204,10 @@ interface AuditRow {
 
 /** Fields shown in the edit history, in form order (translations, flags and timestamps are left out). */
 const HISTORY_FIELDS: Record<string, string> = {
+  leader_id: 'detail.leader',
+  store_id: 'common:field.store',
+  shift: 'common:field.shift',
+  business_date: 'common:field.date',
   participants_extra: 'chorei:participants.label',
   stock_none: 'chorei:stock.label',
   stock_text: 'chorei:stock.label',
@@ -198,6 +223,7 @@ const HISTORY_FIELDS: Record<string, string> = {
 export function ChoreiEditHistory({ record: r }: { record: AdminChorei }) {
   const { t } = useTranslation('manager')
   const people = usePeople()
+  const stores = useStores()
   const audit = useQuery({
     queryKey: ['admin', 'audit', 'chorei_records', r.id],
     queryFn: async () =>
@@ -208,6 +234,9 @@ export function ChoreiEditHistory({ record: r }: { record: AdminChorei }) {
   const show = (k: string, v: unknown): string => {
     if (v === null || v === undefined || v === '') return '—'
     if (k === 'stock_none') return v ? t('chorei:stock.none') : t('choreiEdit.stockSome')
+    if (k === 'leader_id') return people.name(String(v))
+    if (k === 'store_id') return storeName(stores.data?.find((s) => s.id === v), 'ja')
+    if (k === 'shift') return t(`common:shift.${String(v)}`)
     if (Array.isArray(v)) return v.length ? v.join('、') : '—'
     return String(v)
   }
@@ -228,7 +257,11 @@ export function ChoreiEditHistory({ record: r }: { record: AdminChorei }) {
     }
     return out
   }
-  const edits = (audit.data ?? []).map((row) => ({ at: row.at, who: row.actor_id ? people.name(row.actor_id) : '—', lines: lines(row) })).filter((e) => e.lines.length)
+  // fill_chorei_targets marks its rows
+  const autoTarget = (row: AuditRow) => row.action === 'auto_target'
+  const edits = (audit.data ?? [])
+    .map((row) => ({ at: row.at, who: autoTarget(row) ? t('choreiEdit.autoTarget') : row.actor_id ? people.name(row.actor_id) : '—', lines: lines(row) }))
+    .filter((e) => e.lines.length)
   // files the leader did not send themselves = added later by a manager
   const added = r.attachments.filter((a) => a.owner_id && a.owner_id !== r.leader_id && a.status !== 'deleted' && a.created_at)
   const byOwner = new Map<string, typeof added>()

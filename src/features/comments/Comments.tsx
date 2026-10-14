@@ -8,6 +8,8 @@ import { currentLocale } from '../../i18n'
 import { errorMessage } from '../../lib/format'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
+import { keepOriginals } from '../translate/managerText'
+import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 
 export interface RecordComment {
   id: string
@@ -110,12 +112,28 @@ export function RecordComments({
     void queryClient.invalidateQueries({ queryKey: ['my_chorei'] })
     void queryClient.invalidateQueries({ queryKey: ['my_patrols'] })
   }
+  const translation = useTranslationGate()
+  // a comment in another language is saved in Japanese after the writer confirms the translation
   const add = useMutation({
-    mutationFn: async () => unwrap(await supabase.rpc(RPC[kind].add, { [RPC[kind].param]: recordId, p_body: body.trim() })),
+    mutationFn: async () => {
+      const tr = await translation.prepare([{ key: 'body', label: t('comment.title'), text: body.trim() }])
+      const id = unwrap<string>(await supabase.rpc(RPC[kind].add, { [RPC[kind].param]: recordId, p_body: tr.values.body }))
+      await keepOriginals(RPC[kind].table, id, tr)
+    },
     onSuccess: () => {
       setBody('')
       refresh()
     },
+  })
+  const originals = useQuery({
+    queryKey: ['admin', 'originals', RPC[kind].table, comments.map((c) => c.id)],
+    enabled: isManager && comments.length > 0,
+    queryFn: async () =>
+      new Map(
+        unwrap<{ row_key: string; original: string }[]>(
+          await supabase.from('manager_text_originals').select('row_key, original').eq('table_name', RPC[kind].table).in('row_key', comments.map((c) => c.id)),
+        ).map((r) => [r.row_key, r.original]),
+      ),
   })
   const remove = useMutation({
     mutationFn: async (id: string) => unwrap(await supabase.from(RPC[kind].table).delete().eq('id', id)),
@@ -126,6 +144,7 @@ export function RecordComments({
   if (!comments.length && !write) return null
   return (
     <section className="mt-1 flex flex-col gap-2 rounded-xl border border-amber-300 bg-amber-50 p-2.5">
+      {translation.review}
       <h3 className="text-sm font-bold">💬 {t('comment.title')}</h3>
       {comments.length > 0 && (
         <ul className="flex flex-col gap-2">
@@ -138,6 +157,11 @@ export function RecordComments({
               <p lang="ja" className="whitespace-pre-wrap break-words">
                 {c.body}
               </p>
+              {originals.data?.get(c.id) && (
+                <p className="text-xs whitespace-pre-wrap text-slate-600">
+                  {t('comment.original')}: {originals.data.get(c.id)}
+                </p>
+              )}
               <Translated text={c.body} />
               {isManager && c.author_id === me.id && (
                 <button
@@ -161,7 +185,8 @@ export function RecordComments({
           </Button>
         </>
       )}
-      {(add.error || remove.error) && <ErrorBox message={errorMessage(add.error ?? remove.error)} />}
+      {write && <p className="text-xs text-slate-600">{t('comment.jaNote')}</p>}
+      {((add.error && !(add.error instanceof TranslationCancelled)) || remove.error) && <ErrorBox message={errorMessage(add.error ?? remove.error)} />}
     </section>
   )
 }

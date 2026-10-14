@@ -18,6 +18,7 @@ import { completeScores, type PatrolFormState } from '../patrol/draft'
 import { ScoreItem } from '../patrol/ScoreItem'
 import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 import { AttachmentList } from './AttachmentList'
+import { PersonSelect } from './common'
 import { JUDGE_STYLE, jstDateTime, usePeople, type AdminPatrol } from './data'
 
 const TEXT_FIELDS = ['good_points', 'improvements', 'remarks', 'customer_reason'] as const
@@ -42,6 +43,7 @@ export function PatrolEdit({ patrol: p, onDone }: { patrol: AdminPatrol; onDone:
   const locale = currentLocale()
 
   const [patrolType, setPatrolType] = useState<PatrolType>(p.patrol_type)
+  const [patrollerId, setPatrollerId] = useState(p.patroller_id)
   const [storeId, setStoreId] = useState(p.store_id)
   const [shift, setShift] = useState<Shift>(p.shift)
   const [businessDate, setBusinessDate] = useState(p.business_date)
@@ -91,11 +93,19 @@ export function PatrolEdit({ patrol: p, onDone }: { patrol: AdminPatrol; onDone:
       }
       // only changed text goes through translation; an unchanged field keeps its 原文
       const changed = TEXT_FIELDS.filter((k) => next[k] !== (p[k] ?? null))
-      const tr = await translation.prepare(changed.map((k) => ({ key: k, label: t(`patrolEdit.field.${k}`), text: next[k] })))
-      const originals = Object.fromEntries(Object.entries(p.original_texts ?? {}).filter(([k]) => !changed.includes(k as (typeof TEXT_FIELDS)[number])))
+      // the manager's own note is translated to Japanese too (owner, 2026-10-16)
+      const note = managerNote.trim() || null
+      const noteChanged = note !== (p.manager_note ?? null)
+      const tr = await translation.prepare([
+        ...changed.map((k) => ({ key: k, label: t(`patrolEdit.field.${k}`), text: next[k] })),
+        ...(noteChanged ? [{ key: 'manager_note', label: t('chorei:backfill.note'), text: note }] : []),
+      ])
+      const retranslated = [...changed, ...(noteChanged ? ['manager_note'] : [])] as string[]
+      const originals = Object.fromEntries(Object.entries(p.original_texts ?? {}).filter(([k]) => !retranslated.includes(k)))
       Object.assign(originals, tr.originals ?? {})
       const patch = {
         patrol_type: patrolType,
+        patroller_id: patrollerId,
         store_id: storeId,
         shift,
         business_date: businessDate,
@@ -110,7 +120,7 @@ export function PatrolEdit({ patrol: p, onDone }: { patrol: AdminPatrol; onDone:
         customer_none: Boolean(form.customerNone),
         customer_satisfied: form.customerNone ? null : (form.customerSatisfied ?? null),
         ...Object.fromEntries(TEXT_FIELDS.map((k) => [k, changed.includes(k) ? (tr.values[k] ?? null) : next[k]])),
-        manager_note: managerNote.trim() || null,
+        manager_note: noteChanged ? (tr.values.manager_note ?? null) : (p.manager_note ?? null),
         original_texts: Object.keys(originals).length ? originals : null,
         ...(tr.sourceLang ? { source_lang: tr.sourceLang } : {}),
       }
@@ -130,6 +140,7 @@ export function PatrolEdit({ patrol: p, onDone }: { patrol: AdminPatrol; onDone:
     <Card className="flex flex-col gap-3 ring-2 ring-blue-300">
       {translation.review}
       <h3 className="font-bold">{t('patrolEdit.title')}</h3>
+      <PersonSelect label={t('detail.patroller')} value={patrollerId} onChange={setPatrollerId} />
       <Segmented<PatrolType> label={t('patrol:type.label')} value={patrolType} onChange={setPatrolType} columns={2} options={PATROL_TYPES.map((value) => ({ value, label: t(`patrol:type.${value}`) }))} />
       <Segmented label={t('patrol:target')} value={storeId} onChange={setStoreId} options={(stores.data ?? []).map((s) => ({ value: s.id, label: storeName(s, locale) }))} />
       <Segmented label={t('common:field.shift')} value={shift} onChange={setShift} options={SHIFTS.map((s) => ({ value: s, label: t(`common:shift.${s}`) }))} />
@@ -208,6 +219,7 @@ interface AuditRow {
 
 /** Fields shown in the edit history, in form order (translations, flags and timestamps are left out). */
 const HISTORY_FIELDS: Record<string, string> = {
+  patroller_id: 'detail.patroller',
   patrol_type: 'patrol:type.label',
   store_id: 'patrol:target',
   shift: 'common:field.shift',
@@ -246,6 +258,7 @@ export function PatrolEditHistory({ patrol: p }: { patrol: AdminPatrol }) {
     if (k === 'patrol_type') return t(`patrol:type.${String(v)}`)
     if (k === 'shift') return t(`common:shift.${String(v)}`)
     if (k === 'store_id') return storeName(stores.data?.find((s) => s.id === v), 'ja')
+    if (k === 'patroller_id') return people.name(String(v))
     if (k === 'started_at' || k === 'ended_at') return jstDateTime(String(v))
     if (typeof v === 'boolean') return v ? '✓' : '—'
     if (Array.isArray(v)) return v.length ? v.join('、') : '—'

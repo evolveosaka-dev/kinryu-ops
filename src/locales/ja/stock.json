@@ -17,7 +17,9 @@
     "void": "取消",
     "voidConfirm": "この記録を取り消しますか？",
     "voided": "取消済み（{{name}}）",
-    "cancelled": "取り消しました"
+    "cancelled": "取り消しました",
+    "edit": "修正",
+    "editedBy": "{{name}}が修正"
   },
   "kind": {
     "open": "繰越を数え直した",
@@ -98,7 +100,8 @@
     "reasonNoteRequired": "「その他」の場合は、くわしく書いてください。",
     "photoHint": "写真・動画はなくてもよいです（お客様の顔は撮らないでください）。",
     "photoCount": "写真・動画：{{n}}件（送信後にアップロード）",
-    "carriedIs": "繰越：{{n}}"
+    "carriedIs": "繰越：{{n}}",
+    "editHelp": "{{name}}さんが{{time}}に入れた数字を直します。元の行は取り消しになり、直した人が記録に残ります。"
   },
   "temp": {
     "title": "冷蔵庫温度",

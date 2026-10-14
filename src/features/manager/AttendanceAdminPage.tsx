@@ -7,13 +7,15 @@ import { useToast } from '../../components/Toast'
 import { Button, Card, ErrorBox, PageTitle, Segmented, Spinner, TextArea, TextInput } from '../../components/ui'
 import { attendanceScores, GRADE_STYLE, labelOf, WINDOW_DAYS, type AttendanceEvent } from '../../domain/attendance'
 import { formatMin, formatRange, STORE_BY_MARK, type Assignment } from '../../domain/schedule'
-import { coverCandidates, coverProblemOf, REASON_ICON, VISA_LIMIT_MIN } from '../../domain/shiftChange'
+import { coverCandidates, coverProblemOf, LATE_OPTIONS, leaveOptions, REASON_ICON, reasonsFor, VISA_LIMIT_MIN, type ChangeReason } from '../../domain/shiftChange'
 import { addDays, formatShortDate, weekdayOf } from '../../domain/time'
 import { cx } from '../../lib/cx'
 import { errorMessage } from '../../lib/format'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import { ChangeForm } from '../shift/ChangeForm'
+import { keepOriginals } from '../translate/managerText'
+import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 import { ScoreView } from '../shift/AbsencePage'
 import { noticeText, STATUS_STYLE, today, useAttendance, useChangeLabel, useChanges, useProblemText, useReasonLabel, useStaffLimits, type ChangeWithOffers } from '../shift/changeData'
 import { jstDateTime } from './data'
@@ -84,9 +86,15 @@ function DecideSheet({ c, onClose }: { c: ChangeWithOffers; onClose: () => void 
   const reasonLabel = useReasonLabel()
   const [note, setNote] = useState('')
   const [showAll, setShowAll] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const translation = useTranslationGate()
   const decide = useMutation({
-    mutationFn: async ({ approve, offer, cover }: { approve: boolean; offer?: string; cover?: string }) =>
-      unwrap(await supabase.rpc('decide_shift_change', { p_id: c.id, p_approve: approve, p_offer: offer ?? null, p_cover: cover ?? null, p_note: note.trim() || null })),
+    mutationFn: async ({ approve, offer, cover }: { approve: boolean; offer?: string; cover?: string }) => {
+      // the manager's note goes to the staff member in Japanese, after the writer confirms the translation
+      const tr = await translation.prepare([{ key: 'manager_note', label: t('attendance.managerNote'), text: note.trim() || null }])
+      unwrap(await supabase.rpc('decide_shift_change', { p_id: c.id, p_approve: approve, p_offer: offer ?? null, p_cover: cover ?? null, p_note: tr.values.manager_note }))
+      await keepOriginals('shift_changes', c.id, tr)
+    },
     onSuccess: (_, { approve }) => {
       toast(approve ? t('attendance.approved') : t('attendance.rejected'))
       void queryClient.invalidateQueries({ queryKey: ['shift_changes'] })
@@ -121,6 +129,7 @@ function DecideSheet({ c, onClose }: { c: ChangeWithOffers; onClose: () => void 
   const pickedName = pick?.cover ?? offers.find((o) => o.id === pick?.offer)?.roster_name ?? null
   return (
     <Sheet title={`${c.roster_name} ・ ${label(c)}`} onClose={onClose}>
+      {translation.review}
       <Card className="flex flex-col gap-1 text-sm">
         <p className="text-base font-bold">
           {dayText(c.business_date, t)} {t(`common:shift.${c.shift}`)} {formatRange(c)} {STORE_BY_MARK[c.store_mark]?.ja ?? c.store_mark}
@@ -139,7 +148,13 @@ function DecideSheet({ c, onClose }: { c: ChangeWithOffers; onClose: () => void 
           {c.give_date && ` ・ 🔁 ${dayText(c.give_date, t)} ${t(`common:shift.${c.give_shift}`)}`}
         </p>
         {c.manager_note && <p>💬 {c.manager_note}</p>}
+        {!editing && (
+          <Button variant="secondary" className="mt-1 min-h-10 self-start py-1 text-sm" onClick={() => setEditing(true)}>
+            ✏️ {t('attendance.editReport')}
+          </Button>
+        )}
       </Card>
+      {editing && <ChangeEdit c={c} onDone={() => setEditing(false)} />}
 
       {c.status === 'open' && c.proposed_cover && (
         <Card className="flex flex-col gap-1 border-2 border-brand">
@@ -206,7 +221,9 @@ function DecideSheet({ c, onClose }: { c: ChangeWithOffers; onClose: () => void 
       {c.status === 'open' && (
         <Card className="flex flex-col gap-2">
           <TextArea label={t('attendance.managerNote')} value={note} onChange={(e) => setNote(e.target.value)} />
-          {decide.error && <ErrorBox message={coverProblemOf(decide.error) ? problemText(coverProblemOf(decide.error)!) : errorMessage(decide.error)} />}
+          {decide.error && !(decide.error instanceof TranslationCancelled) && (
+            <ErrorBox message={coverProblemOf(decide.error) ? problemText(coverProblemOf(decide.error)!) : errorMessage(decide.error)} />
+          )}
           {pickedName && (
             <Button onClick={() => decide.mutate({ approve: true, offer: pick?.offer, cover: pick?.cover })} disabled={decide.isPending}>
               ✅ {t('attendance.approveWith', { name: pickedName })}
@@ -222,6 +239,90 @@ function DecideSheet({ c, onClose }: { c: ChangeWithOffers; onClose: () => void 
         </Card>
       )}
     </Sheet>
+  )
+}
+
+/** 管理者が修正: what the staff member reported (reason, note, minutes late / leaving time). */
+function ChangeEdit({ c, onDone }: { c: ChangeWithOffers; onDone: () => void }) {
+  const { t } = useTranslation('manager')
+  const { t: ts } = useTranslation('shift')
+  const toast = useToast()
+  const queryClient = useQueryClient()
+  const reasonLabel = useReasonLabel()
+  const translation = useTranslationGate()
+  const [reason, setReason] = useState<ChangeReason>(c.reason)
+  const [note, setNote] = useState(c.note ?? '')
+  const [lateMin, setLateMin] = useState(String(c.late_min ?? ''))
+  const [leaveMin, setLeaveMin] = useState<number | null>(c.leave_min ?? null)
+  const save = useMutation({
+    mutationFn: async () => {
+      const text = note.trim() || null
+      const changed = text !== (c.note ?? null)
+      const tr = changed ? await translation.prepare([{ key: 'note', label: ts('change.note'), text }]) : { values: { note: text }, originals: null, sourceLang: null }
+      unwrap(
+        await supabase.rpc('manager_edit_shift_change', {
+          p_id: c.id,
+          p_reason: reason,
+          p_note: tr.values.note,
+          p_note_original: tr.originals?.note ?? null,
+          p_source_lang: tr.sourceLang,
+          p_late_min: c.kind === 'late' ? Number(lateMin) : null,
+          p_leave_min: c.kind === 'early_leave' ? leaveMin : null,
+        }),
+      )
+    },
+    onSuccess: () => {
+      toast(t('attendance.editSaved'))
+      void queryClient.invalidateQueries({ queryKey: ['shift_changes'] })
+      void queryClient.invalidateQueries({ queryKey: ['attendance'] })
+      onDone()
+    },
+  })
+  const options = reasonsFor(c.kind, true)
+  return (
+    <Card className="flex flex-col gap-3 ring-2 ring-blue-300">
+      {translation.review}
+      <h3 className="font-bold">✏️ {t('attendance.editReport')}</h3>
+      <Segmented
+        label={ts('change.reasonLabel')}
+        value={reason}
+        onChange={setReason}
+        columns={2}
+        options={(options.includes(c.reason) ? options : [c.reason, ...options]).map((r) => ({ value: r, label: `${REASON_ICON[r]} ${reasonLabel(c.kind, r)}` }))}
+      />
+      <TextArea label={ts('change.note')} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={2} />
+      {c.kind === 'late' && (
+        <Segmented
+          label={t('attendance.lateMin')}
+          value={lateMin}
+          onChange={setLateMin}
+          columns={3}
+          options={[...new Set([...LATE_OPTIONS, ...(c.late_min ? [c.late_min] : [])])].sort((a, b) => a - b).map((m) => ({ value: String(m), label: ts('change.minutes', { n: m, defaultValue: `${m}分` }) }))}
+        />
+      )}
+      {c.kind === 'early_leave' &&
+        (c.status === 'open' ? (
+          <Segmented
+            label={t('attendance.leaveAt')}
+            value={String(leaveMin ?? '')}
+            onChange={(v) => setLeaveMin(Number(v))}
+            columns={3}
+            options={leaveOptions(c).map((m) => ({ value: String(m), label: formatMin(m) }))}
+          />
+        ) : (
+          <p className="text-sm text-muted">{t('attendance.leaveFixed', { time: formatMin(c.leave_min ?? 0) })}</p>
+        ))}
+      <p className="text-xs text-muted">{t('attendance.editHelp')}</p>
+      {save.error && !(save.error instanceof TranslationCancelled) && <ErrorBox message={errorMessage(save.error)} />}
+      <div className="grid grid-cols-2 gap-2">
+        <Button variant="secondary" onClick={onDone} disabled={save.isPending}>
+          {t('choreiEdit.cancel')}
+        </Button>
+        <Button onClick={() => save.mutate()} disabled={save.isPending}>
+          {save.isPending ? t('common:action.loading') : t('choreiEdit.save')}
+        </Button>
+      </div>
+    </Card>
   )
 }
 
@@ -336,6 +437,7 @@ function PersonSheet({ name, events, onClose }: { name: string; events: Attendan
   const [points, setPoints] = useState('')
   const [excluded, setExcluded] = useState(false)
   const [note, setNote] = useState('')
+  const translation = useTranslationGate()
   const saveLimit = useMutation({
     mutationFn: async () => {
       const h = Number(limitH)
@@ -349,16 +451,19 @@ function PersonSheet({ name, events, onClose }: { name: string; events: Attendan
   })
   const saveOverride = useMutation({
     mutationFn: async (reset: boolean) => {
-      if (reset) unwrap(await supabase.from('attendance_overrides').delete().eq('event_key', editing!.event_key))
-      else
-        unwrap(
-          await supabase.from('attendance_overrides').upsert({
-            event_key: editing!.event_key,
-            excluded,
-            points: excluded || points.trim() === '' ? null : Number(points),
-            note: note.trim() || null,
-          }),
-        )
+      if (reset) return unwrap(await supabase.from('attendance_overrides').delete().eq('event_key', editing!.event_key))
+      // the note is kept in Japanese (the writer confirms the translation)
+      const text = note.trim() || null
+      const tr = text === (editing!.note ?? null) ? { values: { note: text }, originals: null, sourceLang: null } : await translation.prepare([{ key: 'note', label: t('attendance.note'), text }])
+      unwrap(
+        await supabase.from('attendance_overrides').upsert({
+          event_key: editing!.event_key,
+          excluded,
+          points: excluded || points.trim() === '' ? null : Number(points),
+          note: tr.values.note,
+        }),
+      )
+      await keepOriginals('attendance_overrides', editing!.event_key, tr)
     },
     onSuccess: () => {
       setEditing(null)
@@ -367,6 +472,7 @@ function PersonSheet({ name, events, onClose }: { name: string; events: Attendan
   })
   return (
     <Sheet title={`${name} ・ ${t('attendance.scoreTitle')}`} onClose={onClose}>
+      {translation.review}
       <ScoreView events={events} name={name} />
       <Card className="flex flex-col gap-2">
         <h3 className="font-bold">✏️ {t('attendance.adjust')}</h3>
@@ -408,7 +514,7 @@ function PersonSheet({ name, events, onClose }: { name: string; events: Attendan
             </label>
             {!excluded && <TextInput type="number" label={t('attendance.points')} value={points} onChange={(e) => setPoints(e.target.value)} placeholder={String(editing.base_points)} />}
             <TextInput label={t('attendance.note')} value={note} onChange={(e) => setNote(e.target.value)} />
-            {saveOverride.error && <ErrorBox message={errorMessage(saveOverride.error)} />}
+            {saveOverride.error && !(saveOverride.error instanceof TranslationCancelled) && <ErrorBox message={errorMessage(saveOverride.error)} />}
             <Button onClick={() => saveOverride.mutate(false)} disabled={saveOverride.isPending}>
               {t('attendance.save')}
             </Button>

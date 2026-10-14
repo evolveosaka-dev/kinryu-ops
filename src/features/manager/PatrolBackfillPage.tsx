@@ -88,6 +88,7 @@ export function PatrolBackfillPage() {
         { key: 'improvements', label: t('patrol:improvements.label'), text: form.improvements.trim() },
         { key: 'remarks', label: t('patrol:remarks.label'), text: form.remarks.trim() || null },
         { key: 'customer_reason', label: t('patrol:customer.reason'), text: customerNo ? (form.customerReason ?? '').trim() : null },
+        { key: 'manager_note', label: t('chorei:backfill.note'), text: managerNote.trim() || null },
       ])
       const res = await supabase
         .from('patrol_checks')
@@ -117,7 +118,7 @@ export function PatrolBackfillPage() {
           source_lang: tr.sourceLang,
           status: 'valid',
           entered_by_manager: true,
-          manager_note: managerNote.trim() || null,
+          manager_note: tr.values.manager_note ?? null,
         })
         .select('id')
         .single()

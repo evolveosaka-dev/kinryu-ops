@@ -54,6 +54,9 @@ export interface StockEvent {
   created_at: string
   voided_at: string | null
   voided_by_name: string | null
+  /** a manager's correction: the row it replaces and who corrected it */
+  replaces?: string | null
+  edited_by_name?: string | null
 }
 
 export interface ItemState {

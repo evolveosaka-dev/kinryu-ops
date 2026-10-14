@@ -13,6 +13,7 @@ import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import { AttachmentPicker } from '../attachments/AttachmentPicker'
 import { useUploadQueue } from '../attachments/uploadQueue'
+import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 import { Sheet } from './common'
 import { jstDateTime } from './data'
 
@@ -50,14 +51,19 @@ export function ChoreiMissSheet({
     void queryClient.invalidateQueries({ queryKey: ['admin'] })
     onClose()
   }
+  const translation = useTranslationGate()
   const save = useMutation({
     mutationFn: async () => {
+      const text = note.trim() || null
+      const changed = !m || text !== m.note
+      // the note is kept in Japanese; other-language text is translated after the writer confirms it
+      const tr = changed ? await translation.prepare([{ key: 'note', label: t('misses.note'), text }]) : null
       const row = {
         kind: 'missed',
         reason: choice,
-        note: note.trim() || null,
+        note: tr ? (tr.values.note ?? null) : text,
         // a changed note no longer matches the reporter's 原文
-        ...(m && (note.trim() || null) !== m.note ? { original_texts: null, source_lang: null } : {}),
+        ...(tr ? { original_texts: tr.originals, source_lang: tr.sourceLang } : {}),
       }
       const res = m
         ? await supabase.from('chorei_misses').update(row).eq('id', m.id).select('id').single()
@@ -78,7 +84,7 @@ export function ChoreiMissSheet({
       done()
     },
   })
-  const error = save.error ?? remove.error
+  const error = (save.error instanceof TranslationCancelled ? null : save.error) ?? remove.error
 
   const tile = (value: MissReason, label: string, icon: string) => (
     <button
@@ -99,6 +105,7 @@ export function ChoreiMissSheet({
 
   return (
     <Sheet title={title} onClose={onClose}>
+      {translation.review}
       <Card className="flex flex-col gap-2">
         <h3 className="font-bold">{t('misses.now')}</h3>
         {!m && <p className="font-bold text-red-700">✗ {t('misses.unreported')}</p>}

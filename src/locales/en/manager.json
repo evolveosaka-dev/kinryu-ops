@@ -176,7 +176,9 @@
     "issueEdit": "Correct",
     "issueSave": "Save",
     "issueCancel": "Cancel",
-    "timeEdit": "Correct the time"
+    "timeEdit": "Correct the time",
+    "edit": "Edit",
+    "noteEdit": "Correct the note"
   },
   "stats": {
     "title": "Reports",
@@ -276,7 +278,10 @@
     "days": "{{shift}} {{n}} days",
     "none": "No requests yet.",
     "note": "The exported sheets have the same layout as 早番希望 / 中番希望 / 遅番希望 in the shift workbook.",
-    "deadline": "Deadline: {{date}}"
+    "deadline": "Deadline: {{date}}",
+    "edit": "Edit",
+    "editTitle": "Correct {{name}}'s shift request",
+    "saved": "Shift request corrected"
   },
   "shiftImport": {
     "title": "Import shift table",
@@ -394,7 +399,8 @@
     "historyNote": "The sent time ({{at}}) does not change. This history is shown on manager screens only.",
     "voided": "Voided",
     "addedFiles": "Added {{n}} photo(s)/video(s)",
-    "stockSome": "Some"
+    "stockSome": "Some",
+    "autoTarget": "Automatic (from the targets)"
   },
   "misses": {
     "title": "Why 朝礼 were not held (period)",
@@ -654,7 +660,8 @@
       "dayType": "Day type: from the Japanese holiday calendar (same rules as the targets).",
       "patrol": "Patrols: scores of the sent patrol checks (not voided).",
       "reports": "Daily sales reports: Manager → Sales reports.",
-      "dataFrom": "2024 figures are not used (from January 2025)."
+      "dataFrom": "2024 figures are not used (from January 2025).",
+      "weather": "Rain: Open-Meteo hourly precipitation (near Namba). Up to yesterday what fell, from today the forecast."
     },
     "score": "Score"
   },
@@ -743,7 +750,13 @@
     "visaLimit": "at most 28 h in 7 days in a row (set on the user screen)",
     "proposed": "Named by the reporter: {{name}} (agreed)",
     "chooseProposed": "Approve with this person (confirm below)",
-    "afterLong": "right after {{time}} ({{h}} h)"
+    "afterLong": "right after {{time}} ({{h}} h)",
+    "editReport": "Correct the report",
+    "editSaved": "Report corrected",
+    "lateMin": "Minutes late",
+    "leaveAt": "Leaving at",
+    "leaveFixed": "The leaving time ({{time}}) is approved and already in the shift table, so it cannot change here. Correct it in the shift table.",
+    "editHelp": "A manager corrects what the staff member sent. Who corrected it and the previous content are kept. No mail."
   },
   "system": {
     "title": "System status",
@@ -820,7 +833,8 @@
     "preventionNeeded": "Write the prevention before closing.",
     "save": "Save",
     "saved": "Saved.",
-    "resolvedAt": "Closed: {{at}}"
+    "resolvedAt": "Closed: {{at}}",
+    "editReport": "Correct the report"
   },
   "reports": {
     "title": "AI reports",
@@ -873,7 +887,51 @@
     "vsTarget": "{{n}}% of target",
     "how": "Forecast = average of the same day type in the last 6 weeks × events × rain (shifts with ≥ 1 mm forecast).",
     "error": "Error tested on the last 4 weeks ±{{n}}%.",
-    "rain": "Rain effect (measured): morning {{early}}% / evening {{middle}}% / night {{late}}%.",
-    "weatherError": "Could not get the weather forecast. Open again later."
+    "weatherError": "Could not get the weather forecast. Open again later.",
+    "tapHint": "Tap a number to see how it is calculated and from which data.",
+    "rainHead": "Effect of rain (measured): ",
+    "hours": {
+      "early": "7:00–17:00",
+      "middle": "17:00–23:00",
+      "late": "23:00–7:00 next day"
+    },
+    "x": {
+      "slotTitle": "Forecast {{date}} {{where}}",
+      "slotFormula": "Forecast = average × events × rain\n= {{base}} × {{ev}} × {{rain}}\n= {{value}} bowls",
+      "noBase": "No figures for the same day type ({{type}}) in the last 12 weeks, so no forecast.",
+      "base": "① Average: days of the same type as {{date}} (“{{type}}”) between {{from}} and {{to}} ({{weeks}} weeks), bowls of {{where}} averaged. {{n}} days → {{avg}}. Only the same day type, because Fridays, Saturdays and long weekends sell differently.",
+      "baseWide": "Fewer than 2 such days in the last 6 weeks, so 12 weeks were used.",
+      "events": "② Events: {{list}} → ×{{f}} (the % of the events in Admin → Settings → Targets, only those switched on).",
+      "eventsNone": "② Events: none switched on for this day and shift → ×1.00.",
+      "rainUnknown": "③ Rain: no forecast for this day yet → ×1.00.",
+      "rainNo": "③ Rain: {{mm}} mm forecast for this shift ({{hours}}). Under 1 mm, no effect → ×1.00.",
+      "rainFew": "③ Rain: {{mm}} mm forecast for this shift ({{hours}}), but only {{n}} rainy days of data (fewer than {{min}}), so no effect → ×1.00.",
+      "rainYes": "③ Rain: {{mm}} mm forecast for this shift ({{hours}}). On rainy days the {{shift}} shift sells ×{{f}} (measured).",
+      "rainOpen": "How the rain effect of {{shift}} is measured →",
+      "target": "④ Target: {{target}} bowls ({{type}}, Admin → Settings → Targets). The forecast is {{rate}}% of it.",
+      "noTarget": "④ Target: no target for this day (Admin → Settings → Targets).",
+      "baseTable": "Days used for the average in ① ({{n}})",
+      "colDate": "Date",
+      "colBowls": "Bowls",
+      "avg": "Average",
+      "linkNote": "Dates from {{date}} open that day's sales report (earlier figures come from the Excel).",
+      "dayTitle": "Forecast {{date}} {{type}}",
+      "dayFormula": "Day forecast = sum of the 6 shifts\n= {{parts}}\n= {{total}} bowls",
+      "dayNote": "Tap a shift to see its calculation (average, events, rain).",
+      "dayNoTarget": "Some shifts have no target, so no day target or rate.",
+      "colForecast": "Forecast",
+      "colActual": "Actual",
+      "colExpected": "Expected",
+      "colRatio": "Actual÷Exp.",
+      "colError": "Error",
+      "rainTitle": "Effect of rain: {{shift}}",
+      "rainFormula": "Rain effect = median of “actual ÷ expected” on rainy days",
+      "rainResult": "= {{m}} → ×{{f}}",
+      "rainResultFew": "= only {{n}} rainy days (fewer than {{min}}) → ×1.00 (not used)",
+      "rainNote": "From {{from}} to yesterday, the days with 1 mm or more during {{hours}} ({{days}} days, {{n}} rows): the actual bowls divided by the forecast without rain (same-type average × events).\nThe median is used so that one odd day does not pull it; it is kept between {{lo}} and {{hi}}. Fewer than {{min}} rainy days → ×1.00.",
+      "errorTitle": "Forecast error (last 4 weeks)",
+      "errorFormula": "Error = mean of “|forecast − actual| ÷ actual”\n= mean of {{n}} rows\n= ±{{err}}%",
+      "errorNote": "For the 28 days from {{from}} to yesterday, every day and shift was forecast the same way (only data before that day, and the rain that fell) and compared with the real bowls. All rows are below."
+    }
   }
 }

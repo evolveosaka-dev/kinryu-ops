@@ -5,14 +5,17 @@ import { useMe } from '../../app/auth'
 import { Sheet } from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
 import { Button, Card, ErrorBox, PageTitle, Segmented, Spinner, TextArea, TextInput } from '../../components/ui'
-import { INCIDENT_ICON, INCIDENT_STATUSES, INCIDENT_STATUS_STYLE, URGENT_INCIDENTS, type IncidentStatus } from '../../domain/incident'
+import { INCIDENT_ICON, INCIDENT_KINDS, INCIDENT_STATUSES, INCIDENT_STATUS_STYLE, URGENT_INCIDENTS, type IncidentKind, type IncidentStatus } from '../../domain/incident'
+import { SHIFTS, type Shift } from '../../domain/types'
+import { currentLocale } from '../../i18n'
 import { formatShortDate } from '../../domain/time'
 import { cx } from '../../lib/cx'
 import { errorMessage, storeName } from '../../lib/format'
 import { unwrap, useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
+import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 import { AttachmentList } from './AttachmentList'
-import { jstDateTime, useIncidents, type IncidentRow } from './data'
+import { fromLocalInput, jstDateTime, toLocalInput, useIncidents, type IncidentRow } from './data'
 import { ManagerTabs } from './ManagerTabs'
 
 function IncidentSheet({ r, onClose }: { r: IncidentRow; onClose: () => void }) {
@@ -26,14 +29,28 @@ function IncidentSheet({ r, onClose }: { r: IncidentRow; onClose: () => void }) 
   const [owner, setOwner] = useState(r.owner_name ?? me.full_name ?? me.display_name ?? '')
   const [resolution, setResolution] = useState(r.resolution ?? '')
   const [prevention, setPrevention] = useState(r.prevention ?? '')
+  const [editing, setEditing] = useState(false)
+  const translation = useTranslationGate()
   const save = useMutation({
-    mutationFn: async () =>
+    mutationFn: async () => {
+      // 対応内容・再発防止 are kept in Japanese; changed text in another language is translated after the writer confirms
+      const next = { resolution: resolution.trim() || null, prevention: prevention.trim() || null }
+      const changed = (['resolution', 'prevention'] as const).filter((k) => next[k] !== (r[k] ?? null))
+      const tr = await translation.prepare(changed.map((k) => ({ key: k, label: t(`incidents.${k}`), text: next[k] })))
+      const originals = { ...Object.fromEntries(Object.entries(r.original_texts ?? {}).filter(([k]) => !changed.includes(k as (typeof changed)[number]))), ...(tr.originals ?? {}) }
       unwrap(
         await supabase
           .from('incidents')
-          .update({ status, owner_name: owner.trim() || null, owner_id: owner.trim() ? (r.owner_id ?? me.id) : null, resolution: resolution.trim() || null, prevention: prevention.trim() || null })
+          .update({
+            status,
+            owner_name: owner.trim() || null,
+            owner_id: owner.trim() ? (r.owner_id ?? me.id) : null,
+            ...Object.fromEntries(changed.map((k) => [k, tr.values[k] ?? null])),
+            original_texts: Object.keys(originals).length ? originals : null,
+          })
           .eq('id', r.id),
-      ),
+      )
+    },
     onSuccess: () => {
       toast(t('incidents.saved'))
       void queryClient.invalidateQueries({ queryKey: ['incidents'] })
@@ -43,6 +60,7 @@ function IncidentSheet({ r, onClose }: { r: IncidentRow; onClose: () => void }) 
   const needPrevention = status === 'done' && !prevention.trim()
   return (
     <Sheet title={`${INCIDENT_ICON[r.kind]} ${tc(`incident.kinds.${r.kind}`)}`} onClose={onClose}>
+      {translation.review}
       <Card className="flex flex-col gap-1 text-sm">
         <p className="text-base font-bold">
           {formatShortDate(r.business_date)} {tc(`shift.${r.shift}`)} ・ {storeName(stores.data?.find((s) => s.id === r.store_id), 'ja')}
@@ -57,7 +75,13 @@ function IncidentSheet({ r, onClose }: { r: IncidentRow; onClose: () => void }) 
         </p>
         {r.original_texts?.action_taken && <p className="text-xs text-muted">{t('detail.original')}: {r.original_texts.action_taken}</p>}
         <AttachmentList list={r.attachments} parentId={r.id} />
+        {!editing && (
+          <Button variant="secondary" className="mt-1 min-h-10 self-start py-1 text-sm" onClick={() => setEditing(true)}>
+            ✏️ {t('incidents.editReport')}
+          </Button>
+        )}
       </Card>
+      {editing && <IncidentEdit r={r} onDone={() => setEditing(false)} />}
       <Card className="flex flex-col gap-3">
         <Segmented label={t('incidents.statusLabel')} value={status} onChange={setStatus} options={INCIDENT_STATUSES.map((s) => ({ value: s, label: tc(`incident.status.${s}`) }))} />
         <TextInput label={t('incidents.owner')} value={owner} onChange={(e) => setOwner(e.target.value)} />
@@ -70,13 +94,82 @@ function IncidentSheet({ r, onClose }: { r: IncidentRow; onClose: () => void }) 
           onChange={(e) => setPrevention(e.target.value)}
           error={needPrevention ? t('incidents.preventionNeeded') : null}
         />
-        {save.error && <ErrorBox message={errorMessage(save.error)} />}
+        {save.error && !(save.error instanceof TranslationCancelled) && <ErrorBox message={errorMessage(save.error)} />}
         <Button onClick={() => save.mutate()} disabled={needPrevention || save.isPending}>
           {t('incidents.save')}
         </Button>
         {r.resolved_at && <p className="text-xs text-muted">{t('incidents.resolvedAt', { at: jstDateTime(r.resolved_at) })}</p>}
       </Card>
     </Sheet>
+  )
+}
+
+/** 管理者が修正: what the staff member reported (kind, slot, time, what happened, what was done). */
+function IncidentEdit({ r, onDone }: { r: IncidentRow; onDone: () => void }) {
+  const { t } = useTranslation('manager')
+  const { t: tc } = useTranslation()
+  const toast = useToast()
+  const stores = useStores()
+  const queryClient = useQueryClient()
+  const translation = useTranslationGate()
+  const [kind, setKind] = useState<IncidentKind>(r.kind)
+  const [storeId, setStoreId] = useState(r.store_id)
+  const [shift, setShift] = useState<Shift>(r.shift)
+  const [date, setDate] = useState(r.business_date)
+  const [occurred, setOccurred] = useState(toLocalInput(r.occurred_at))
+  const [description, setDescription] = useState(r.description)
+  const [action, setAction] = useState(r.action_taken ?? '')
+  const save = useMutation({
+    mutationFn: async () => {
+      const next = { description: description.trim(), action_taken: action.trim() || null }
+      const changed = (['description', 'action_taken'] as const).filter((k) => next[k] !== (r[k] ?? null))
+      const tr = await translation.prepare(changed.map((k) => ({ key: k, label: tc(`incident.${k === 'description' ? 'description' : 'action'}`), text: next[k] })))
+      const originals = { ...Object.fromEntries(Object.entries(r.original_texts ?? {}).filter(([k]) => !changed.includes(k as (typeof changed)[number]))), ...(tr.originals ?? {}) }
+      unwrap(
+        await supabase
+          .from('incidents')
+          .update({
+            kind,
+            store_id: storeId,
+            shift,
+            business_date: date,
+            occurred_at: fromLocalInput(occurred),
+            ...Object.fromEntries(changed.map((k) => [k, tr.values[k] ?? null])),
+            original_texts: Object.keys(originals).length ? originals : null,
+          })
+          .eq('id', r.id),
+      )
+    },
+    onSuccess: () => {
+      toast(t('incidents.saved'))
+      void queryClient.invalidateQueries({ queryKey: ['incidents'] })
+      onDone()
+    },
+  })
+  return (
+    <Card className="flex flex-col gap-3 ring-2 ring-blue-300">
+      {translation.review}
+      <h3 className="font-bold">✏️ {t('incidents.editReport')}</h3>
+      <Segmented label={tc('incident.kind')} value={kind} onChange={setKind} columns={2} options={INCIDENT_KINDS.map((k) => ({ value: k, label: `${INCIDENT_ICON[k]} ${tc(`incident.kinds.${k}`)}` }))} />
+      <Segmented label={tc('field.store')} value={storeId} onChange={setStoreId} options={(stores.data ?? []).map((s) => ({ value: s.id, label: storeName(s, currentLocale()) }))} />
+      <Segmented label={tc('field.shift')} value={shift} onChange={setShift} options={SHIFTS.map((s) => ({ value: s, label: tc(`shift.${s}`) }))} />
+      <TextInput label={tc('field.date')} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+      <label className="text-sm font-bold">
+        {t('incidents.occurred')}
+        <input type="datetime-local" className="min-h-11 w-full rounded-lg border border-slate-300 px-2" value={occurred} onChange={(e) => setOccurred(e.target.value)} />
+      </label>
+      <TextArea label={tc('incident.description')} rows={3} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={2000} />
+      <TextArea label={tc('incident.action')} rows={2} value={action} onChange={(e) => setAction(e.target.value)} maxLength={2000} />
+      {save.error && !(save.error instanceof TranslationCancelled) && <ErrorBox message={errorMessage(save.error)} />}
+      <div className="grid grid-cols-2 gap-2">
+        <Button variant="secondary" onClick={onDone} disabled={save.isPending}>
+          {t('choreiEdit.cancel')}
+        </Button>
+        <Button onClick={() => save.mutate()} disabled={save.isPending || !description.trim() || !date || !occurred}>
+          {save.isPending ? tc('action.loading') : t('choreiEdit.save')}
+        </Button>
+      </div>
+    </Card>
   )
 }
 

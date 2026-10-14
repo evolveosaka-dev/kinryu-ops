@@ -17,7 +17,9 @@
     "void": "Cancel",
     "voidConfirm": "Cancel this record?",
     "voided": "Cancelled ({{name}})",
-    "cancelled": "Cancelled"
+    "cancelled": "Cancelled",
+    "edit": "Edit",
+    "editedBy": "corrected by {{name}}"
   },
   "kind": {
     "open": "Recounted the carry-over",
@@ -98,7 +100,8 @@
     "reasonNoteRequired": "For “Other”, please write the details.",
     "photoHint": "Photos / videos are optional (never film customers’ faces).",
     "photoCount": "Photos / videos: {{n}} (uploaded after saving)",
-    "carriedIs": "Carried: {{n}}"
+    "carriedIs": "Carried: {{n}}",
+    "editHelp": "Correct the figures {{name}} entered at {{time}}. The old row is cancelled and the person who corrected it is recorded."
   },
   "temp": {
     "title": "Fridge temperature",

@@ -9,6 +9,7 @@ import { currentLocale } from '../../i18n'
 import { errorMessage, storeName } from '../../lib/format'
 import { unwrap, useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
+import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 import type { AttachmentSummary } from '../../lib/types'
 import { RecordComments } from '../comments/Comments'
 import { issueTagsToSave, STAFF_ISSUES_ENABLED } from '../../domain/issues'
@@ -38,6 +39,72 @@ function useUpdate(table: 'patrol_checks' | 'chorei_records', id: string, onDone
       onDone()
     },
   })
+}
+
+/**
+ * A manager's free text (補助指導のメモ, 取り消しの理由) is saved in Japanese: other-language text goes through
+ * the translation check first, and the text as written goes to original_texts of the record.
+ */
+function useJaUpdate(update: ReturnType<typeof useUpdate>, originalTexts: Record<string, string> | null) {
+  const translation = useTranslationGate()
+  const [error, setError] = useState<Error | null>(null)
+  const run = async (patch: Record<string, unknown>, field: string, label: string) => {
+    setError(null)
+    try {
+      const tr = await translation.prepare([{ key: field, label, text: (patch[field] as string | null) ?? null }])
+      update.mutate({ ...patch, [field]: tr.values[field], ...(tr.originals ? { original_texts: { ...(originalTexts ?? {}), ...tr.originals } } : {}) })
+    } catch (e) {
+      if (!(e instanceof TranslationCancelled)) setError(e instanceof Error ? e : new Error(String(e)))
+    }
+  }
+  return { run, review: translation.review, error }
+}
+
+/** 追記 (chorei_notes) written by staff: managers correct the text (translated to Japanese like the original). */
+function NoteRows({ notes }: { notes: AdminChorei['notes'] }) {
+  const { t } = useTranslation('manager')
+  const queryClient = useQueryClient()
+  const translation = useTranslationGate()
+  const [editing, setEditing] = useState<{ id: string; body: string } | null>(null)
+  const save = useMutation({
+    mutationFn: async (n: { id: string; body: string }) => {
+      const tr = await translation.prepare([{ key: 'body', label: t('chorei:previous.notes'), text: n.body.trim() }])
+      unwrap(await supabase.from('chorei_notes').update({ body: tr.values.body, ...(tr.originals ? { original_body: tr.originals.body } : {}) }).eq('id', n.id))
+    },
+    onSuccess: () => {
+      setEditing(null)
+      void queryClient.invalidateQueries({ queryKey: ['admin'] })
+    },
+  })
+  return (
+    <Row label={t('chorei:previous.notes')}>
+      {translation.review}
+      {notes.map((n) =>
+        editing?.id === n.id ? (
+          <span key={n.id} className="flex flex-col gap-1">
+            <TextArea label={t('detail.noteEdit')} value={editing.body} onChange={(e) => setEditing({ id: n.id, body: e.target.value })} rows={2} />
+            <span className="grid grid-cols-2 gap-2">
+              <Button variant="secondary" className="min-h-10 py-1 text-sm" onClick={() => setEditing(null)} disabled={save.isPending}>
+                {t('choreiEdit.cancel')}
+              </Button>
+              <Button className="min-h-10 py-1 text-sm" onClick={() => save.mutate(editing)} disabled={save.isPending || !editing.body.trim()}>
+                {t('choreiEdit.save')}
+              </Button>
+            </span>
+            {save.error && !(save.error instanceof TranslationCancelled) && <ErrorBox message={errorMessage(save.error)} />}
+          </span>
+        ) : (
+          <span key={n.id} className="block">
+            {n.body}
+            {n.original_body && <span className="block text-xs text-slate-600">{t('detail.original')}: {n.original_body}</span>}
+            <button type="button" className="ml-1 min-h-9 text-xs font-bold text-brand underline" onClick={() => setEditing({ id: n.id, body: n.body })}>
+              {t('detail.edit')}
+            </button>
+          </span>
+        ),
+      )}
+    </Row>
+  )
 }
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -117,6 +184,7 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
   const { t } = useTranslation('manager')
   const stores = useStores()
   const update = useUpdate('patrol_checks', p.id, onClose)
+  const ja = useJaUpdate(update, p.original_texts)
   const [note, setNote] = useState('')
   const [start, setStart] = useState(toLocalInput(p.started_at))
   const [end, setEnd] = useState(toLocalInput(p.ended_at))
@@ -129,6 +197,7 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
 
   return (
     <Sheet title={`${p.business_date} ${t(`common:shift.${p.shift}`)} ${store}`} onClose={onClose}>
+      {ja.review}
       <Card className="flex flex-col gap-2">
         {p.status !== 'valid' && <p className="rounded-lg bg-slate-200 p-2 text-sm font-bold">{t(`common:status.${p.status}`)} {p.void_reason && `— ${p.void_reason}`}</p>}
         <Row label={t('detail.patroller')}>{patrollerName}</Row>
@@ -205,7 +274,7 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
           ) : (
             <>
               <TextArea label={t('detail.followUpNote')} value={note} onChange={(e) => setNote(e.target.value)} />
-              <Button onClick={() => update.mutate({ follow_up_done_at: new Date().toISOString(), follow_up_note: note.trim() || null })} disabled={update.isPending}>
+              <Button onClick={() => void ja.run({ follow_up_done_at: new Date().toISOString(), follow_up_note: note.trim() || null }, 'follow_up_note', t('detail.followUpNote'))} disabled={update.isPending}>
                 {t('detail.markFollowUp')}
               </Button>
             </>
@@ -237,12 +306,12 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
         <Card className="flex flex-col gap-2">
           <h3 className="font-bold">{t('detail.void')}</h3>
           <TextArea label={t('detail.voidReason')} value={voidReason} onChange={(e) => setVoidReason(e.target.value)} />
-          <Button variant="danger" onClick={() => update.mutate({ status: 'void', void_reason: voidReason.trim() })} disabled={update.isPending || !voidReason.trim()}>
+          <Button variant="danger" onClick={() => void ja.run({ status: 'void', void_reason: voidReason.trim() }, 'void_reason', t('detail.voidReason'))} disabled={update.isPending || !voidReason.trim()}>
             {t('detail.voidButton')}
           </Button>
         </Card>
       )}
-      {update.error && <ErrorBox message={errorMessage(update.error)} />}
+      {(update.error || ja.error) && <ErrorBox message={errorMessage(update.error ?? ja.error)} />}
     </Sheet>
   )
 }
@@ -251,6 +320,7 @@ export function ChoreiDetail({ record: r, leaderName, onClose }: { record: Admin
   const { t } = useTranslation('manager')
   const stores = useStores()
   const update = useUpdate('chorei_records', r.id, onClose)
+  const ja = useJaUpdate(update, r.original_texts)
   const [voidReason, setVoidReason] = useState('')
   const [editing, setEditing] = useState(false)
   const store = storeName(stores.data?.find((s) => s.id === r.store_id), currentLocale())
@@ -258,6 +328,7 @@ export function ChoreiDetail({ record: r, leaderName, onClose }: { record: Admin
 
   return (
     <Sheet title={`${r.business_date} ${t(`common:shift.${r.shift}`)} ${store}`} onClose={onClose}>
+      {ja.review}
       <Card className="flex flex-col gap-2">
         {r.status === 'void' && <p className="rounded-lg bg-slate-200 p-2 text-sm font-bold">{t('common:status.void')} — {r.void_reason}</p>}
         {r.entered_by_manager && <p className="rounded-lg bg-teal-50 p-2 text-sm font-bold text-teal-900">✓ {t('misses.enteredByManager')}</p>}
@@ -275,7 +346,7 @@ export function ChoreiDetail({ record: r, leaderName, onClose }: { record: Admin
         </Row>
         <Row label={t('detail.skipped')}>{skipped.length ? `${skipped.map((s) => t(`chorei:steps.${s}`)).join('、')}（${r.skip_reason ?? ''}）` : '—'}</Row>
         {r.manager_note && <Row label={t('chorei:backfill.note')}>{r.manager_note}</Row>}
-        {r.notes.length > 0 && <Row label={t('chorei:previous.notes')}>{r.notes.map((n) => n.body).join('\n')}</Row>}
+        {r.notes.length > 0 && <NoteRows notes={r.notes} />}
         <Attachments list={r.attachments} parentId={r.id} />
         <RecordComments kind="chorei" recordId={r.id} comments={r.comments ?? []} canWrite={r.status === 'valid'} />
       </Card>
@@ -292,12 +363,12 @@ export function ChoreiDetail({ record: r, leaderName, onClose }: { record: Admin
         <Card className="flex flex-col gap-2">
           <h3 className="font-bold">{t('detail.void')}</h3>
           <TextArea label={t('detail.voidReason')} value={voidReason} onChange={(e) => setVoidReason(e.target.value)} />
-          <Button variant="danger" onClick={() => update.mutate({ status: 'void', void_reason: voidReason.trim() })} disabled={update.isPending || !voidReason.trim()}>
+          <Button variant="danger" onClick={() => void ja.run({ status: 'void', void_reason: voidReason.trim() }, 'void_reason', t('detail.voidReason'))} disabled={update.isPending || !voidReason.trim()}>
             {t('detail.voidButton')}
           </Button>
         </Card>
       )}
-      {update.error && <ErrorBox message={errorMessage(update.error)} />}
+      {(update.error || ja.error) && <ErrorBox message={errorMessage(update.error ?? ja.error)} />}
     </Sheet>
   )
 }

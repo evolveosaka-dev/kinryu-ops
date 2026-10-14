@@ -274,7 +274,9 @@
     "send": "Gửi nhận xét",
     "delete": "Xóa",
     "deleteConfirm": "Xóa nhận xét này?",
-    "homeCard": "Bạn có {{n}} nhận xét mới từ quản lý"
+    "homeCard": "Bạn có {{n}} nhận xét mới từ quản lý",
+    "original": "Bản gốc",
+    "jaNote": "Bình luận viết bằng ngôn ngữ khác sẽ được dịch sang tiếng Nhật trước khi gửi (bạn kiểm tra rồi mới gửi)."
   },
   "incident": {
     "title": "Ghi khiếu nại / sự cố",

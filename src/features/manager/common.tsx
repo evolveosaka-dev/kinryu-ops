@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '../../components/ui'
 import { formatShortDate } from '../../domain/time'
 import { cx } from '../../lib/cx'
-import type { usePeriod } from './data'
+import { usePeople, type usePeriod } from './data'
 
 export function PeriodBar({ period, allowModes = true }: { period: ReturnType<typeof usePeriod>; allowModes?: boolean }) {
   const { t } = useTranslation('manager')
@@ -68,4 +68,23 @@ export function Bar({ value, max, target }: { value: number | null; max: number;
 export function Dot({ tone }: { tone: 'red' | 'amber' | 'blue' }) {
   const color = tone === 'red' ? 'bg-red-500' : tone === 'amber' ? 'bg-amber-500' : 'bg-blue-500'
   return <span aria-hidden className={cx('inline-block size-2 shrink-0 rounded-full', color)} />
+}
+
+/** Who sent a report (朝礼の誘導者, 巡回の担当): managers can put it on another account. */
+export function PersonSelect({ label, value, onChange }: { label: string; value: string; onChange: (id: string) => void }) {
+  const people = usePeople()
+  const list = (people.data ?? []).filter((p) => p.status === 'active' || p.id === value).sort((a, b) => people.name(a.id).localeCompare(people.name(b.id), 'ja'))
+  return (
+    <label className="flex flex-col gap-1 text-sm font-bold">
+      {label}
+      <select className="min-h-12 rounded-xl border border-slate-400 bg-white px-2 text-base font-normal" value={value} onChange={(e) => onChange(e.target.value)}>
+        {list.map((p) => (
+          <option key={p.id} value={p.id}>
+            {people.name(p.id)}
+            {p.roster_name && p.roster_name !== people.name(p.id) ? `（${p.roster_name}）` : ''}
+          </option>
+        ))}
+      </select>
+    </label>
+  )
 }

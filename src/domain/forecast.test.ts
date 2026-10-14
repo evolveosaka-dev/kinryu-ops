@@ -32,7 +32,9 @@ describe('杯数の予測', () => {
     expect(r.get('2026-10-16|late')).toBe(3)
   })
   it('baseline = same day type in the 6 weeks before', () => {
-    expect(baseline(ctx, typeOf, '2026-10-17', 'S', 'early')).toEqual({ value: 200, days: 6 }) // Saturdays
+    const sat = baseline(ctx, typeOf, '2026-10-17', 'S', 'early') // Saturdays
+    expect(sat).toMatchObject({ value: 200, days: 6, weeks: 6, from: '2026-09-05' })
+    expect(sat.samples.map((s) => s.date)).toEqual(['2026-09-05', '2026-09-12', '2026-09-19', '2026-09-26', '2026-10-03', '2026-10-10'])
     const wd = baseline(ctx, typeOf, '2026-10-16', 'S', 'early') // a Friday → 'friday' type = Fridays only
     expect(wd.value).toBe(100)
   })
@@ -52,5 +54,9 @@ describe('杯数の予測', () => {
     expect(b.slots).toBe(28)
     expect(b.error).not.toBeNull()
     expect(b.error!).toBeLessThan(15)
+    // the error is the mean of the rows shown to managers
+    expect(b.rows).toHaveLength(28)
+    expect(Math.abs(b.rows.reduce((a, r) => a + r.errorPct, 0) / b.rows.length - b.error!)).toBeLessThan(0.1)
+    expect(f.early.samples.length).toBeGreaterThanOrEqual(f.early.days)
   })
 })

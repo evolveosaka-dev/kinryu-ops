@@ -17,7 +17,9 @@
     "void": "Hủy",
     "voidConfirm": "Hủy ghi chép này?",
     "voided": "Đã hủy ({{name}})",
-    "cancelled": "Đã hủy"
+    "cancelled": "Đã hủy",
+    "edit": "Sửa",
+    "editedBy": "{{name}} đã sửa"
   },
   "kind": {
     "open": "Đếm lại tồn đầu ca",
@@ -98,7 +100,8 @@
     "reasonNoteRequired": "Nếu chọn 「Khác」, hãy ghi chi tiết.",
     "photoHint": "Ảnh・video không bắt buộc (không quay mặt khách hàng).",
     "photoCount": "Ảnh・video: {{n}} (tải lên sau khi lưu)",
-    "carriedIs": "Đầu ca: {{n}}"
+    "carriedIs": "Đầu ca: {{n}}",
+    "editHelp": "Sửa số liệu {{name}} đã nhập lúc {{time}}. Dòng cũ bị hủy, người sửa được ghi lại."
   },
   "temp": {
     "title": "Nhiệt độ tủ lạnh",

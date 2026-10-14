@@ -35,7 +35,7 @@ import { errorMessage, storeName } from '../../lib/format'
 import { getLastStore, setLastStore } from '../../lib/lastStore'
 import { useStores } from '../../lib/queries'
 import type { Store } from '../../lib/types'
-import { addStockEvent, itemName, useStockEvents, useStockItems, useStockPhotos, voidStockEvent } from './data'
+import { addStockEvent, itemName, replaceStockEvent, useStockEvents, useStockItems, useStockPhotos, voidStockEvent } from './data'
 
 type Mode = LineKind | 'temp' | 'recount'
 interface Slot {
@@ -106,7 +106,7 @@ function placeLabel(t: (k: string) => string, e: StockEvent) {
 }
 
 /** 変更の履歴 at the top: who wrote what and when; the writer (12 h) or a manager can cancel. */
-function History({ events, items }: { events: StockEvent[]; items: StockItem[] }) {
+function History({ events, items, onEdit }: { events: StockEvent[]; items: StockItem[]; onEdit: (e: StockEvent) => void }) {
   const { t } = useTranslation('stock')
   const me = useMe()
   const { isManager } = useAuth()
@@ -142,6 +142,7 @@ function History({ events, items }: { events: StockEvent[]; items: StockItem[] }
                 <b>{e.author_name}</b>・{t(`kind.${e.kind}`)}
                 {placeLabel(t, e)}
                 {e.reason && <b className="text-amber-900">（{t(`reason.${e.reason}`)}）</b>}
+                {e.edited_by_name && <span className="text-xs text-blue-800">（{t('history.editedBy', { name: e.edited_by_name })}）</span>}
               </span>
               {e.temps ? (
                 <span>{e.temps.map((x) => `${fmtQty(x)}℃`).join(' / ')}</span>
@@ -173,16 +174,23 @@ function History({ events, items }: { events: StockEvent[]; items: StockItem[] }
             {e.voided_at ? (
               <span className="shrink-0 text-xs font-bold text-slate-600">{t('history.voided', { name: e.voided_by_name })}</span>
             ) : (
-              canVoid(e) && (
-                <button
-                  type="button"
-                  disabled={cancel.isPending}
-                  onClick={() => window.confirm(t('history.voidConfirm')) && cancel.mutate(e.id)}
-                  className="min-h-9 shrink-0 rounded-lg border border-red-300 px-2 text-xs font-bold text-red-700"
-                >
-                  {t('history.void')}
-                </button>
-              )
+              <span className="flex shrink-0 flex-col gap-1">
+                {isManager && !e.temps && (
+                  <button type="button" onClick={() => onEdit(e)} className="min-h-9 rounded-lg border border-blue-300 px-2 text-xs font-bold text-blue-800">
+                    ✏️ {t('history.edit')}
+                  </button>
+                )}
+                {canVoid(e) && (
+                  <button
+                    type="button"
+                    disabled={cancel.isPending}
+                    onClick={() => window.confirm(t('history.voidConfirm')) && cancel.mutate(e.id)}
+                    className="min-h-9 rounded-lg border border-red-300 px-2 text-xs font-bold text-red-700"
+                  >
+                    {t('history.void')}
+                  </button>
+                )}
+              </span>
             )}
           </li>
         ))}
@@ -252,12 +260,15 @@ function EntryForm({
   slot,
   states,
   initialReason = '',
+  replacing,
   onDone,
 }: {
   kind: LineKind
   slot: Slot
   states: ItemState[]
   initialReason?: string
+  /** 管理者が修正: the row whose figures are replaced (states are worked out without it) */
+  replacing?: StockEvent
   onDone: () => void
 }) {
   const { t } = useTranslation('stock')
@@ -266,13 +277,13 @@ function EntryForm({
   const queryClient = useQueryClient()
   const uploads = useUploadQueue()
   const translation = useTranslationGate()
-  const [values, setValues] = useState<Record<string, string>>({})
+  const [values, setValues] = useState<Record<string, string>>(() => Object.fromEntries((replacing?.lines ?? []).map((l) => [l.item, String(l.qty)])))
   const reasons: readonly string[] = kind === 'open' ? OPEN_REASONS : kind === 'loss' ? LOSS_REASONS : []
-  const [reason, setReason] = useState(initialReason)
+  const [reason, setReason] = useState<string>(replacing?.reason ?? initialReason)
   const [media, setMedia] = useState<PreparedMedia[]>([])
   const places = (kind === 'in' ? IN_PLACES : kind === 'out' ? OUT_PLACES : []).filter((p) => p !== slot.store.code)
-  const [place, setPlace] = useState<string>(places[0] ?? '')
-  const [note, setNote] = useState('')
+  const [place, setPlace] = useState<string>(replacing?.place ?? places[0] ?? '')
+  const [note, setNote] = useState(replacing?.note ?? '')
   const [step, setStep] = useState<'edit' | 'confirm'>('edit')
   const [error, setError] = useState<string | null>(null)
   const everyItem = kind === 'close'
@@ -297,9 +308,23 @@ function EntryForm({
   const save = useMutation({
     mutationFn: async () => {
       // a reason memo in another language is translated to Japanese (the writer confirms it)
-      const tr = reasons.length
-        ? await translation.prepare([{ key: 'note', label: t('form.reasonNote'), text: note.trim() || null }])
-        : { values: { note: note.trim() || null }, originals: null, sourceLang: null }
+      const unchanged = replacing && (note.trim() || null) === (replacing.note ?? null)
+      const tr =
+        reasons.length && !unchanged
+          ? await translation.prepare([{ key: 'note', label: t('form.reasonNote'), text: note.trim() || null }])
+          : { values: { note: note.trim() || null }, originals: unchanged && replacing.note_original ? { note: replacing.note_original } : null, sourceLang: null }
+      if (replacing) {
+        await replaceStockEvent({
+          id: replacing.id,
+          lines: entered.map((p) => ({ item: p.s.item.id, qty: p.qty })),
+          place: places.length ? place : null,
+          note: tr.values.note ?? null,
+          reason: reasons.length ? reason : null,
+          noteOriginal: tr.originals?.note ?? null,
+          sourceLang: tr.sourceLang,
+        })
+        return
+      }
       const id = await addStockEvent({
         store: slot.store.id,
         date: slot.date,
@@ -379,7 +404,7 @@ function EntryForm({
     return (
       <div className="flex flex-col gap-3">
         {translation.review}
-        <PageTitle title={t(`form.${kind}`)} subtitle={slotText(t, slot)} />
+        <PageTitle title={replacing ? `✏️ ${t(`form.${kind}`)}` : t(`form.${kind}`)} subtitle={slotText(t, slot)} />
         <Card className="flex flex-col gap-3 ring-2 ring-brand">
           <h2 className="text-[17px] font-bold">✅ {t('form.confirmTitle')}</h2>
           {places.length > 0 && (
@@ -413,8 +438,14 @@ function EntryForm({
 
   return (
     <div className="flex flex-col gap-3">
-      <PageTitle title={t(`form.${kind}`)} subtitle={slotText(t, slot)} />
-      <p className="rounded-xl bg-sky-50 p-3 text-sm font-bold text-sky-900">{t(`form.${kind}Help`)}</p>
+      <PageTitle title={replacing ? `✏️ ${t(`form.${kind}`)}` : t(`form.${kind}`)} subtitle={slotText(t, slot)} />
+      {replacing ? (
+        <p className="rounded-xl bg-blue-50 p-3 text-sm font-bold text-blue-900">
+          {t('form.editHelp', { name: replacing.author_name, time: formatTokyoTime(new Date(replacing.created_at)) })}
+        </p>
+      ) : (
+        <p className="rounded-xl bg-sky-50 p-3 text-sm font-bold text-sky-900">{t(`form.${kind}Help`)}</p>
+      )}
       {reasons.length > 0 && (
         <Card className="flex flex-col gap-3">
           <Segmented label={`${t('form.reason')}（${t('form.required')}）`} value={reason} onChange={setReason} columns={1} options={reasons.map((r) => ({ value: r, label: t(`reason.${r}`) }))} />
@@ -477,7 +508,7 @@ function EntryForm({
           ))}
         </ul>
       </Card>
-      {kind === 'loss' && <AttachmentPicker value={media} onChange={setMedia} hint={t('form.photoHint')} />}
+      {kind === 'loss' && !replacing && <AttachmentPicker value={media} onChange={setMedia} hint={t('form.photoHint')} />}
       {error && <ErrorBox message={error} />}
       <Button onClick={toConfirm}>{t('form.toConfirm')}</Button>
       <Button variant="secondary" onClick={onDone}>
@@ -590,6 +621,7 @@ export function StockPage() {
   const [date, setDate] = useState(initial.businessDate)
   const [shift, setShift] = useState<Shift>(initial.shift)
   const [mode, setMode] = useState<Mode | null>(null)
+  const [editing, setEditing] = useState<StockEvent | null>(null)
 
   const store =
     stores.data?.find((s) => s.id === storeId) ?? stores.data?.find((s) => s.code === preset.storeCode) ?? stores.data?.[0]
@@ -607,8 +639,20 @@ export function StockPage() {
   const states = stockState(items.data ?? [], events.data ?? [], prevEvents.data ?? [])
   const done = () => {
     setMode(null)
+    setEditing(null)
     window.scrollTo({ top: 0 })
   }
+
+  if (editing)
+    return (
+      <EntryForm
+        kind={editing.kind as LineKind}
+        slot={slot}
+        states={stockState(items.data ?? [], (events.data ?? []).filter((e) => e.id !== editing.id), prevEvents.data ?? [])}
+        replacing={editing}
+        onDone={done}
+      />
+    )
 
   if (mode === 'temp') return <TempForm slot={slot} events={events.data ?? []} onDone={done} />
   if (mode === 'recount') return <EntryForm kind="open" slot={slot} states={states} initialReason="no_record" onDone={done} />
@@ -632,7 +676,14 @@ export function StockPage() {
         <p className="text-sm text-muted">{t('previousSlot', { slot: `${formatShortDate(prev.businessDate)} ${t(`common:shift.${prev.shift}`)}` })}</p>
       </Card>
 
-      <History events={events.data ?? []} items={items.data ?? []} />
+      <History
+        events={events.data ?? []}
+        items={items.data ?? []}
+        onEdit={(e) => {
+          setEditing(e)
+          window.scrollTo({ top: 0 })
+        }}
+      />
 
       {unknownOpening && (
         <div className="flex flex-col gap-2 rounded-xl bg-amber-50 p-3 ring-1 ring-amber-300">

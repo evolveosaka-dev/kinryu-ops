@@ -119,6 +119,7 @@ export function ChoreiFormPage() {
         { key: 'stock_text', label: t('stock.label'), text: parsed.data.stock_text },
         { key: 'caution_text', label: t('caution.label'), text: parsed.data.caution_text },
         { key: 'skip_reason', label: t('steps.skipReason'), text: parsed.data.skip_reason },
+        ...(backfill ? [{ key: 'manager_note', label: t('backfill.note'), text: managerNote.trim() || null }] : []),
       ])
       const record = {
         ...parsed.data,
@@ -129,7 +130,7 @@ export function ChoreiFormPage() {
         source_lang: tr.sourceLang,
         leader_id: me.id,
         ...(backfill
-          ? { submitted_at: meetingAt(businessDate, shift), entered_by_manager: true, manager_note: managerNote.trim() || null }
+          ? { submitted_at: meetingAt(businessDate, shift), entered_by_manager: true, manager_note: tr.values.manager_note ?? null }
           : {}),
       }
       const res = await supabase.from('chorei_records').insert(record).select('id').single()

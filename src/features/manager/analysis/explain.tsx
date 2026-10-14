@@ -42,7 +42,7 @@ export function Formula({ text }: { text: string }) {
   )
 }
 
-export type SourceKey = 'sales' | 'target' | 'events' | 'lastYear' | 'dayType' | 'patrol' | 'reports'
+export type SourceKey = 'sales' | 'target' | 'events' | 'lastYear' | 'dayType' | 'patrol' | 'reports' | 'weather'
 
 /** 📂 データ元: where the numbers come from. */
 export function Sources({ keys }: { keys: SourceKey[] }) {
