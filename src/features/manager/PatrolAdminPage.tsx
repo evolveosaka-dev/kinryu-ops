@@ -13,6 +13,7 @@ import { PeriodBar, Dot } from './common'
 import { usePeople, useRecords, type AdminPatrol, usePeriod, JUDGE_STYLE } from './data'
 import { PatrolDetail } from './details'
 import { PatrolWeekGrid } from './PatrolWeekGrid'
+import { HoursSummary } from './HoursPage'
 import { ManagerTabs } from './ManagerTabs'
 
 const selectClass = 'min-h-11 w-full rounded-lg border border-slate-300 bg-white px-2 text-sm'
@@ -71,6 +72,7 @@ export function PatrolAdminPage() {
         }}
       />
       <h2 className="mt-2 font-bold">{t('patrolList.listTitle')}</h2>
+      <p className="-mt-2 text-xs text-muted">{t('patrolList.listHelp')}</p>
       <PeriodBar period={period} />
 
       <Card className="grid grid-cols-2 gap-2">
@@ -121,6 +123,14 @@ export function PatrolAdminPage() {
         </select>
       </Card>
 
+      <HoursSummary
+        patrols={list}
+        label={period.mode === 'month' ? period.range.from.slice(0, 7) : `${period.range.from}_${period.range.to}`}
+        onOpen={(p) => {
+          setGridPatrol(p)
+          setSelectedId(p.id)
+        }}
+      />
       <p className="text-sm text-slate-600">{t('patrolList.count', { n: list.length })}</p>
       <ul className="flex flex-col gap-2">
         {list.map((p) => (

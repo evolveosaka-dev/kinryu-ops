@@ -16,7 +16,6 @@ export function ManagerTabs() {
     { to: '/manager/stats', label: `${t('tabs.stats')}` },
     { to: '/manager/sales', label: `${t('tabs.sales')}` },
     { to: '/manager/analysis', label: `${t('tabs.analysis')}` },
-    { to: '/manager/hours', label: `${t('tabs.hours')}` },
     { to: '/manager/settings', label: `${t('tabs.settings')}`, settings: true },
   ]
   return (

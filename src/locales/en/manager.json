@@ -118,10 +118,11 @@
     "inProgress": "In progress (draft)",
     "plannedShort": "plan",
     "legend": "Number = average patrol score of the shift (on 25, colour = judgement, ×2 = two patrols). Tap for each patrol and the item scores / … in progress / ✗ a duty without a patrol (from 1 h after the shift) / plan = duty, not yet / ― no duty.",
-    "listTitle": "Patrol list",
+    "listTitle": "Patrols and patrol time",
     "average": "Average {{avg}} ({{n}} patrols)",
     "staff": "Staff",
-    "openDetail": "Open details (comments, photos)"
+    "openDetail": "Open details (comments, photos)",
+    "listHelp": "The period and filters apply to the time table and to the list below."
   },
   "choreiList": {
     "title": "Meeting records",

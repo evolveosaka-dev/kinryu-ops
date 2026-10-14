@@ -26,7 +26,6 @@ const PatrolAdminPage = page(() => import('../features/manager/PatrolAdminPage')
 const PatrolBackfillPage = page(() => import('../features/manager/PatrolBackfillPage'), 'PatrolBackfillPage')
 const StaffPage = page(() => import('../features/manager/StaffPage'), 'StaffPage')
 const StatsPage = page(() => import('../features/manager/StatsPage'), 'StatsPage')
-const HoursPage = page(() => import('../features/manager/HoursPage'), 'HoursPage')
 const SettingsPage = page(() => import('../features/manager/SettingsPage'), 'SettingsPage')
 const TargetsPage = page(() => import('../features/manager/TargetsPage'), 'TargetsPage')
 const UsersPage = page(() => import('../features/manager/UsersPage'), 'UsersPage')
@@ -107,7 +106,8 @@ function Gate() {
             <Route path="patrol/new" element={<PatrolBackfillPage />} />
             {STAFF_ISSUES_ENABLED && <Route path="staff" element={<StaffPage />} />}
             <Route path="stats" element={<StatsPage />} />
-            <Route path="hours" element={<HoursPage />} />
+            {/* 巡回時間 is a section of 巡回 now */}
+            <Route path="hours" element={<Navigate to="/manager/patrol" replace />} />
             <Route path="sales" element={<SalesAdminPage />} />
             <Route path="analysis" element={<AnalysisPage />} />
             <Route path="settings" element={<SettingsPage />} />
