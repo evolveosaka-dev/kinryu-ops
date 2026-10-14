@@ -31,6 +31,7 @@ import { ManagerTabs } from '../ManagerTabs'
 import { DailyChart, LineChart } from './charts'
 import { useAnalysisPatrols, useDailySales, useMonthReports, type ReportFigures } from './data'
 import { ChartDetail, TapChart, type ChartInfo, type ChartKind } from './ChartDetail'
+import { Formula, InfoSheet, Sources, type InfoProps } from './explain'
 import { SummaryDetail, type SummaryKind } from './SummaryDetail'
 
 /** 朝礼・巡回 started on this day (改善の効果 compares before / after). */
@@ -39,6 +40,8 @@ const START = '2026-10-12'
 const eventIcon = (name: string) => (name.includes('阪神') ? '⚾' : name.includes('ハロウィン') ? '🎃' : name.includes('クリスマス') ? '🎄' : name.includes('戎') ? '⛩️' : '🎉')
 /** bowls with the unit: 1,250杯 */
 const bw = (v: number | null | undefined) => (v === null || v === undefined ? '—' : `${v.toLocaleString()}杯`)
+/** number without the unit, for formulas */
+const nm = (v: number | null | undefined) => (v === null || v === undefined ? '—' : v.toLocaleString())
 const pct = (v: number | null) => (v === null ? '—' : `${v > 0 ? '+' : ''}${v}%`)
 const rateCls = (r: number | null) => (r === null ? 'text-slate-500' : r >= 100 ? 'text-green-700' : r >= 90 ? 'text-amber-700' : 'text-red-700')
 const rateBg = (r: number | null) => (r === null ? 'bg-slate-50' : r >= 100 ? 'bg-green-100' : r >= 90 ? 'bg-amber-100' : 'bg-red-100')
@@ -58,6 +61,9 @@ function DaySheet({ day, reports, storeLabel, onClose }: { day: DayView; reports
   return (
     <Sheet title={`${formatShortDate(day.date)}(${t(`weekday.${weekdayOf(day.date)}`)}) ${t(`chorei:target.${day.dayType}`)}`} onClose={onClose}>
       {day.events.length > 0 && <p className="rounded-lg bg-sky-50 p-2 text-sm font-bold">{day.events.map((e) => `${eventIcon(e)} ${e}`).join('　')}</p>}
+      <Formula text={t('analysis.explain.day', { actual: nm(day.actual), target: nm(day.target), rate: rateOf(day.actual, day.target) ?? '—' })} />
+      <p className="text-xs text-muted">{t('analysis.explain.dayNote')}</p>
+      <Sources keys={['sales', 'target', 'events', 'lastYear', 'dayType']} />
       <table className="w-full text-sm">
         <thead className="text-xs text-slate-600">
           <tr>
@@ -125,6 +131,7 @@ export function AnalysisPage() {
   const [openDay, setOpenDay] = useState<string | null>(null)
   const [openStat, setOpenStat] = useState<SummaryKind | null>(null)
   const [openChart, setOpenChart] = useState<ChartKind | null>(null)
+  const [info, setInfo] = useState<InfoProps | null>(null)
 
   const storeLabel = (id: string) => storeName(stores.data?.find((s) => s.id === id), 'ja').replace('店', '')
   const ready = stores.data && holidays.data && targets.data && events.data && sales.data
@@ -193,6 +200,84 @@ export function AnalysisPage() {
   const dayOpen = openDay ? days.find((d) => d.date === openDay) ?? null : null
   const small = (s: ReactNode) => <span className="block text-[11px] text-slate-500">{s}</span>
   const wk = (mon: string) => `${Number(mon.slice(5, 7))}/${Number(mon.slice(8))}〜`
+  const dayLabel = (d: string) => `${formatShortDate(d)}(${t(`weekday.${weekdayOf(d)}`)})`
+  const shiftLabel = (s: Shift) => t(`common:shift.${s}`)
+  const avg = (sum: number, n: number) => (n ? Math.round(sum / n) : null)
+
+  // ④ one cell: the days of that type with every slot filled in
+  const typeCellInfo = (dayType: string, sh: Shift | null): InfoProps => {
+    const c = { ...ctx, shifts: sh ? [sh] : [...SHIFTS] }
+    const used = monthDays(month)
+      .map((d) => dayView(c, d))
+      .filter((v) => v.dayType === dayType && v.complete && v.actual !== null && v.target !== null)
+    const a = used.reduce((s, v) => s + v.actual!, 0)
+    const tg = used.reduce((s, v) => s + v.target!, 0)
+    const type = t(`chorei:target.${dayType}`)
+    return {
+      title: `④ ${type}・${sh ? shiftLabel(sh) : t('analysis.total')}`,
+      formula: t('analysis.explain.typeCell', { a: nm(a), t: nm(tg), n: used.length, avgA: nm(avg(a, used.length)), avgT: nm(avg(tg, used.length)), rate: rateOf(used.length ? a : null, tg) ?? '—' }),
+      note: t('analysis.explain.typeCellNote', { type }),
+      sources: ['sales', 'target', 'events', 'dayType'],
+      head: [t('analysis.how.day'), t('analysis.actual'), t('analysis.target'), t('analysis.rate')],
+      rows: used.map((v) => ({ key: v.date, cells: [dayLabel(v.date), bw(v.actual), bw(v.target), `${rateOf(v.actual, v.target) ?? '—'}%`] })),
+      foot: [t('analysis.total'), bw(a), bw(tg), `${rateOf(used.length ? a : null, tg) ?? '—'}%`],
+    }
+  }
+
+  // ⑦ one day type over the years
+  const typeYearInfo = (dayType: string): InfoProps => {
+    const plain = { ...ctx, targets: [], events: [] }
+    const mm = month.slice(5, 7)
+    const per = ty.years.map((y) => {
+      const ds = monthDays(`${y}-${mm}-01`)
+        .map((d) => dayView(plain, d))
+        .filter((v) => v.dayType === dayType && v.complete && v.actual !== null)
+      return { y, ds, sum: ds.reduce((s, v) => s + v.actual!, 0) }
+    })
+    const lines = per.filter((p) => p.ds.length).map((p) => t('analysis.explain.typeYearLine', { year: p.y, sum: nm(p.sum), n: p.ds.length, avg: nm(avg(p.sum, p.ds.length)) }))
+    const last = per.at(-1), prev = per.at(-2)
+    if (last?.ds.length && prev?.ds.length) {
+      const a = avg(last.sum, last.ds.length)!, b = avg(prev.sum, prev.ds.length)!
+      lines.push(t('analysis.explain.typeYearYoy', { y1: last.y, y0: prev.y, a: nm(a), b: nm(b), pct: pct(Math.round((a / b - 1) * 1000) / 10) }))
+    }
+    const type = t(`chorei:target.${dayType}`)
+    return {
+      title: `⑦ ${type}`,
+      formula: lines.join('\n'),
+      note: t('analysis.explain.typeYearNote', { month: Number(mm), type }),
+      sources: ['sales', 'dayType'],
+      head: [t('analysis.how.day'), t('analysis.actual')],
+      rows: per.flatMap((p) => p.ds.map((v) => ({ key: v.date, cells: [`${p.y}/${dayLabel(v.date)}`, bw(v.actual)] }))),
+    }
+  }
+
+  // ⑧ one score band
+  const bandInfo = (b: (typeof bands)[number]): InfoProps => ({
+    title: `${t(`analysis.band.${b.key}`)}`,
+    formula: t('analysis.explain.band', { a: nm(b.actual), t: nm(b.target), rate: b.rate ?? '—' }),
+    note: t('analysis.explain.bandNote', { band: t(`analysis.band.${b.key}`) }),
+    sources: ['patrol', 'sales', 'target', 'events'],
+    head: [t('analysis.how.day'), t('analysis.slot'), t('analysis.score'), t('analysis.actual'), t('analysis.target')],
+    rows: b.rows.map((r, i) => ({ key: `${r.date}${r.store}${r.shift}${i}`, cells: [dayLabel(r.date), `${storeLabel(r.store)} ${shiftLabel(r.shift)}`, r.score, bw(r.actual), bw(r.target)] })),
+    foot: [t('analysis.total'), '', '', bw(b.actual), bw(b.target)],
+  })
+
+  // ⑨ one event
+  const eventInfo = (e: (typeof effects)[number]): InfoProps => ({
+    title: `${eventIcon(e.name)} ${e.name}`,
+    formula: [
+      t('analysis.explain.eventHead'),
+      ...e.shifts.map((s) => t('analysis.explain.eventLine', { shift: shiftLabel(s.shift), a: nm(s.slots ? s.actual : null), base: nm(s.slots ? s.base : null), measured: pct(s.measured), set: pct(s.set) })),
+    ].join('\n'),
+    note: t('analysis.explain.eventNote'),
+    sources: ['sales', 'target', 'events'],
+    head: [t('analysis.how.day'), t('analysis.slot'), t('analysis.actual'), t('analysis.explain.baseCol')],
+    rows: e.shifts
+      .flatMap((s) => s.rows.map((r) => ({ ...r, shift: s.shift })))
+      .sort((x, y) => x.date.localeCompare(y.date) || x.store.localeCompare(y.store) || SHIFTS.indexOf(x.shift) - SHIFTS.indexOf(y.shift))
+      .map((r) => ({ key: `${r.date}${r.store}${r.shift}`, cells: [dayLabel(r.date), `${storeLabel(r.store)} ${shiftLabel(r.shift)}`, bw(r.actual), bw(r.base)] })),
+  })
+
   const chartInfo = (kind: ChartKind): ChartInfo => {
     if (kind === 'daily')
       return {
@@ -335,9 +420,11 @@ export function AnalysisPage() {
                     <span className="block text-[10px] text-muted">{t('analysis.days', { n: r.days })}</span>
                   </th>
                   {[...SHIFTS.map((s) => r.cells[s]), r.total].map((c, i) => (
-                    <td key={i} className={cx('p-0.5', rateBg(c.rate))}>
-                      <b className={rateCls(c.rate)}>{c.rate === null ? '—' : `${Math.round(c.rate)}%`}</b>
-                      <span className="block text-[10px] text-slate-600 tabular-nums">{c.actual === null ? '' : `${c.actual}/${c.target}杯`}</span>
+                    <td key={i} className={cx('p-0', rateBg(c.rate))}>
+                      <button type="button" onClick={() => setInfo(typeCellInfo(r.dayType, SHIFTS[i] ?? null))} className="w-full p-0.5 active:bg-white/60" aria-label={t('analysis.how.open')}>
+                        <b className={rateCls(c.rate)}>{c.rate === null ? '—' : `${Math.round(c.rate)}%`}</b>
+                        <span className="block text-[10px] text-slate-600 tabular-nums">{c.actual === null ? '' : `${c.actual}/${c.target}杯`}</span>
+                      </button>
                     </td>
                   ))}
                 </tr>
@@ -407,8 +494,10 @@ export function AnalysisPage() {
                   const b = tyPrev ? r.cells[tyPrev]!.avg : null
                   const diff = a !== null && b ? Math.round((a / b - 1) * 1000) / 10 : null
                   return (
-                    <tr key={r.dayType} className="border-t border-line">
-                      <th className="py-1.5 text-left font-normal">{t(`chorei:target.${r.dayType}`)}</th>
+                    <tr key={r.dayType} onClick={() => setInfo(typeYearInfo(r.dayType))} className="cursor-pointer border-t border-line active:bg-slate-50">
+                      <th className="py-1.5 text-left font-normal">
+                        {t(`chorei:target.${r.dayType}`)} <span className="text-brand">ⓘ</span>
+                      </th>
                       {ty.years.map((y) => (
                         <td key={y} className="tabular-nums">
                           <b>{bw(r.cells[y]!.avg)}</b>
@@ -446,10 +535,13 @@ export function AnalysisPage() {
         <h3 className="mt-1 text-sm font-bold">{t('analysis.bands')}</h3>
         <ul className="grid grid-cols-3 gap-2 text-center text-xs">
           {bands.map((b) => (
-            <li key={b.key} className={cx('rounded-xl p-2', rateBg(b.rate))}>
-              <span className="block font-bold">{t(`analysis.band.${b.key}`)}</span>
-              <b className={cx('text-lg', rateCls(b.rate))}>{b.rate === null ? '—' : `${b.rate}%`}</b>
-              <span className="block text-slate-600">{t('analysis.slots', { n: b.slots })}</span>
+            <li key={b.key} className={cx('rounded-xl', rateBg(b.rate))}>
+              <button type="button" onClick={() => setInfo(bandInfo(b))} className="relative w-full p-2" aria-label={t('analysis.how.open')}>
+                <span className="block font-bold">{t(`analysis.band.${b.key}`)}</span>
+                <b className={cx('text-lg', rateCls(b.rate))}>{b.rate === null ? '—' : `${b.rate}%`}</b>
+                <span className="block text-slate-600">{t('analysis.slots', { n: b.slots })}</span>
+                <span className="absolute top-1 right-1.5 font-bold text-brand">ⓘ</span>
+              </button>
             </li>
           ))}
         </ul>
@@ -463,25 +555,28 @@ export function AnalysisPage() {
           <ul className="flex flex-col divide-y divide-line text-sm">
             {effects.map((e) => (
               <li key={`${e.name}${e.storeId}${e.from}`} className={cx('py-2', !e.active && 'opacity-60')}>
-                <b>
-                  {eventIcon(e.name)} {e.name}
-                </b>
-                <span className="text-xs text-slate-600">
-                  {'　'}
-                  {e.storeId ? storeLabel(e.storeId) : t('analysis.bothStores')}・{formatShortDate(e.from)}
-                  {e.to !== e.from && `〜${formatShortDate(e.to)}`}
-                  {!e.active && '（OFF）'}
-                </span>
-                <span className="mt-1 grid grid-cols-3 gap-1 text-center text-xs">
-                  {e.shifts.map((s) => (
-                    <span key={s.shift} className="rounded-lg bg-slate-50 p-1">
-                      {t(`common:shift.${s.shift}`)}
-                      <span className="block">
-                        {t('analysis.set')} {pct(s.set)} → <b className={s.measured === null ? '' : s.measured >= 0 ? 'text-green-700' : 'text-red-700'}>{pct(s.measured)}</b>
+                <button type="button" onClick={() => setInfo(eventInfo(e))} className="relative block w-full text-left" aria-label={t('analysis.how.open')}>
+                  <span className="absolute top-0 right-0 text-xs font-bold text-brand">ⓘ</span>
+                  <b>
+                    {eventIcon(e.name)} {e.name}
+                  </b>
+                  <span className="text-xs text-slate-600">
+                    {'　'}
+                    {e.storeId ? storeLabel(e.storeId) : t('analysis.bothStores')}・{formatShortDate(e.from)}
+                    {e.to !== e.from && `〜${formatShortDate(e.to)}`}
+                    {!e.active && '（OFF）'}
+                  </span>
+                  <span className="mt-1 grid grid-cols-3 gap-1 text-center text-xs">
+                    {e.shifts.map((s) => (
+                      <span key={s.shift} className="rounded-lg bg-slate-50 p-1">
+                        {t(`common:shift.${s.shift}`)}
+                        <span className="block">
+                          {t('analysis.set')} {pct(s.set)} → <b className={s.measured === null ? '' : s.measured >= 0 ? 'text-green-700' : 'text-red-700'}>{pct(s.measured)}</b>
+                        </span>
                       </span>
-                    </span>
-                  ))}
-                </span>
+                    ))}
+                  </span>
+                </button>
               </li>
             ))}
           </ul>
@@ -495,6 +590,7 @@ export function AnalysisPage() {
       {download.error && <ErrorBox message={errorMessage(download.error)} />}
       <p className="text-xs text-muted">{t('analysis.note')}</p>
 
+      {info && <InfoSheet info={info} onClose={() => setInfo(null)} />}
       {openChart && <ChartDetail info={chartInfo(openChart)} onClose={() => setOpenChart(null)} />}
       {openStat && <SummaryDetail kind={openStat} days={days} summary={summary} today={now} onClose={() => setOpenStat(null)} />}
       {dayOpen && (

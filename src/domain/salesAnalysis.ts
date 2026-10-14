@@ -327,6 +327,7 @@ export function patrolBands(ctx: Ctx, patrols: PatrolScore[]) {
   ]
   return bands.map((b) => {
     let a = 0, t = 0, n = 0
+    const rows: { date: string; store: string; shift: Shift; score: number; actual: number; target: number }[] = []
     for (const p of patrols) {
       if (p.score25 < b.min || p.score25 >= b.max || !ctx.storeIds.includes(p.store_id) || !ctx.shifts.includes(p.shift)) continue
       const actual = ctx.sales.get(slotKey(p.business_date, p.store_id, p.shift))
@@ -335,8 +336,9 @@ export function patrolBands(ctx: Ctx, patrols: PatrolScore[]) {
       a += actual
       t += tg.bowls
       n++
+      rows.push({ date: p.business_date, store: p.store_id, shift: p.shift, score: p.score25, actual, target: tg.bowls })
     }
-    return { key: b.key, slots: n, rate: rateOf(n ? a : null, t) }
+    return { key: b.key, slots: n, rate: rateOf(n ? a : null, t), actual: a, target: t, rows: rows.sort((x, y) => x.date.localeCompare(y.date)) }
   })
 }
 
@@ -347,7 +349,7 @@ export interface EventEffect {
   to: string
   active: boolean
   /** per shift: the % set and the % measured (actual / target before the event − 1) */
-  shifts: { shift: Shift; set: number; measured: number | null; slots: number }[]
+  shifts: { shift: Shift; set: number; measured: number | null; slots: number; actual: number; base: number; rows: { date: string; store: string; actual: number; base: number }[] }[]
 }
 
 /** Each event (consecutive days, same name / store / %): measured effect vs the % that was set. */
@@ -370,6 +372,7 @@ export function eventEffects(ctx: Ctx, events: TargetEvent[]): EventEffect[] {
       shifts: SHIFTS.map((shift) => {
         const set = shift === 'early' ? e.early_pct : shift === 'middle' ? e.middle_pct : e.late_pct
         let a = 0, base = 0, n = 0
+        const rows: { date: string; store: string; actual: number; base: number }[] = []
         for (const d of dates)
           for (const store of e.store_id ? [e.store_id] : ctx.storeIds) {
             const actual = ctx.sales.get(slotKey(d, store, shift))
@@ -378,8 +381,9 @@ export function eventEffects(ctx: Ctx, events: TargetEvent[]): EventEffect[] {
             a += actual
             base += t.bowls
             n++
+            rows.push({ date: d, store, actual, base: t.bowls })
           }
-        return { shift, set, measured: n && base ? Math.round((a / base - 1) * 1000) / 10 : null, slots: n }
+        return { shift, set, measured: n && base ? Math.round((a / base - 1) * 1000) / 10 : null, slots: n, actual: a, base, rows }
       }),
     }))
 }

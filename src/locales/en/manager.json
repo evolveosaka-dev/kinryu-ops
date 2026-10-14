@@ -557,18 +557,18 @@
       "day": "Date",
       "dayType": "Day type",
       "partial": "some shifts only",
-      "achievement": "Actual {{actual}} ÷ target {{target}} = {{rate}}%",
+      "achievement": "Achievement = [[actual total || target total]] × 100\n= [[{{actual}} || {{target}}]] × 100\n= {{rate}}%",
       "achievementNote": "Only days and shifts with figures are counted (the target of the same days and shifts). Targets include the event %. Bowls = ramen + chashu-men (coupons not included).",
-      "yoy": "(this year {{cur}} ÷ last year {{ly}} − 1) = {{yoy}}%",
+      "yoy": "YoY = [[this year total || last year total]] − 1\n= [[{{cur}} || {{ly}}]] − 1\n= {{yoy}}%",
       "yoyNote": "Last year = 364 days before (same weekday). Only days and shifts with figures in both years. Grey days have no figure last year.",
       "thisYear": "This year",
       "lastYearDay": "Last year (−364 days)",
       "diff": "Diff.",
       "notCompared": "not compared",
-      "forecast": "Actual {{actual}} + targets of the {{days}} days left {{rest}} = forecast {{forecast}}",
+      "forecast": "Forecast = actual of the month + targets of the days left\n= {{actual}} + {{rest}} ({{days}} days left)\n= {{forecast}}",
       "forecastNote": "Days from today without figures are counted at their target (day type and event %).",
       "restTotal": "Targets left",
-      "best": "Days with all shifts filled in, from the highest. First = best day, last = lowest.",
+      "best": "Best day = the complete day with the most bowls\n= {{best}}\nLowest = the complete day with the fewest bowls\n= {{worst}}",
       "bestNote": "Days with a missing shift are left out.",
       "rank": "Rank"
     },
@@ -589,25 +589,52 @@
     "patrolCount": "Patrols",
     "chartHow": {
       "daily": {
-        "formula": "Bar = bowls of the day / dashed blue = target of the day / grey = same weekday last year (364 days before)",
+        "formula": "Actual = bowls of the day (ramen + chashu-men)\nTarget = day-type target × (1 + event %)\nAchievement = [[actual || target]] × 100",
         "note": "Bar colour = achievement (actual ÷ target): green ≥ 100%, orange 90–99%, red < 90%, grey = no target.\nTargets include the event %.\nTotal of the selected stores and shifts. Bowls = ramen + chashu-men (coupons not included)."
       },
       "monthly": {
-        "formula": "Average per day = bowls of the month ÷ days",
+        "formula": "Average per day = [[bowls of the month || complete days]]",
         "note": "Only days with every shift filled in. One line per year (blue = this year, orange = last year).\nMonths with fewer than 5 such days are left empty. Figures before 2025 are not used."
       },
       "weekly": {
-        "formula": "Weekly average = bowls of the week (Mon–Sun) ÷ days",
+        "formula": "Weekly average = [[bowls of the week (Mon–Sun) || complete days]]",
         "note": "Only days with every shift filled in. One line per year, same week number compared.\nWeek numbers: weeks start on Monday; week 1 holds the first Thursday of the year.\nWeeks with fewer than 4 such days are left empty."
       },
       "yoyWeekly": {
-        "formula": "YoY = bowls of the week ÷ the same weekdays last year (364 days before) − 1",
+        "formula": "YoY = [[bowls of the week || same weekdays last year (−364 days)]] − 1",
         "note": "Only days with figures in both years. Above 0% = more than last year.\nRed dashed line = start of the meetings and patrols (10/12)."
       },
       "patrol": {
-        "formula": "Patrol average = sum of the patrol scores of the week ÷ number of patrols (on 25)",
-        "note": "Patrols with ⑤ = \"－\" (on 20) are converted to 25.\nOnly patrols of the selected stores and shifts."
+        "formula": "Patrol average = [[sum of the scores of the week || number of patrols]]\nScore of a patrol with ⑤ = \"－\" = [[total || 20]] × 25",
+        "note": "Only patrols of the selected stores and shifts."
       }
-    }
+    },
+    "explain": {
+      "day": "Actual = bowls of every shift = {{actual}}\nTarget = targets of the same shifts = {{target}}\nAchievement = [[actual || target]] × 100\n= [[{{actual}} || {{target}}]] × 100 = {{rate}}%",
+      "dayNote": "Targets include the event %. A shift without figures is not counted in the target either.",
+      "typeCell": "Actual per day = [[actual total || days]] = [[{{a}} || {{n}}]] = {{avgA}}\nTarget per day = [[target total || days]] = [[{{t}} || {{n}}]] = {{avgT}}\nAchievement = [[actual total || target total]] × 100 = [[{{a}} || {{t}}]] × 100 = {{rate}}%",
+      "typeCellNote": "Only the \"{{type}}\" days of this month with every slot filled in.",
+      "typeYearLine": "{{year}} per day = [[bowls || days]] = [[{{sum}} || {{n}}]] = {{avg}}",
+      "typeYearYoy": "YoY = [[{{y1}} per day || {{y0}} per day]] − 1 = [[{{a}} || {{b}}]] − 1 = {{pct}}",
+      "typeYearNote": "The \"{{type}}\" days of month {{month}} of each year with every shift filled in; years without data are left out.",
+      "band": "Achievement = [[actual of the patrolled shifts || their targets]] × 100\n= [[{{a}} || {{t}}]] × 100 = {{rate}}%",
+      "bandNote": "Sales achievement of the shifts whose patrol score (on 25) was \"{{band}}\".",
+      "eventHead": "Measured effect = [[actual on the event days || target without the event]] − 1",
+      "eventLine": "{{shift}}: [[{{a}} || {{base}}]] − 1 = {{measured}} (set {{set}})",
+      "eventNote": "Target without the event = the day-type target before the event %.",
+      "baseCol": "Target w/o event"
+    },
+    "src": {
+      "title": "Data source",
+      "sales": "Bowls: sent daily sales reports (tickets ramen + chashu-men); until 2026/10/11 the Excel 「金龍売り上げ杯数」. Coupons not included.",
+      "target": "Target: Manager → Settings → Target bowls (store × shift × day type × month).",
+      "events": "Events: the % of the events (ON only) on the same page.",
+      "lastYear": "Last year: the same data 364 days before (same weekday).",
+      "dayType": "Day type: from the Japanese holiday calendar (same rules as the targets).",
+      "patrol": "Patrols: scores of the sent patrol checks (not voided).",
+      "reports": "Daily sales reports: Manager → Sales reports.",
+      "dataFrom": "2024 figures are not used (from January 2025)."
+    },
+    "score": "Score"
   }
 }

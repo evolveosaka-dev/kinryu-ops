@@ -46,9 +46,9 @@ describe('salesAnalysis', () => {
     expect(monthlyTrend(ctx, '2026-09-01', '2026-10-01').map((m) => m.avg)).toEqual([null, 300])
     const w = weekly(ctx, '2026-10-05', '2026-10-11', [{ business_date: '2026-10-06', store_id: 's', shift: 'early', score25: 21 }])
     expect(w[0]).toMatchObject({ monday: '2026-10-05', avg: 300, lyAvg: 240, yoy: 25, patrol: 21, patrols: 1 })
-    expect(patrolBands(ctx, [{ business_date: '2026-10-06', store_id: 's', shift: 'early', score25: 21 }])[0]).toEqual({ key: 'good', slots: 1, rate: 100 })
+    expect(patrolBands(ctx, [{ business_date: '2026-10-06', store_id: 's', shift: 'early', score25: 21 }])[0]).toMatchObject({ key: 'good', slots: 1, rate: 100 })
     const eff = eventEffects(ctx, [ev])
-    expect(eff[0]!.shifts.find((x) => x.shift === 'middle')).toEqual({ shift: 'middle', set: -20, measured: 0, slots: 1 })
+    expect(eff[0]!.shifts.find((x) => x.shift === 'middle')).toMatchObject({ shift: 'middle', set: -20, measured: 0, slots: 1 })
   })
   it('weekly trend by ISO week and the day types against the same month of the years before', () => {
     expect(isoWeek('2026-01-01')).toEqual({ year: '2026', week: 1 })
