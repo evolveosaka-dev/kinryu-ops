@@ -16,7 +16,8 @@ import { Dot } from './common'
 import { ChoreiSlotSheets, DrillSheet, TapStat } from './drill'
 import { avgHow, score25Line, useDrill } from './drillState'
 import { visaRuns } from '../../domain/shiftChange'
-import { useVisaWindows } from '../shift/changeData'
+import { useChanges, useVisaWindows } from '../shift/changeData'
+import { startAt } from '../../domain/schedule'
 import { Sheet } from '../../components/Sheet'
 import { today, useIssueStatus, usePeople, useRecords, weekOf, type AdminPatrol } from './data'
 import { STAFF_ISSUES_ENABLED } from '../../domain/issues'
@@ -87,6 +88,9 @@ export function DashboardPage() {
   const [slotKey, setSlotKey] = useState<string | null>(null)
   const drill = useDrill()
   const visa = useVisaWindows()
+  const changes = useChanges(addDays(day, -1), addDays(day, 60))
+  const pendingChanges = (changes.data ?? []).filter((c) => c.status === 'open')
+  const urgentChanges = pendingChanges.filter((c) => startAt(c).getTime() - now.getTime() < 12 * 3600_000)
   const [visaOpen, setVisaOpen] = useState(false)
 
   if (records.isLoading || stores.isLoading) return <Spinner />
@@ -197,6 +201,23 @@ export function DashboardPage() {
               <span>{missingSlots.length} ›</span>
             </button>
           </li>
+          {pendingChanges.length > 0 && (
+            <li>
+              <Link
+                to="/manager/attendance"
+                className={cx(
+                  'flex min-h-11 items-center justify-between gap-2 rounded-xl px-3 font-semibold',
+                  urgentChanges.length ? 'bg-red-50 text-red-900' : 'bg-amber-50 text-amber-900',
+                )}
+              >
+                <span className="flex items-center gap-2">
+                  <Dot tone={urgentChanges.length ? 'red' : 'amber'} /> {t('dashboard.pendingChanges')}
+                  {urgentChanges.length > 0 && <span className="text-xs">（{t('dashboard.pendingSoon', { n: urgentChanges.length })}）</span>}
+                </span>
+                <span>{pendingChanges.length} ›</span>
+              </Link>
+            </li>
+          )}
           {visaRuns(visa.data ?? []).length > 0 && (
             <li>
               <button type="button" onClick={() => setVisaOpen(true)} className="flex min-h-11 w-full items-center justify-between gap-2 rounded-xl bg-red-50 px-3 text-left font-semibold text-red-900">

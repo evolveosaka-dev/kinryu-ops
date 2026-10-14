@@ -250,3 +250,82 @@ describe('出勤可能 people for naming', () => {
     await expect(t.as(kita, `select * from public.available_covers($1, 'early')`, [d])).rejects.toThrow(/no such shift/)
   })
 })
+
+describe('未対応の連絡 reminders + test account', () => {
+  let soon = ''
+  it('a report still open 12 h / 3 h before the start is reminded once each', async () => {
+    const [r] = await t.admin<{ d: string; m: number }>(
+      `select (now() at time zone 'Asia/Tokyo' + interval '10 hours')::date::text as d,
+              extract(hour from (now() at time zone 'Asia/Tokyo' + interval '10 hours'))::int * 60 as m`,
+    )
+    await t.admin(`insert into public.shift_assignments (month, business_date, shift, roster_name, store_mark, start_min, end_min, raw)
+                   values (date_trunc('month', $1::date)::date, $1, 'late', 'キタ', '⑤', $2, $2 + 60, 'x')`, [r!.d, r!.m])
+    const [c] = await t.as<{ id: string }>(kita, report(`'absence', '${r!.d}', 'late', 'sick', p_recruit => true`))
+    soon = c!.id
+    const reminders = () => t.admin<{ data: { hours: number } }>(`select data from public.notify_events where ref_id = $1 and data ->> 'event' = 'reminder'`, [soon])
+    await t.admin(`select public.check_pending_changes()`)
+    expect(await reminders()).toEqual([]) // just reported: the report mail is enough
+    await t.admin(`update public.shift_changes set created_at = now() - interval '1 hour' where id = $1`, [soon])
+    await t.admin(`select public.check_pending_changes()`)
+    await t.admin(`select public.check_pending_changes()`)
+    expect((await reminders()).map((x) => x.data.hours)).toEqual([12])
+    // 2 h before the start → the 3-hour reminder
+    await t.admin(`update public.shift_assignments set start_min = start_min - 480, end_min = end_min - 480 where raw = 'x'`)
+    await t.admin(`update public.shift_changes set start_min = start_min - 480, end_min = end_min - 480 where id = $1`, [soon])
+    await t.admin(`select public.check_pending_changes()`)
+    expect((await reminders()).map((x) => x.data.hours)).toEqual([12, 3])
+  })
+  it('a test account: own reports are test records, cannot offer on real ones nor approve, purged at night', async () => {
+    const tester = await t.createUser('tester@example.com', { display_name: 'テスト' })
+    await t.admin(`update public.profiles set status = 'active', role = 'manager', is_test_account = true, roster_name = 'テスト用' where id = $1`, [tester])
+    const [r] = await t.admin<{ d: string }>(`select (${TODAY} + 30)::text as d`)
+    await assign('テスト用', r!.d, 'early', 420, 1020)
+    await assign('ミナミ', r!.d, 'middle', 1020, 1380)
+    const [own] = await t.as<{ id: string }>(tester, report(`'absence', '${r!.d}', 'early', 'sick', p_recruit => true`))
+    expect((await t.admin<{ is_test: boolean }>(`select is_test from public.shift_changes where id = $1`, [own!.id]))[0]!.is_test).toBe(true)
+    const [real] = await t.as<{ id: string }>(minami, report(`'absence', '${r!.d}', 'middle', 'sick', p_recruit => true`))
+    await expect(t.as(tester, `select public.offer_shift_cover($1)`, [real!.id])).rejects.toThrow(/read only/)
+    await expect(t.as(tester, `select public.decide_shift_change($1, false)`, [real!.id])).rejects.toThrow(/read only/)
+    await expect(t.as(tester, `insert into public.staff_limits (roster_name, visa) values ('キタ', 'student') on conflict (roster_name) do update set visa = 'student'`)).rejects.toThrow(/read only/)
+    expect(await t.as(minami, `select id from public.shift_recruits() where id = $1`, [own!.id])).toEqual([])
+    await t.admin(`select public.purge_test_account_data()`)
+    expect(await t.admin(`select id from public.shift_changes where id = $1`, [own!.id])).toEqual([])
+    expect(await t.admin(`select id from public.shift_changes where id = $1`, [real!.id])).toHaveLength(1)
+  })
+})
+
+describe('test accounts are invisible to real users', () => {
+  it('profiles, directory, schedule, duties, requests, reports: only test accounts see them; nightly copy of the schedule', async () => {
+    const [tester] = await t.admin<{ id: string }>(`select id from public.profiles where is_test_account`)
+    const tid = tester!.id
+    const [r] = await t.admin<{ d: string; m: string }>(`select (${TODAY} + 31)::text as d, date_trunc('month', ${TODAY} + 31)::date::text as m`)
+    await assign('テスト用', r!.d, 'middle', 1020, 1380)
+    await t.admin(`insert into public.duty_assignments (business_date, shift, store_id, roster_name, kind, time_mode, start_min, end_min, method)
+                   values ($1, 'middle', (select id from public.stores where code = 'sennichimae'), 'テスト用', 'patrol', 'during', 1020, 1380, 'own')`, [r!.d])
+    await t.admin(`insert into public.shift_requests (user_id, month, shifts, days) values ($1, $2, '{early}', '{}')`, [tid, r!.m])
+    const [rep] = await t.as<{ id: string }>(tid, report(`'absence', '${r!.d}', 'middle', 'sick'`))
+    const seen = async (user: string) => ({
+      profile: (await t.as(user, `select id from public.profiles where id = $1`, [tid])).length,
+      directory: (await t.as(user, `select id from public.staff_directory() where id = $1`, [tid])).length,
+      shifts: (await t.as(user, `select id from public.shift_assignments where roster_name = 'テスト用'`)).length,
+      duties: (await t.as(user, `select id from public.duty_assignments where roster_name = 'テスト用'`)).length,
+      requests: (await t.as(user, `select id from public.shift_requests where user_id = $1`, [tid])).length,
+      changes: (await t.as(user, `select id from public.shift_changes where id = $1`, [rep!.id])).length,
+    })
+    expect(await seen(manager)).toEqual({ profile: 0, directory: 0, shifts: 0, duties: 0, requests: 0, changes: 0 })
+    expect(await seen(minami)).toEqual({ profile: 0, directory: 0, shifts: 0, duties: 0, requests: 0, changes: 0 })
+    const own = await seen(tid)
+    expect(own.profile && own.directory && own.shifts && own.duties && own.requests && own.changes).toBeTruthy()
+    // approve its own test absence (no replacement): its own schedule row goes away
+    await t.as(tid, `select public.decide_shift_change($1, true)`, [rep!.id])
+    expect(await t.admin(`select id from public.shift_assignments where roster_name = 'テスト用' and business_date = $1`, [r!.d])).toEqual([])
+    // nightly: the test schedule is a fresh copy of ミナミ's
+    await t.admin(`insert into public.test_shadows values ('テスト用', 'ミナミ')`)
+    await t.admin(`select public.purge_test_account_data()`)
+    const [cnt] = await t.admin<{ a: number; b: number }>(
+      `select (select count(*)::int from public.shift_assignments where roster_name = 'テスト用') as a,
+              (select count(*)::int from public.shift_assignments where roster_name = 'ミナミ') as b`,
+    )
+    expect(cnt!.a).toBe(cnt!.b)
+  })
+})

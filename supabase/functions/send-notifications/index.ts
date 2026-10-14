@@ -401,6 +401,22 @@ async function renderShiftChange(admin: Admin, L: Lookup, e: NotifyEvent) {
   const what =
     r.kind === 'late' ? `遅刻（約${r.late_min}分）` : r.kind === 'early_leave' ? `早退（${minText(r.leave_min)}に退勤）` : CHANGE_KIND[r.kind] ?? r.kind
   const link = appUrl('/manager/attendance')
+  if (e.data.event === 'reminder') {
+    // only while still waiting
+    if (r.status !== 'open') return null
+    const { count } = await admin.from('shift_offers').select('id', { count: 'exact', head: true }).eq('change_id', r.id).eq('status', 'offered')
+    return {
+      subject: `⏰ 未対応（勤務まで${e.data.hours}時間以内）: ${r.roster_name}の${what} ${day(r.business_date)} ${SHIFT[r.shift] ?? ''}`,
+      lines: [
+        `${r.roster_name}さんの${what}が、まだ確認待ちです。勤務開始まで${e.data.hours}時間を切りました。`,
+        `勤務: ${where}`,
+        `代わり: ${r.proposed_cover ? `本人が指名 ${r.proposed_cover}さん` : r.recruit ? `募集中（代われる人 ${count ?? 0}人）` : '募集しない（管理者が手配）'}`,
+        '',
+        'アプリの 管理 → 出勤 で、承認または却下してください。',
+      ],
+      link,
+    }
+  }
   if (e.data.event === 'offer') {
     const o = await fetchRow(admin, 'shift_offers', e.data.offer)
     if (!o || o.status !== 'offered' || r.status !== 'open') return null

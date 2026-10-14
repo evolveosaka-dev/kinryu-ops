@@ -103,7 +103,9 @@
     "staffEscalate": "Recurring after interview (measures)",
     "visaOver": "Over 28 h a week (student / dependent visa)",
     "visaHow": "At most 28 h in any 7 days in a row. The shift table (after approved absences / covers) from 6 days ago to 6 weeks ahead is checked every hour; going over also sends a mail.\nReduce the shifts or have someone cover.",
-    "visaShifts": "Check in 全店舗シフト"
+    "visaShifts": "Check in 全店舗シフト",
+    "pendingChanges": "Absence / late reports waiting",
+    "pendingSoon": "{{n}} within 12 h"
   },
   "filter": {
     "store": "Store",

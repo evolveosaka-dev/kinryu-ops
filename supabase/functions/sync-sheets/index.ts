@@ -83,11 +83,11 @@ serve(async (req) => {
   const [stores, profiles, chorei, patrols, attachments, misses, stockLosses] = await Promise.all([
     admin.from('stores').select('id, name_ja'),
     admin.from('profiles').select('id, display_name, full_name'),
-    admin.from('chorei_records').select('*').order('business_date', { ascending: false }).order('shift'),
-    admin.from('patrol_checks').select('*').neq('status', 'draft').order('business_date', { ascending: false }).order('started_at', { ascending: false }),
+    admin.from('chorei_records').select('*').eq('by_test_account', false).order('business_date', { ascending: false }).order('shift'),
+    admin.from('patrol_checks').select('*').eq('by_test_account', false).neq('status', 'draft').order('business_date', { ascending: false }).order('started_at', { ascending: false }),
     admin.from('attachments').select('*').eq('status', 'uploaded').order('created_at', { ascending: false }),
-    admin.from('chorei_misses').select('id, store_id, business_date, shift'),
-    admin.from('stock_events').select('id, store_id, business_date, shift').eq('kind', 'loss'),
+    admin.from('chorei_misses').select('id, store_id, business_date, shift').eq('by_test_account', false),
+    admin.from('stock_events').select('id, store_id, business_date, shift').eq('kind', 'loss').eq('by_test_account', false),
   ])
   for (const r of [stores, profiles, chorei, patrols, attachments, misses, stockLosses]) if (r.error) throw new HttpError(500, r.error.message)
 
