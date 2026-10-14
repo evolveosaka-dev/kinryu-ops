@@ -108,7 +108,16 @@
   },
   "patrolList": {
     "title": "Patrol checks",
-    "count": "{{n}} records"
+    "count": "{{n}} records",
+    "weekTitle": "Patrols in the last 7 days",
+    "rate": "Duties done",
+    "missed": "Not done",
+    "extra": "Without a duty",
+    "duty": "Duty",
+    "inProgress": "In progress (draft)",
+    "plannedShort": "plan",
+    "legend": "Number = patrol score (tap for details, colour = judgement) / … in progress / ✗ a duty without a patrol (from 1 h after the shift) / plan = duty, not yet / ― no duty. Hold a cell to see who had the duty.",
+    "listTitle": "Patrol list"
   },
   "choreiList": {
     "title": "Meeting records",

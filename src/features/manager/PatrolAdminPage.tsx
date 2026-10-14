@@ -12,6 +12,7 @@ import { useStores } from '../../lib/queries'
 import { PeriodBar, Dot } from './common'
 import { usePeople, useRecords, type AdminPatrol, usePeriod, JUDGE_STYLE } from './data'
 import { PatrolDetail } from './details'
+import { PatrolWeekGrid } from './PatrolWeekGrid'
 import { ManagerTabs } from './ManagerTabs'
 
 const selectClass = 'min-h-11 w-full rounded-lg border border-slate-300 bg-white px-2 text-sm'
@@ -30,13 +31,15 @@ export function PatrolAdminPage() {
   const [judgement, setJudgement] = useState('')
   // by id, so the sheet shows the record again after a refetch (e.g. a new comment)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  // a patrol opened from the 7-day grid (may be outside the period below)
+  const [gridPatrol, setGridPatrol] = useState<AdminPatrol | null>(null)
   const filter = params.get('filter') ?? ''
 
   if (isLoading) return <Spinner />
   if (error) return <ErrorBox message={errorMessage(error)} />
 
   const all = patrols.data ?? []
-  const selected = all.find((p) => p.id === selectedId) ?? null
+  const selected = all.find((p) => p.id === selectedId) ?? (gridPatrol && gridPatrol.id === selectedId ? gridPatrol : null)
   const setSelected = (p: AdminPatrol | null) => setSelectedId(p?.id ?? null)
   const list = all.filter(
     (p) =>
@@ -61,6 +64,13 @@ export function PatrolAdminPage() {
           ＋ {t('patrolBackfill.open')}
         </Link>
       </div>
+      <PatrolWeekGrid
+        onOpen={(p) => {
+          setGridPatrol(p)
+          setSelectedId(p.id)
+        }}
+      />
+      <h2 className="mt-2 font-bold">{t('patrolList.listTitle')}</h2>
       <PeriodBar period={period} />
 
       <Card className="grid grid-cols-2 gap-2">
