@@ -14,7 +14,9 @@ import {
   patrolBands,
   rateOf,
   typeTable,
+  typeYears,
   weekly,
+  weeklyTrend,
   type Ctx,
   type DayView,
 } from '../../../domain/salesAnalysis'
@@ -145,6 +147,11 @@ export function AnalysisPage() {
         { name: '日別', rows: [['日付', '日の種類', '実績（杯）', '目標', '達成率%', '前年同曜日', 'イベント'], ...days.map((d) => [d.date, t(`chorei:target.${d.dayType}`, { lng: 'ja' }), d.actual, d.target ?? d.targetAll, rateOf(d.actual, d.target), d.lastYear, d.events.join('・')])] },
         { name: 'シフト×日の種類', rows: [['日の種類', '日数', ...SHIFTS.flatMap((s) => [`${s} 実績`, `${s} 目標`, `${s} 達成率%`])], ...typeTable(ctx, month).map((r) => [t(`chorei:target.${r.dayType}`, { lng: 'ja' }), r.days, ...SHIFTS.flatMap((s) => [r.cells[s].actual, r.cells[s].target, r.cells[s].rate])])] },
         { name: '月別推移', rows: [['月', '1日平均（杯）', '日数'], ...trend.map((m) => [m.month.slice(0, 7), m.avg, m.days])] },
+        { name: '週別推移', rows: [['年', '週', '週（月曜）', '1日平均（杯）', '日数'], ...weeklyTrend(ctx, DATA_FROM, today()).map((w) => [w.year, w.week, w.monday, w.avg, w.days])] },
+        (() => {
+          const ty = typeYears(ctx, month)
+          return { name: '日の種類×年', rows: [[`${Number(month.slice(5, 7))}月 日の種類`, ...ty.years.flatMap((y) => [`${y} 1日平均`, `${y} 日数`])], ...ty.rows.map((r) => [t(`chorei:target.${r.dayType}`, { lng: 'ja' }), ...ty.years.flatMap((y) => [r.cells[y]!.avg, r.cells[y]!.days])])] }
+        })(),
         { name: '週別（改善の効果）', rows: [['週（月曜）', '1日平均', '前年同週 1日平均', '前年比%', '巡回平均点（25点）', '巡回数'], ...weeks.map((w) => [w.monday, w.avg, w.lyAvg, w.yoy, w.patrol, w.patrols])] },
         { name: 'イベント効果', rows: [['イベント', '店舗', '開始', '終了', 'ON', ...SHIFTS.flatMap((s) => [`${s} 設定%`, `${s} 実際%`])], ...eventEffects(ctx, events.data ?? []).map((e) => [e.name, e.storeId ? storeLabel(e.storeId) : '両店舗', e.from, e.to, e.active ? 'ON' : 'OFF', ...e.shifts.flatMap((s) => [s.set, s.measured])])] },
         { name: '注記', rows: [['杯数 = ラーメン + チャーシューメン（クーポンは含みません）。前年 = 364日前（同じ曜日）。']] },
@@ -169,7 +176,11 @@ export function AnalysisPage() {
   const trend = monthlyTrend(ctx, DATA_FROM, `${now.slice(0, 7)}-01`)
   const years = [...new Set(trend.map((m) => m.month.slice(0, 4)))]
   // newest year blue, the year before orange, older years grey
-  const yearColor = (i: number) => ['#1d4ed8', '#f59e0b', '#94a3b8', '#cbd5e1'][years.length - 1 - i] ?? '#cbd5e1'
+  const yearColor = (i: number, n = years.length) => ['#1d4ed8', '#f59e0b', '#94a3b8', '#cbd5e1'][n - 1 - i] ?? '#cbd5e1'
+  const wtrend = weeklyTrend(ctx, DATA_FROM, now)
+  const wYears = [...new Set(wtrend.map((w) => w.year))].filter((y) => y >= DATA_FROM.slice(0, 4))
+  const ty = typeYears(ctx, month)
+  const [tyLast, tyPrev] = [ty.years.at(-1), ty.years.at(-2)]
   const weekFrom = '2026-08-03'
   const weeks = weekly(ctx, weekFrom, now, patrols.data ?? [])
   const startIdx = weeks.findIndex((w) => w.monday <= START && START < addDays(w.monday, 7))
@@ -294,8 +305,65 @@ export function AnalysisPage() {
         />
       </Section>
 
-      {/* ⑥ improvement */}
-      <Section title={`⑥ ${t('analysis.improvement')}`} help={t('analysis.improvementHelp')}>
+      {/* ⑥ weekly trend */}
+      <Section title={`⑥ ${t('analysis.weekTrend')}`} help={t('analysis.weekTrendHelp')}>
+        <LineChart
+          unit="杯"
+          labels={Array.from({ length: 53 }, (_, i) => `${i + 1}週`)}
+          series={wYears.map((y, i) => ({
+            label: y,
+            color: yearColor(i, wYears.length),
+            // a week with fewer than 4 complete days is left out
+            values: Array.from({ length: 53 }, (_, k) => {
+              const r = wtrend.find((x) => x.year === y && x.week === k + 1)
+              return r && r.days >= 4 ? r.avg : null
+            }),
+          }))}
+        />
+      </Section>
+
+      {/* ⑦ day types vs the same month of the years before */}
+      <Section title={`⑦ ${t('analysis.typeYears', { month: Number(month.slice(5, 7)) })}`} help={t('analysis.typeYearsHelp')}>
+        {ty.years.length === 0 ? (
+          <p className="text-sm text-muted">{t('stats.noData')}</p>
+        ) : (
+          <div className="-mx-2 overflow-x-auto px-2">
+            <table className="w-full min-w-[18rem] text-center text-xs">
+              <thead className="text-slate-600">
+                <tr>
+                  <th className="text-left">{t('analysis.dayType')}</th>
+                  {ty.years.map((y) => (
+                    <th key={y}>{t('analysis.yearCol', { year: y })}</th>
+                  ))}
+                  {tyPrev && <th>{t('analysis.yoyCol')}</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {ty.rows.map((r) => {
+                  const a = tyLast ? r.cells[tyLast]!.avg : null
+                  const b = tyPrev ? r.cells[tyPrev]!.avg : null
+                  const diff = a !== null && b ? Math.round((a / b - 1) * 1000) / 10 : null
+                  return (
+                    <tr key={r.dayType} className="border-t border-line">
+                      <th className="py-1.5 text-left font-normal">{t(`chorei:target.${r.dayType}`)}</th>
+                      {ty.years.map((y) => (
+                        <td key={y} className="tabular-nums">
+                          <b>{bw(r.cells[y]!.avg)}</b>
+                          <span className="block text-[10px] text-muted">{r.cells[y]!.days ? t('analysis.days', { n: r.cells[y]!.days }) : ''}</span>
+                        </td>
+                      ))}
+                      {tyPrev && <td className={cx('font-bold tabular-nums', diff === null ? 'text-slate-500' : diff >= 0 ? 'text-green-700' : 'text-red-700')}>{pct(diff)}</td>}
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Section>
+
+      {/* ⑧ improvement */}
+      <Section title={`⑧ ${t('analysis.improvement')}`} help={t('analysis.improvementHelp')}>
         <LineChart
           labels={weeks.map((w) => `${Number(w.monday.slice(5, 7))}/${Number(w.monday.slice(8))}`)}
           marker={startIdx}
@@ -320,8 +388,8 @@ export function AnalysisPage() {
         </ul>
       </Section>
 
-      {/* ⑦ events */}
-      <Section title={`⑦ ${t('analysis.events')}`} help={t('analysis.eventsHelp')}>
+      {/* ⑨ events */}
+      <Section title={`⑨ ${t('analysis.events')}`} help={t('analysis.eventsHelp')}>
         {effects.length === 0 ? (
           <p className="text-sm text-muted">{t('analysis.noEvents')}</p>
         ) : (
@@ -353,7 +421,7 @@ export function AnalysisPage() {
         )}
       </Section>
 
-      {/* ⑧ Excel */}
+      {/* Excel */}
       <Button onClick={() => download.mutate()} disabled={download.isPending}>
         📥 {t('analysis.export')}
       </Button>

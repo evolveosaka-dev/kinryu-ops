@@ -572,6 +572,12 @@
       "bestNote": "Days with a missing shift are left out.",
       "rank": "Rank"
     },
-    "noTarget": "No target for this month"
+    "noTarget": "No target for this month",
+    "weekTrend": "Weekly trend (average per day)",
+    "weekTrendHelp": "Average bowls per day of each week (Mon–Sun), one line per year (blue = this year, orange = last year), same week number. Weeks with fewer than 4 complete days are left empty.",
+    "typeYears": "Day types of month {{month}} vs the same month of earlier years",
+    "typeYearsHelp": "Average bowls per day for each of the six day types, compared with the same month of earlier years. Only complete days; years without data are left out. YoY = this year ÷ last year − 1.",
+    "yearCol": "{{year}}",
+    "yoyCol": "YoY"
   }
 }

@@ -116,7 +116,8 @@ export function LineChart({ series, labels, marker, zero, unit = '' }: { series:
           </g>
         ))}
         {labels.map((l, i) =>
-          i % step === 0 || i === n - 1 ? (
+          // the last label only when it does not touch the one before
+          i % step === 0 || (i === n - 1 && (n - 1) % step >= step / 2) ? (
             <text key={i} x={x(i)} y={H - 8} fontSize="8" textAnchor="middle" fill="#334155">
               {l}
             </text>

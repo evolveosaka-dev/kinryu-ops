@@ -200,6 +200,72 @@ export function monthlyTrend(ctx: Ctx, fromMonth: string, toMonth: string): { mo
   return out
 }
 
+/** ISO week of a date: the week belongs to the year of its Thursday (week 1 holds the first Thursday). */
+export function isoWeek(date: string): { year: string; week: number } {
+  const thu = addDays(date, 3 - ((weekdayOf(date) + 6) % 7))
+  const jan1 = `${thu.slice(0, 4)}-01-01`
+  const dayOfYear = Math.round((Date.parse(thu) - Date.parse(jan1)) / 86_400_000)
+  return { year: thu.slice(0, 4), week: Math.floor(dayOfYear / 7) + 1 }
+}
+
+/** Average bowls per complete day, per ISO week (Monday–Sunday). */
+export function weeklyTrend(ctx: Ctx, from: string, to: string): { monday: string; year: string; week: number; avg: number | null; days: number }[] {
+  const out: { monday: string; year: string; week: number; avg: number | null; days: number }[] = []
+  const plain = { ...ctx, targets: [], events: [] }
+  for (let mon = mondayOf(from); mon <= to; mon = addDays(mon, 7)) {
+    let sum = 0, n = 0
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(mon, i)
+      if (d > to) break
+      const v = dayView(plain, d)
+      if (v.complete && v.actual !== null) {
+        sum += v.actual
+        n++
+      }
+    }
+    out.push({ monday: mon, ...isoWeek(mon), avg: n ? Math.round(sum / n) : null, days: n })
+  }
+  return out
+}
+
+export interface TypeYearRow {
+  dayType: string
+  /** per year: average bowls per complete day of that type in the month */
+  cells: Record<string, { avg: number | null; days: number }>
+}
+
+/** The six day types of one month compared with the same month of the years before; years without any complete day are left out. */
+export function typeYears(ctx: Ctx, month: string): { years: string[]; rows: TypeYearRow[] } {
+  const plain = { ...ctx, targets: [], events: [] }
+  const mm = month.slice(5, 7)
+  const sums = new Map<string, { sum: number; n: number }>() // `${year}|${type}`
+  const years: string[] = []
+  for (let y = Number(DATA_FROM.slice(0, 4)); y <= Number(month.slice(0, 4)); y++) {
+    let any = false
+    for (const d of monthDays(`${y}-${mm}-01`)) {
+      const v = dayView(plain, d)
+      if (!v.complete || v.actual === null) continue
+      any = true
+      const k = `${y}|${v.dayType}`
+      const s = sums.get(k) ?? { sum: 0, n: 0 }
+      s.sum += v.actual
+      s.n++
+      sums.set(k, s)
+    }
+    if (any) years.push(String(y))
+  }
+  const rows = TARGET_DAY_TYPES.map((dayType) => ({
+    dayType,
+    cells: Object.fromEntries(
+      years.map((y) => {
+        const s = sums.get(`${y}|${dayType}`)
+        return [y, { avg: s ? Math.round(s.sum / s.n) : null, days: s?.n ?? 0 }]
+      }),
+    ),
+  })).filter((r) => years.some((y) => r.cells[y]!.days > 0))
+  return { years, rows }
+}
+
 export interface PatrolScore {
   business_date: string
   store_id: string

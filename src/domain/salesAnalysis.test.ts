@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dayView, eventEffects, indexSales, monthlyTrend, monthSummary, patrolBands, typeTable, weekly, type Ctx, type Sale } from './salesAnalysis'
+import { dayView, eventEffects, indexSales, isoWeek, monthlyTrend, monthSummary, patrolBands, typeTable, typeYears, weekly, weeklyTrend, type Ctx, type Sale } from './salesAnalysis'
 import type { TargetEvent, TargetRow } from './targets'
 import { addDays } from './time'
 import type { Shift } from './types'
@@ -49,5 +49,18 @@ describe('salesAnalysis', () => {
     expect(patrolBands(ctx, [{ business_date: '2026-10-06', store_id: 's', shift: 'early', score25: 21 }])[0]).toEqual({ key: 'good', slots: 1, rate: 100 })
     const eff = eventEffects(ctx, [ev])
     expect(eff[0]!.shifts.find((x) => x.shift === 'middle')).toEqual({ shift: 'middle', set: -20, measured: 0, slots: 1 })
+  })
+  it('weekly trend by ISO week and the day types against the same month of the years before', () => {
+    expect(isoWeek('2026-01-01')).toEqual({ year: '2026', week: 1 })
+    expect(isoWeek('2027-01-01')).toEqual({ year: '2026', week: 53 })
+    expect(isoWeek('2026-10-05')).toEqual({ year: '2026', week: 41 })
+    const w = weeklyTrend(ctx, '2026-10-05', '2026-10-11')
+    expect(w).toEqual([{ monday: '2026-10-05', year: '2026', week: 41, avg: 300, days: 6 }])
+    const ty = typeYears(ctx, '2026-10-01')
+    expect(ty.years).toEqual(['2025', '2026'])
+    const wd = ty.rows.find((r) => r.dayType === 'weekday')!
+    expect(wd.cells['2026']!.avg).toBe(300)
+    expect(wd.cells['2025']!.avg).toBe(240)
+    expect(typeYears(ctx, '2026-11-01').years).toEqual([])
   })
 })
