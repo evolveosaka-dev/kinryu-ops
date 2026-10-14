@@ -329,3 +329,45 @@ describe('test accounts are invisible to real users', () => {
     expect(cnt!.a).toBe(cnt!.b)
   })
 })
+
+describe('システム状態', () => {
+  it('managers only; counts mails of today and stuck notifications', async () => {
+    await expect(t.as(minami, `select public.system_status()`)).rejects.toThrow(/managers only/)
+    await t.admin(`insert into public.mail_log (kind, mails) values ('sales', 3), ('digest', 2)`)
+    await t.admin(`insert into public.mail_log (kind, mails, sent_at) values ('sales', 50, now() - interval '2 days')`)
+    const [r] = await t.as<{ s: { mails_today: number; mails_by_kind: Record<string, number>; jobs: unknown[] } }>(manager, `select public.system_status() as s`)
+    expect(r!.s.mails_today).toBe(5)
+    expect(r!.s.mails_by_kind).toEqual({ sales: 3, digest: 2 })
+    expect(r!.s.jobs).toEqual([])
+  })
+})
+
+describe('クレーム・事故', () => {
+  it('any staff records; managers handle; urgent kinds mail at once; others cannot read it', async () => {
+    const [st] = await t.admin<{ id: string }>(`select id from public.stores where code = 'midosuji'`)
+    const rep = (user: string, kind: string) =>
+      t.as<{ id: string }>(user, `select public.report_incident($1, ${TODAY}, 'middle', now(), $2, 'スープがぬるい', '作り直した') as id`, [st!.id, kind])
+    const [a] = await rep(minami, 'complaint')
+    const [b] = await rep(minami, 'foreign_object')
+    const ev = await t.admin<{ ref_id: string; urgent: boolean }>(`select ref_id, urgent from public.notify_events where kind = 'incident' order by id`)
+    expect(ev.map((e) => [e.ref_id, e.urgent])).toEqual([[a!.id, false], [b!.id, true]])
+    expect(await t.as(kita, `select id from public.incidents`)).toEqual([])
+    expect(await t.as(minami, `select id from public.incidents`)).toHaveLength(2)
+    await expect(t.as(minami, `update public.incidents set status = 'done' where id = $1 returning id`, [a!.id])).resolves.toEqual([])
+    await t.as(manager, `update public.incidents set status = 'done', owner_name = '管理者', resolution = '温度確認', prevention = '提供前に確認' where id = $1`, [a!.id])
+    const [row] = await t.admin<{ resolved: boolean }>(`select resolved_at is not null as resolved from public.incidents where id = $1`, [a!.id])
+    expect(row!.resolved).toBe(true)
+    await expect(t.as(manager, `update public.incidents set description = 'x' where id = $1`, [a!.id])).rejects.toThrow(/only the handling/)
+    await expect(t.as(minami, `select public.report_incident($1, ${TODAY}, 'middle', now() - interval '20 days', 'other', 'x')`, [st!.id])).rejects.toThrow(/time out of range/)
+  })
+})
+
+describe('AIレポート report_data', () => {
+  it('managers only; sums of sales, patrols, 朝礼, attendance, incidents of the period', async () => {
+    await expect(t.as(minami, `select public.report_data(${TODAY} - 7, ${TODAY})`)).rejects.toThrow(/managers only/)
+    const [r] = await t.as<{ d: Record<string, Record<string, unknown>> }>(manager, `select public.report_data(${TODAY} - 7, ${TODAY} + 40) as d`)
+    expect(Object.keys(r!.d)).toEqual(expect.arrayContaining(['sales', 'patrol', 'chorei', 'attendance', 'stock', 'incidents']))
+    expect(r!.d.incidents!.by_kind).toMatchObject({ complaint: 1, foreign_object: 1 })
+    expect(Number(r!.d.attendance!.absence)).toBeGreaterThan(0)
+  })
+})

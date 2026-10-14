@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import type { StatChorei, StatMiss, StatPatrol } from '../../domain/stats'
+import type { SystemStatus } from '../../domain/systemStatus'
+import type { Incident } from '../../domain/incident'
+import type { AiReport } from '../../domain/report'
 import { addDays, tokyoParts } from '../../domain/time'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
@@ -216,4 +219,40 @@ export const JUDGE_STYLE: Record<string, string> = {
   good: 'bg-green-100 text-green-900',
   improve: 'bg-amber-100 text-amber-900',
   coaching: 'bg-red-100 text-red-900',
+}
+
+/** 管理 → 設定 → システム状態 (also the ダッシュボード warning). */
+export function useSystemStatus() {
+  return useQuery({
+    queryKey: ['admin', 'system_status'],
+    staleTime: 60_000,
+    refetchInterval: 5 * 60_000,
+    queryFn: async () => unwrap<SystemStatus>(await supabase.rpc('system_status')),
+  })
+}
+
+export type IncidentRow = Incident & { attachments: AttachmentSummary[] }
+
+/** Managers: incidents (test accounts' only for test accounts — RLS), newest first. */
+export function useIncidents() {
+  return useQuery({
+    queryKey: ['incidents', 'all'],
+    refetchInterval: 2 * 60_000,
+    queryFn: async () =>
+      unwrap<IncidentRow[]>(
+        await supabase
+          .from('incidents')
+          .select('*, attachments(id, kind, status, drive_url, owner_id, created_at)')
+          .order('occurred_at', { ascending: false })
+          .limit(300),
+      ),
+  })
+}
+
+/** 管理 → レポート: newest first. */
+export function useReports() {
+  return useQuery({
+    queryKey: ['admin', 'ai_reports'],
+    queryFn: async () => unwrap<AiReport[]>(await supabase.from('ai_reports').select('*').order('period_from', { ascending: false }).order('kind').limit(60)),
+  })
 }

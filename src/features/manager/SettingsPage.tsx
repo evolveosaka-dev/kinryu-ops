@@ -39,6 +39,7 @@ export function SettingsPage() {
     { to: '/manager/stock-items', icon: 'clipboard', label: t('stockItems.title'), sub: t('stockItems.sub') },
     { to: '/manager/notify', icon: 'megaphone', label: t('notify.title'), sub: t('settings.notifySub') },
     { to: '/manager/sync', icon: 'calendar', label: t('sync.title'), sub: t('settings.syncSub') },
+    { to: '/manager/system', icon: 'chart', label: t('system.title'), sub: t('system.subtitle') },
   ]
   return (
     <div className="flex flex-col gap-3">

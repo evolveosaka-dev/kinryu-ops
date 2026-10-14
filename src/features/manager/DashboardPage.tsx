@@ -19,7 +19,9 @@ import { visaRuns } from '../../domain/shiftChange'
 import { useChanges, useVisaWindows } from '../shift/changeData'
 import { startAt } from '../../domain/schedule'
 import { Sheet } from '../../components/Sheet'
-import { today, useIssueStatus, usePeople, useRecords, weekOf, type AdminPatrol } from './data'
+import { today, useIncidents, useIssueStatus, usePeople, useRecords, useSystemStatus, weekOf, type AdminPatrol } from './data'
+import { URGENT_INCIDENTS } from '../../domain/incident'
+import { systemProblems } from '../../domain/systemStatus'
 import { STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { PatrolDetail } from './details'
 import { ManagerTabs } from './ManagerTabs'
@@ -88,6 +90,11 @@ export function DashboardPage() {
   const [slotKey, setSlotKey] = useState<string | null>(null)
   const drill = useDrill()
   const visa = useVisaWindows()
+  const system = useSystemStatus()
+  const incidents = useIncidents()
+  const openIncidents = (incidents.data ?? []).filter((r) => r.status !== 'done')
+  const urgentIncidents = openIncidents.filter((r) => URGENT_INCIDENTS.includes(r.kind))
+  const sysProblems = system.data ? systemProblems(system.data, now) : []
   const changes = useChanges(addDays(day, -1), addDays(day, 60))
   const pendingChanges = (changes.data ?? []).filter((c) => c.status === 'open')
   const urgentChanges = pendingChanges.filter((c) => startAt(c).getTime() - now.getTime() < 12 * 3600_000)
@@ -169,6 +176,13 @@ export function DashboardPage() {
         </table>
       </Card>
 
+      {sysProblems.length > 0 && (
+        <Link to="/manager/system" className="flex min-h-11 items-center justify-between gap-2 rounded-xl border-2 border-red-300 bg-red-50 px-3 font-bold text-red-900">
+          <span>⚠ {t('system.problems', { n: sysProblems.length })}</span>
+          <span>›</span>
+        </Link>
+      )}
+
       <Card className="flex flex-col gap-2">
         <h2 className="font-bold">{t('dashboard.todo')}</h2>
         <ul className="flex flex-col gap-1 text-sm">
@@ -201,6 +215,19 @@ export function DashboardPage() {
               <span>{missingSlots.length} ›</span>
             </button>
           </li>
+          {openIncidents.length > 0 && (
+            <li>
+              <Link
+                to="/manager/incidents"
+                className={cx('flex min-h-11 items-center justify-between gap-2 rounded-xl px-3 font-semibold', urgentIncidents.length ? 'bg-red-50 text-red-900' : 'bg-amber-50 text-amber-900')}
+              >
+                <span className="flex items-center gap-2">
+                  <Dot tone={urgentIncidents.length ? 'red' : 'amber'} /> {t('dashboard.openIncidents')}
+                </span>
+                <span>{openIncidents.length} ›</span>
+              </Link>
+            </li>
+          )}
           {pendingChanges.length > 0 && (
             <li>
               <Link

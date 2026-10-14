@@ -49,6 +49,10 @@ const StockItemsPage = page(() => import('../features/manager/StockItemsPage'), 
 const ShiftRequestPage = page(() => import('../features/shift/ShiftRequestPage'), 'ShiftRequestPage')
 const AbsencePage = page(() => import('../features/shift/AbsencePage'), 'AbsencePage')
 const AttendanceAdminPage = page(() => import('../features/manager/AttendanceAdminPage'), 'AttendanceAdminPage')
+const SystemPage = page(() => import('../features/manager/SystemPage'), 'SystemPage')
+const IncidentsAdminPage = page(() => import('../features/manager/IncidentsAdminPage'), 'IncidentsAdminPage')
+const IncidentPage = page(() => import('../features/incident/IncidentPage'), 'IncidentPage')
+const ReportsPage = page(() => import('../features/manager/ReportsPage'), 'ReportsPage')
 
 /** Decides which screen a visitor may see: login → approval → privacy notice → app. */
 function Gate() {
@@ -91,6 +95,7 @@ function Gate() {
         <Route path="history" element={<HistoryPage />} />
         <Route path="shift-request" element={<ShiftRequestPage />} />
         <Route path="absence" element={<AbsencePage />} />
+        <Route path="incident" element={<IncidentPage />} />
         <Route path="schedule" element={<SchedulePage />} />
         <Route path="stock" element={<StockPage />} />
         <Route path="sales" element={<SalesPage />} />
@@ -113,6 +118,8 @@ function Gate() {
             <Route path="hours" element={<Navigate to="/manager/patrol" replace />} />
             <Route path="sales" element={<SalesAdminPage />} />
             <Route path="attendance" element={<AttendanceAdminPage />} />
+            <Route path="incidents" element={<IncidentsAdminPage />} />
+            <Route path="reports" element={<ReportsPage />} />
             <Route path="analysis" element={<AnalysisPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="targets" element={<TargetsPage />} />
@@ -120,6 +127,7 @@ function Gate() {
             <Route path="users" element={<UsersPage />} />
             <Route path="roster" element={<RosterPage />} />
             <Route path="sync" element={<SyncPage />} />
+            <Route path="system" element={<SystemPage />} />
             <Route path="notify" element={<NotifyPage />} />
             <Route path="shift-requests" element={<ShiftRequestsAdminPage />} />
             <Route path="shift-import" element={<ShiftImportPage />} />

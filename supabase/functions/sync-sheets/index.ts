@@ -85,7 +85,7 @@ serve(async (req) => {
     admin.from('profiles').select('id, display_name, full_name'),
     admin.from('chorei_records').select('*').eq('by_test_account', false).order('business_date', { ascending: false }).order('shift'),
     admin.from('patrol_checks').select('*').eq('by_test_account', false).neq('status', 'draft').order('business_date', { ascending: false }).order('started_at', { ascending: false }),
-    admin.from('attachments').select('*').eq('status', 'uploaded').order('created_at', { ascending: false }),
+    admin.from('attachments').select('*').eq('status', 'uploaded').is('incident_id', null).order('created_at', { ascending: false }),
     admin.from('chorei_misses').select('id, store_id, business_date, shift').eq('by_test_account', false),
     admin.from('stock_events').select('id, store_id, business_date, shift').eq('kind', 'loss').eq('by_test_account', false),
   ])

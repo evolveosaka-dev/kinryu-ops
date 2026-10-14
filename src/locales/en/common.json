@@ -123,7 +123,9 @@
     "skills": "Skill up",
     "skillsSub": "Coming soon",
     "absence": "Day off / late notice",
-    "absenceSub": "Absent, late, leaving early / cover requests / attendance score"
+    "absenceSub": "Absent, late, leaving early / cover requests / attendance score",
+    "incident": "Complaints / accidents",
+    "incidentSub": "Record complaints, injuries, foreign objects, breakdowns at once"
   },
   "phrase": {
     "philosophy1": "Customers come first",
@@ -273,5 +275,36 @@
     "delete": "Delete",
     "deleteConfirm": "Delete this comment?",
     "homeCard": "You have {{n}} new comment(s) from a manager"
+  },
+  "incident": {
+    "title": "Complaints / accidents",
+    "subtitle": "Record it as soon as it happens. The managers get it.",
+    "kind": "Type",
+    "kinds": {
+      "complaint": "Customer complaint",
+      "injury": "Injury / accident",
+      "foreign_object": "Foreign object",
+      "equipment": "Broken equipment",
+      "food_poisoning": "Suspected food poisoning",
+      "lost_item": "Lost item",
+      "other": "Other"
+    },
+    "urgentHint": "The managers get a mail at once. If it is urgent, also call.",
+    "store": "Store",
+    "when": "When it happened",
+    "description": "What happened",
+    "descriptionHint": "When, where, what. No customer names or face photos.",
+    "action": "What you did on the spot",
+    "actionHint": "e.g. made it again, refunded, first aid",
+    "photoHint": "Photos / videos of the situation (no customer faces)",
+    "send": "Send",
+    "sent": "Sent. The managers got it.",
+    "mine": "My records",
+    "prevention": "Prevention",
+    "status": {
+      "open": "Open",
+      "in_progress": "In progress",
+      "done": "Done"
+    }
   }
 }

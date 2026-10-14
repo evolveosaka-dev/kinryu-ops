@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router'
 import { STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { cx } from '../../lib/cx'
 
-const SETTINGS_PATHS = ['/manager/settings', '/manager/users', '/manager/roster', '/manager/sync', '/manager/targets', '/manager/shift-requests', '/manager/shift-import']
+const SETTINGS_PATHS = ['/manager/settings', '/manager/users', '/manager/roster', '/manager/sync', '/manager/system', '/manager/targets', '/manager/shift-requests', '/manager/shift-import']
 
 export function ManagerTabs() {
   const { t } = useTranslation('manager')
@@ -14,9 +14,11 @@ export function ManagerTabs() {
     { to: '/manager/patrol', label: `${t('tabs.patrol')}` },
     ...(STAFF_ISSUES_ENABLED ? [{ to: '/manager/staff', label: `${t('tabs.staff')}` }] : []),
     { to: '/manager/attendance', label: `${t('tabs.attendance')}` },
+    { to: '/manager/incidents', label: `${t('tabs.incidents')}` },
     { to: '/manager/stats', label: `${t('tabs.stats')}` },
     { to: '/manager/sales', label: `${t('tabs.sales')}` },
     { to: '/manager/analysis', label: `${t('tabs.analysis')}` },
+    { to: '/manager/reports', label: `${t('tabs.reports')}` },
     { to: '/manager/settings', label: `${t('tabs.settings')}`, settings: true },
   ]
   return (

@@ -5,7 +5,10 @@
 //    廃棄・破損) is sent only here, also to 'instant' recipients who have the kind. 販売日報 (kind 'sales'): urgent when
 //    麺差引 / 現金過不足 ≠ 0 (sent at once to everyone), otherwise only in the summary, like 在庫.
 //  - action "test" (a manager, 設定 → 通知メール): a test mail to one recipient.
+//  - action "report" (pg_cron 8:00 JST daily, or a manager): AIレポート — Monday → last week, the 1st → last month;
+//    figures from report_data(), 要点・提案 by Claude, saved in ai_reports and mailed to the recipients with kind 'report'.
 // The cron caller sends x-cron-secret (checked against Vault); managers send their access token.
+import Anthropic from 'npm:@anthropic-ai/sdk'
 import { adminClient, env, HttpError, requireUser, serve } from '../_shared/http.ts'
 
 type Admin = ReturnType<typeof adminClient>
@@ -44,7 +47,7 @@ const PATROL_TYPE: Record<string, string> = { before_shift: '勤務前', in_shif
 const STEPS: Record<string, string> = { greeting: 'はじめの挨拶', philosophy: '経営理念', phrases: '接客用語', handover: '引継ぎ', grooming: '身だしなみ', closing: '締めの挨拶' }
 const ITEMS: [string, string][] = [['score_smile', '笑顔'], ['score_voice', '声出し'], ['score_grooming', '身だしなみ'], ['score_clean', '清潔'], ['score_quality', '提供品質']]
 const ACTION: Record<string, string> = { void: '取消', time: '時間の修正', follow_up: '面談済み', update: '修正' }
-const KIND: Record<string, string> = { chorei: '朝礼記録', chorei_note: '朝礼の追記', patrol: '巡回チェック', shift_request: 'シフト希望', signup: '新規登録', edit: '修正・取消', staff_alert: '面談指導の通知', stock: '在庫（繰越のずれ・廃棄・破損）', sales: '販売日報', shift_change: '休み・遅刻・早退の連絡', visa_hours: '留学・家族滞在の週28時間超え' }
+const KIND: Record<string, string> = { chorei: '朝礼記録', chorei_note: '朝礼の追記', patrol: '巡回チェック', shift_request: 'シフト希望', signup: '新規登録', edit: '修正・取消', staff_alert: '面談指導の通知', stock: '在庫（繰越のずれ・廃棄・破損）', sales: '販売日報', shift_change: '休み・遅刻・早退の連絡', visa_hours: '留学・家族滞在の週28時間超え', incident: 'クレーム・事故' }
 // keep in sync with src/domain/types.ts MISS_REASONS / chorei.json miss.reason
 const MISS_REASON: Record<string, string> = { busy: 'お客様が多かった', no_manager: '管理者がいなかった', alone: '1人だけの勤務だった', forgot: '忘れた', other: 'その他' }
 // keep in sync with src/domain/stock.ts OPEN_REASONS / LOSS_REASONS
@@ -55,6 +58,8 @@ const STOCK_REASON: Record<string, string> = {
 // keep in sync with src/domain/shiftChange.ts CHANGE_REASONS
 const CHANGE_KIND: Record<string, string> = { absence: '休み', late: '遅刻', early_leave: '早退' }
 const CHANGE_REASON: Record<string, string> = { sick: '体調不良', family: '家族の用事', transport: '交通機関の遅れ', personal: '私用', paid_leave: '有給休暇', store: '店の都合', other: 'その他' }
+// keep in sync with src/domain/incident.ts
+const INCIDENT_KIND: Record<string, string> = { complaint: 'お客様のクレーム', injury: 'ケガ・事故', foreign_object: '異物混入', equipment: '設備の故障', food_poisoning: '食中毒の疑い', lost_item: '忘れ物・落とし物', other: 'その他' }
 const STOCK_UNIT: Record<string, string> = { piece: '個', bag: '袋', box: '箱', stick: '本', liter: 'L' }
 const PREV_SHIFT: Record<string, [number, string]> = { early: [-1, 'late'], middle: [0, 'early'], late: [0, 'middle'] }
 const TABLE: Record<string, string> = { chorei_records: '朝礼記録', patrol_checks: '巡回チェック', shift_requests: 'シフト希望' }
@@ -263,6 +268,26 @@ async function renderEvent(admin: Admin, L: Lookup, e: NotifyEvent): Promise<{ s
   if (e.kind === 'stock') return renderStock(admin, L, e)
   if (e.kind === 'sales') return renderSales(admin, L, e)
   if (e.kind === 'shift_change') return renderShiftChange(admin, L, e)
+  if (e.kind === 'incident') {
+    const r = await fetchRow(admin, 'incidents', e.ref_id)
+    if (!r) return null
+    const kind = INCIDENT_KIND[r.kind] ?? r.kind
+    const { count } = await admin.from('attachments').select('id', { count: 'exact', head: true }).eq('incident_id', r.id).neq('status', 'failed')
+    return {
+      subject: `${e.urgent ? '⚠ ' : ''}${kind}: ${slot(L, r)} — ${r.reporter_name}`,
+      lines: [
+        `種類: ${kind}`,
+        `店舗・勤番: ${slot(L, r)}（発生 ${jst(r.occurred_at)}）`,
+        `記録した人: ${r.reporter_name}`,
+        `内容: ${r.description}`,
+        `その場の対応: ${r.action_taken ?? '—'}`,
+        `写真・動画: ${count ?? 0}件`,
+        '',
+        'アプリの 管理 → クレーム・事故 で、担当者・対応・再発防止を記録してください。',
+      ],
+      link: appUrl('/manager/incidents'),
+    }
+  }
   if (e.kind === 'visa_hours') {
     const d = e.data
     const visa = d.visa === 'dependent' ? '家族滞在ビザ' : '留学ビザ'
@@ -449,7 +474,128 @@ async function renderShiftChange(admin: Admin, L: Lookup, e: NotifyEvent) {
   }
 }
 
-async function sendBatch(mails: Mail[], idempotencyKey: string) {
+/** Sends through Resend and counts the mails in mail_log (管理 → システム状態). */
+// ---- AIレポート
+
+const REPORT_MODELS = ['claude-sonnet-5-5', 'claude-sonnet-4-5']
+const REPORT_SYSTEM = `あなたは大阪のラーメン店「金龍ラーメン」（御堂筋店・千日前店、どちらも24時間営業、早番7-17・中番17-23・遅番23-7）の運営アドバイザーです。
+管理者向けの定期レポートを日本語で書きます。読み手は店長・社長です。
+与えられたJSONの数字だけを使い、データにないことは推測で書かないでください。数字は具体的に書いてください（例：達成率85%、前週より+3pt）。
+- 杯数（bowls）＝ラーメン＋チャーシューメン。target は送信済みの販売日報の目標杯数（目標のある勤番だけ）。達成率＝bowls_with_target ÷ target。前年比＝bowls_with_last_year ÷ last_year（364日前の同じ勤番）。
+- 巡回：avg25 は25点満点の平均（目標20）。items は各項目の5点満点の平均。coaching は即日指導の回数。
+- 朝礼：done ÷ due が実施率。missing_by_reason は記録のない勤番の理由（unreported＝理由の報告なし）。
+- 出勤：absence_same_day は当日の休み、told_after_start は開始後の連絡、not_reported は販売日報にだけ書かれた遅刻・早退・欠勤（連絡なし）、covered は代わりが見つかった数、visa_over_people は週28時間を超えた留学・家族滞在の人数。
+- previous は比較用の前の期間です。
+個人の名前は書かないでください。
+出力の形（この見出しだけを使い、全体で700字以内）：
+【要点】
+・（3〜5個。良い点と問題点の両方。数字入り）
+【提案】
+・（2〜3個。誰が・いつ・何をするか具体的に。朝礼の注意点や巡回で使える形で）`
+
+const md = (d: string) => `${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}`
+const pct = (a: number | null | undefined, b: number | null | undefined) => (a && b ? `${Math.round((a / b) * 100)}%` : '—')
+
+function reportTitle(kind: string, from: string, to: string) {
+  return kind === 'monthly' ? `【月報】${from.slice(0, 4)}年${Number(from.slice(5, 7))}月` : `【週報】${day(from)}〜${day(to)}`
+}
+
+/** Key numbers as plain lines (mail). */
+function reportLines(d: Row): string[] {
+  const s = d.sales ?? {}
+  const p = d.patrol ?? {}
+  const c = d.chorei ?? {}
+  const a = d.attendance ?? {}
+  const i = d.incidents ?? {}
+  const inc = Object.entries((i.by_kind ?? {}) as Record<string, number>).map(([k, n]) => `${INCIDENT_KIND[k] ?? k} ${n}`).join('、')
+  return [
+    `杯数: ${s.bowls ?? 0}杯（目標比 ${pct(s.bowls_with_target, s.target)} / 前年比 ${pct(s.bowls_with_last_year, s.last_year)}）`,
+    `巡回: ${p.count ?? 0}回・平均 ${p.avg25 ?? '—'}点（目標20）・即日指導 ${p.coaching ?? 0}回`,
+    `朝礼: 実施率 ${pct(c.done, c.due)}（${c.done ?? 0}/${c.due ?? 0}）`,
+    `出勤: 休み ${a.absence ?? 0}（当日 ${a.absence_same_day ?? 0}）・遅刻 ${a.late ?? 0}・早退 ${a.early_leave ?? 0}・連絡なし ${a.not_reported ?? 0}・代わり ${a.covered ?? 0}${a.visa_over_people ? `・28時間超え ${a.visa_over_people}人` : ''}`,
+    `クレーム・事故: ${inc || 'なし'}（未完了 ${i.open_now ?? 0}件）`,
+  ]
+}
+
+function previousPeriod(kind: string, from: string, to: string): [string, string] {
+  if (kind === 'weekly') return [addDays(from, -7), addDays(to, -7)]
+  const d = new Date(`${from}T00:00:00Z`)
+  d.setUTCMonth(d.getUTCMonth() - 1)
+  return [d.toISOString().slice(0, 10), addDays(from, -1)]
+}
+
+/** Periods due on a given Tokyo date (the job runs at 8:00 JST). */
+function duePeriods(today: string): { kind: 'weekly' | 'monthly'; from: string; to: string }[] {
+  const out: { kind: 'weekly' | 'monthly'; from: string; to: string }[] = []
+  if (new Date(`${today}T00:00:00Z`).getUTCDay() === 1) out.push({ kind: 'weekly', from: addDays(today, -7), to: addDays(today, -1) })
+  if (today.slice(8) === '01') {
+    const [from] = previousPeriod('monthly', today, today)
+    out.push({ kind: 'monthly', from, to: addDays(today, -1) })
+  }
+  return out
+}
+
+async function makeReport(admin: Admin, kind: 'weekly' | 'monthly', from: string, to: string, createdBy: string | null, mail: boolean) {
+  const data = await admin.rpc('report_data', { p_from: from, p_to: to })
+  if (data.error) throw new HttpError(500, data.error.message)
+  const [pf, pt] = previousPeriod(kind, from, to)
+  const prev = await admin.rpc('report_data', { p_from: pf, p_to: pt })
+  if (prev.error) throw new HttpError(500, prev.error.message)
+  const workspaceId = Deno.env.get('ANTHROPIC_WORKSPACE_ID')
+  const client = new Anthropic({ apiKey: env('ANTHROPIC_API_KEY'), defaultHeaders: workspaceId ? { 'anthropic-workspace-id': workspaceId } : undefined })
+  const input = `<report kind="${kind === 'weekly' ? '週報' : '月報'}" from="${from}" to="${to}">\n<data>${JSON.stringify(data.data)}</data>\n<previous from="${pf}" to="${pt}">${JSON.stringify(prev.data)}</previous>\n</report>`
+  let response: Anthropic.Message | null = null
+  let model = REPORT_MODELS[0]!
+  for (const m of REPORT_MODELS) {
+    model = m
+    try {
+      response = await client.messages.create({ model: m, max_tokens: 2000, system: REPORT_SYSTEM, messages: [{ role: 'user', content: input }] })
+      break
+    } catch (err) {
+      if (err instanceof Anthropic.NotFoundError && m !== REPORT_MODELS.at(-1)) continue
+      if (err instanceof Anthropic.APIError) throw new HttpError(502, `AI failed (${err.status}): ${err.message}`)
+      throw err
+    }
+  }
+  const block = response?.content.find((b) => b.type === 'text')
+  if (!response || !block || block.type !== 'text') throw new HttpError(502, 'empty AI answer')
+  const summary = block.text.trim()
+  const { data: saved, error } = await admin
+    .from('ai_reports')
+    .upsert({ kind, period_from: from, period_to: to, data: data.data, summary, model, created_by: createdBy, created_at: new Date().toISOString() }, { onConflict: 'kind,period_from' })
+    .select('id')
+    .single()
+  if (error) throw new HttpError(500, error.message)
+  await admin.from('translation_log').insert({
+    user_id: createdBy,
+    chars: input.length,
+    input_tokens: response.usage.input_tokens,
+    output_tokens: response.usage.output_tokens,
+    model,
+  })
+  let sent = 0
+  if (mail) {
+    const to_ = (await recipients(admin)).filter((p) => p.kinds.includes('report'))
+    const text = `${reportTitle(kind, from, to)}\n\n${summary}\n\n■ 主な数字\n${reportLines(data.data as Row).join('\n')}\n\n▶ アプリで見る（印刷・PDF保存もできます）: ${appUrl('/manager/reports')}${FOOTER}`
+    if (to_.length) await sendBatch(to_.map((p) => ({ to: p.email, subject: reportTitle(kind, from, to), text })), `report-${saved.id}-${Date.now()}`, 'report', admin)
+    await admin.from('ai_reports').update({ mailed_at: new Date().toISOString() }).eq('id', saved.id)
+    sent = to_.length
+  }
+  return { id: saved.id, sent }
+}
+
+/** Scheduled: the reports due today that were not mailed yet. */
+async function scheduledReports(admin: Admin) {
+  const out = []
+  for (const p of duePeriods(tokyoToday())) {
+    const { data } = await admin.from('ai_reports').select('mailed_at').eq('kind', p.kind).eq('period_from', p.from).maybeSingle()
+    if (data?.mailed_at) continue
+    out.push(await makeReport(admin, p.kind, p.from, p.to, null, true))
+  }
+  return { reports: out }
+}
+
+async function sendBatch(mails: Mail[], idempotencyKey: string, kind: string, admin: Admin = adminClient()) {
   for (let i = 0; i < mails.length; i += 100) {
     const chunk = mails.slice(i, i + 100)
     const res = await fetch('https://api.resend.com/emails/batch', {
@@ -468,6 +614,7 @@ async function sendBatch(mails: Mail[], idempotencyKey: string) {
       }))),
     })
     if (!res.ok) throw new HttpError(502, `Resend ${res.status}: ${(await res.text()).slice(0, 300)}`)
+    await admin.from('mail_log').insert({ kind, mails: chunk.length })
   }
 }
 
@@ -511,7 +658,7 @@ async function sendInstant(admin: Admin) {
         continue
       }
       const text = `${m.lines.join('\n')}\n\n▶ アプリで見る: ${m.link}${FOOTER}`
-      await sendBatch(to.map((p) => ({ to: p.email, subject: m.subject, text })), `notify-${e.id}`)
+      await sendBatch(to.map((p) => ({ to: p.email, subject: m.subject, text })), `notify-${e.id}`, e.kind, admin)
       await done({ last_error: null, attempts: e.attempts + 1 })
       sent += to.length
     } catch (err) {
@@ -579,7 +726,7 @@ async function sendDigest(admin: Admin) {
       text: `この24時間の報告です。\n\n${sections.join('\n\n')}${mine.length ? '' : '\n\n新しい報告はありません。'}\n\n▶ アプリで見る: ${appUrl('/manager')}${FOOTER}`,
     })
   }
-  if (mails.length) await sendBatch(mails, `digest-${today}`)
+  if (mails.length) await sendBatch(mails, `digest-${today}`, 'digest', admin)
   const ids = (data as NotifyEvent[]).map((e) => e.id)
   for (let i = 0; i < ids.length; i += 500) {
     await admin.from('notify_events').update({ digest_done_at: until }).in('id', ids.slice(i, i + 500))
@@ -599,23 +746,31 @@ async function sendTest(admin: Admin, recipientId: string) {
       text: `${p.name || p.email} さん\n\nこれは金龍ラーメン専用アプリの通知のテストメールです。\n\n受け取り方: ${mode}\n通知の種類: ${kinds}\n※ 即日指導と新規登録は、まとめの設定でもすぐに送ります。\n\n▶ アプリで見る: ${appUrl('/manager/notify')}${FOOTER}`,
     }],
     `test-${p.id}-${Date.now()}`,
+    'test',
+    admin,
   )
   return { sent: 1 }
 }
 
 serve(async (req) => {
   const admin = adminClient()
-  const body = (await req.json().catch(() => ({}))) as { action?: string; recipient_id?: string }
+  const body = (await req.json().catch(() => ({}))) as { action?: string; recipient_id?: string; kind?: string; from?: string; to?: string; mail?: boolean }
   const cronSecret = req.headers.get('x-cron-secret')
   if (cronSecret) {
     const { data: ok, error } = await admin.rpc('notify_secret_ok', { p: cronSecret })
     if (error || !ok) throw new HttpError(401, 'bad cron secret')
     if (body.action === 'digest') return sendDigest(admin)
+    if (body.action === 'report') return scheduledReports(admin)
     return sendInstant(admin)
   }
   const caller = await requireUser(req, admin)
   if (!caller.isManager) throw new HttpError(403, 'managers only')
   if (caller.isTestAccount) throw new HttpError(403, 'test account: read only')
   if (body.action === 'test' && body.recipient_id) return sendTest(admin, body.recipient_id)
+  if (body.action === 'report') {
+    const ok = (d?: string) => Boolean(d && /^\d{4}-\d{2}-\d{2}$/.test(d))
+    if ((body.kind !== 'weekly' && body.kind !== 'monthly') || !ok(body.from) || !ok(body.to) || body.from! > body.to!) throw new HttpError(400, 'bad period')
+    return makeReport(admin, body.kind, body.from!, body.to!, caller.id, Boolean(body.mail))
+  }
   throw new HttpError(400, 'unknown action')
 })

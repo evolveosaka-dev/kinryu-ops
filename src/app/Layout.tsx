@@ -23,7 +23,7 @@ export function Layout() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col bg-surface">
-      <header className="sticky top-0 z-20 flex items-center justify-between gap-2 bg-brand px-4 py-3 text-white">
+      <header className="sticky top-0 z-20 flex print:hidden items-center justify-between gap-2 bg-brand px-4 py-3 text-white">
         <Link to="/" className="flex min-w-0 items-center gap-2.5">
           <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-[15px] font-bold text-brand" aria-hidden>
             金
@@ -43,7 +43,7 @@ export function Layout() {
         <Outlet />
       </main>
       <nav
-        className="fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-lg gap-1 border-t border-line bg-white px-1 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+        className="fixed inset-x-0 bottom-0 z-20 mx-auto flex print:hidden max-w-lg gap-1 border-t border-line bg-white px-1 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
         aria-label="main"
       >
         {items.map((i) => (

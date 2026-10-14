@@ -123,7 +123,9 @@
     "skills": "Nâng cao kỹ năng",
     "skillsSub": "Đang chuẩn bị",
     "absence": "Báo nghỉ / đi muộn",
-    "absenceSub": "Nghỉ, đi muộn, về sớm / nhận ca thay / điểm đi làm"
+    "absenceSub": "Nghỉ, đi muộn, về sớm / nhận ca thay / điểm đi làm",
+    "incident": "Ghi khiếu nại / sự cố",
+    "incidentSub": "Ghi ngay khiếu nại, chấn thương, dị vật, hỏng thiết bị"
   },
   "phrase": {
     "philosophy1": "Khách hàng là trên hết",
@@ -273,5 +275,36 @@
     "delete": "Xóa",
     "deleteConfirm": "Xóa nhận xét này?",
     "homeCard": "Bạn có {{n}} nhận xét mới từ quản lý"
+  },
+  "incident": {
+    "title": "Ghi khiếu nại / sự cố",
+    "subtitle": "Khi xảy ra hãy ghi ngay. Quản lý sẽ nhận được.",
+    "kind": "Loại",
+    "kinds": {
+      "complaint": "Khách khiếu nại",
+      "injury": "Chấn thương / tai nạn",
+      "foreign_object": "Dị vật",
+      "equipment": "Hỏng thiết bị",
+      "food_poisoning": "Nghi ngộ độc thực phẩm",
+      "lost_item": "Đồ để quên / rơi",
+      "other": "Khác"
+    },
+    "urgentHint": "Quản lý nhận mail ngay. Nếu gấp hãy gọi điện nữa.",
+    "store": "Cửa hàng",
+    "when": "Thời điểm xảy ra",
+    "description": "Chuyện gì đã xảy ra",
+    "descriptionHint": "Khi nào, ở đâu, chuyện gì. Không cần tên khách hay ảnh mặt khách.",
+    "action": "Đã xử lý tại chỗ thế nào",
+    "actionHint": "VD: làm lại, hoàn tiền, sơ cứu",
+    "photoHint": "Ảnh / video tình huống (không chụp mặt khách)",
+    "send": "Gửi",
+    "sent": "Đã gửi. Quản lý đã nhận.",
+    "mine": "Ghi chép của tôi",
+    "prevention": "Phòng tái diễn",
+    "status": {
+      "open": "Chưa xử lý",
+      "in_progress": "Đang xử lý",
+      "done": "Xong"
+    }
   }
 }

@@ -123,7 +123,9 @@
     "skills": "スキルアップ",
     "skillsSub": "準備中",
     "absence": "休み・遅刻の連絡",
-    "absenceSub": "休む・遅れる・早退する／代わり募集／出勤の評価"
+    "absenceSub": "休む・遅れる・早退する／代わり募集／出勤の評価",
+    "incident": "クレーム・事故の記録",
+    "incidentSub": "お客様のクレーム・ケガ・異物・故障などをすぐ記録"
   },
   "phrase": {
     "philosophy1": "お客様第一",
@@ -273,5 +275,36 @@
     "delete": "削除",
     "deleteConfirm": "このコメントを削除しますか？",
     "homeCard": "管理者からコメントが{{n}}件あります"
+  },
+  "incident": {
+    "title": "クレーム・事故の記録",
+    "subtitle": "起きたらすぐに記録してください。管理者に届きます。",
+    "kind": "種類",
+    "kinds": {
+      "complaint": "お客様のクレーム",
+      "injury": "ケガ・事故",
+      "foreign_object": "異物混入",
+      "equipment": "設備の故障",
+      "food_poisoning": "食中毒の疑い",
+      "lost_item": "忘れ物・落とし物",
+      "other": "その他"
+    },
+    "urgentHint": "管理者にすぐメールが届きます。急ぐときは電話もしてください。",
+    "store": "店舗",
+    "when": "起きた日時",
+    "description": "何が起きましたか",
+    "descriptionHint": "いつ・どこで・何が。お客様の名前や顔の写真は不要です。",
+    "action": "その場でしたこと",
+    "actionHint": "例：作り直した・返金した・救急箱で手当てした",
+    "photoHint": "状況の写真・動画（お客様の顔は撮らないでください）",
+    "send": "送信する",
+    "sent": "送信しました。管理者に届きました。",
+    "mine": "自分の記録",
+    "prevention": "再発防止",
+    "status": {
+      "open": "未対応",
+      "in_progress": "対応中",
+      "done": "完了"
+    }
   }
 }
