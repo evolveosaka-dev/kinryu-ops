@@ -31,13 +31,14 @@ import {
   type TicketKind,
 } from '../../domain/sales'
 import { fmtQty, LOSS_REASONS, parseQty, stockState, type StockEvent, type StockItem } from '../../domain/stock'
-import { currentSlot, dayType, formatShortDate, formatTokyoTime, monthOf, previousSlot, tokyoParts } from '../../domain/time'
+import { currentSlot, formatShortDate, formatTokyoTime, previousSlot, tokyoParts } from '../../domain/time'
 import { SHIFTS, type Shift } from '../../domain/types'
 import { currentLocale } from '../../i18n'
 import { cx } from '../../lib/cx'
 import { errorMessage, storeName } from '../../lib/format'
 import { getLastStore, setLastStore } from '../../lib/lastStore'
-import { useHolidays, useRoster, useSlotSchedule, useStores, useTargets } from '../../lib/queries'
+import { useHolidays, useRoster, useSlotSchedule, useStores, useTargetEvents, useTargets } from '../../lib/queries'
+import { findTarget, targetHint } from '../../domain/targets'
 import type { Store } from '../../lib/types'
 import { addStockEvent, itemName, useStockEvents, useStockItems } from '../stock/data'
 import { TranslationCancelled, useTranslationGate, type GateField } from '../translate/useTranslationGate'
@@ -208,9 +209,11 @@ function SalesForm({
   noodleUsed,
   noodleLosses,
   target,
+  targetNote,
   locked,
 }: {
   locked: boolean
+  targetNote: string | null
   slot: Slot
   report: SalesReport | null
   prevActual: number | null
@@ -405,6 +408,7 @@ function SalesForm({
         {target && target > 0 ? (
           <p className={cx('rounded-xl px-3 py-2 font-bold', rate !== null && rate >= 100 ? 'bg-green-50 text-green-900' : 'bg-amber-50 text-amber-900')}>
             🎯 {t('tickets.target', { target, rate })}
+            {targetNote && <span className="block text-xs font-normal">{targetNote}</span>}
           </p>
         ) : (
           <p className="text-sm text-muted">{t('tickets.noTarget')}</p>
@@ -659,6 +663,7 @@ export function SalesPage() {
   const stores = useStores()
   const holidays = useHolidays()
   const targets = useTargets()
+  const targetEvents = useTargetEvents()
   const [params] = useSearchParams()
   const [preset] = useState(() => readSlotPreset(params))
   const [initial] = useState(() => (preset.date && preset.shift ? { businessDate: preset.date, shift: preset.shift } : currentSlot(new Date())))
@@ -690,8 +695,9 @@ export function SalesPage() {
         .filter((e) => e.kind === 'loss' && !e.voided_at)
         .flatMap((e) => e.lines.filter((l) => l.item === noodle.id).map((l) => ({ e, qty: l.qty })))
     : []
-  const dt = holidays.data ? dayType(date, holidays.data) : 'weekday'
-  const target = targets.data?.find((x) => x.store_id === id && x.month === monthOf(date) && x.shift === shift && x.day_type === dt)?.bowls ?? null
+  const found = holidays.data && targets.data ? findTarget(targets.data, targetEvents.data ?? [], id, date, shift, holidays.data) : null
+  const target = found?.bowls ?? null
+  const targetNote = found ? targetHint(t, found) : null
   const slot: Slot = { store, date, shift }
   // after 送信: the writers may still change it for 12 hours, then managers only (also checked by the database)
   const r = report.data
@@ -719,6 +725,7 @@ export function SalesPage() {
         noodleUsed={noodleState?.used ?? null}
         noodleLosses={noodleLosses}
         target={target}
+        targetNote={targetNote}
         locked={Boolean(locked)}
       />
     </div>

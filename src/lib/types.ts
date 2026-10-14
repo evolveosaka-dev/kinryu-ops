@@ -51,7 +51,8 @@ export interface TargetBowls {
   store_id: string
   month: string
   shift: Shift
-  day_type: 'weekday' | 'weekend_holiday'
+  /** 平日 / 土日祝 before 2026-10, the six types of src/domain/targets.ts after */
+  day_type: string
   bowls: number
 }
 

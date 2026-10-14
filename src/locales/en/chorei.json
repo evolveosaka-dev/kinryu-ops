@@ -29,9 +29,14 @@
   "target": {
     "label": "Target bowls",
     "hint": "{{dayType}} guide: {{bowls}} bowls",
-    "weekday": "Weekday",
+    "weekday": "Weekday (Mon–Thu)",
     "weekend_holiday": "Weekend/holiday",
-    "unit": "bowls"
+    "unit": "bowls",
+    "friday": "Friday / day before a holiday",
+    "saturday": "Saturday",
+    "sunday_holiday": "Sunday / holiday",
+    "long_holiday": "Long weekend",
+    "peak": "Peak (New Year, Obon)"
   },
   "caution": {
     "label": "Point to be careful about",

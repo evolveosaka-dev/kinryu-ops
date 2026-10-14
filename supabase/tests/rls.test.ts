@@ -818,3 +818,15 @@ describe('daily_sales (販売杯数)', () => {
     expect((await t.as(manager, `select * from public.daily_sales`)).length).toBeGreaterThan(0)
   })
 })
+
+describe('目標杯数 v2 (six day types, events)', () => {
+  it('the new day types are accepted; events: managers write, active users read', async () => {
+    await t.as(manager, `insert into public.target_bowls (store_id, month, shift, day_type, bowls) values ($1, '2027-08-01', 'early', 'peak', 400)`, [midosuji])
+    await expect(t.as(manager, `insert into public.target_bowls (store_id, month, shift, day_type, bowls) values ($1, '2027-08-01', 'early', 'xmas', 1)`, [midosuji])).rejects.toThrow(/day_type_check/)
+    await expect(t.as(staffM, `insert into public.target_events (event_date, name) values ('2027-01-01', 'x')`)).rejects.toThrow(/row-level security/)
+    await t.as(manager, `insert into public.target_events (event_date, name, middle_pct) values ('2027-01-01', '初詣', 20)`)
+    expect((await t.as<{ name: string }>(staffM, `select name from public.target_events where event_date = '2027-01-01'`)).map((r) => r.name)).toEqual(['初詣'])
+    const seeded = await t.admin<{ n: number }>(`select count(*)::int as n from public.target_events where name like '阪神%'`)
+    expect(seeded[0]!.n).toBeGreaterThan(0)
+  })
+})

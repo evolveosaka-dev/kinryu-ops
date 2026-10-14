@@ -29,9 +29,14 @@
   "target": {
     "label": "Mục tiêu số bát",
     "hint": "Mức tham khảo {{dayType}}: {{bowls}} bát",
-    "weekday": "ngày thường",
+    "weekday": "Ngày thường (T2–T5)",
     "weekend_holiday": "cuối tuần/ngày lễ",
-    "unit": "bát"
+    "unit": "bát",
+    "friday": "Thứ Sáu・trước ngày lễ",
+    "saturday": "Thứ Bảy",
+    "sunday_holiday": "Chủ nhật・ngày lễ",
+    "long_holiday": "Kỳ nghỉ dài",
+    "peak": "Cao điểm (Tết, Obon)"
   },
   "caution": {
     "label": "Điểm cần chú ý",

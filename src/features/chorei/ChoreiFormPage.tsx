@@ -8,11 +8,12 @@ import { StaffPicker } from '../../components/StaffPicker'
 import { Button, Card, Checkbox, ErrorBox, Segmented, Spinner, StickyActions, TextArea, TextInput, PageTitle } from '../../components/ui'
 import { readSlotPreset } from '../../domain/duty'
 import { CAUTION_PICKS } from '../../domain/phrases'
-import { currentSlot, dayType, formatShortDate, formatTokyoTime, MEETING_TIME, monthOf } from '../../domain/time'
+import { currentSlot, formatShortDate, formatTokyoTime, MEETING_TIME } from '../../domain/time'
 import { ALL_STEPS_DONE, CHOREI_STEPS, SHIFTS, type Shift, type StepsDone } from '../../domain/types'
 import { currentLocale } from '../../i18n'
 import { errorMessage, isNetworkError, storeName } from '../../lib/format'
-import { unwrap, useHolidays, useSlotSchedule, useStores, useTargets } from '../../lib/queries'
+import { unwrap, useHolidays, useSlotSchedule, useStores, useTargetEvents, useTargets } from '../../lib/queries'
+import { findTarget, targetHint } from '../../domain/targets'
 import { checkParticipants } from '../../domain/participants'
 import { ScheduleCheckDialog } from './ScheduleCheckDialog'
 import { supabase } from '../../lib/supabase'
@@ -85,10 +86,10 @@ export function ChoreiFormPage() {
   const scheduleCheck = checkParticipants(shift, participantNames, [me.roster_name, me.display_name], schedule.data ?? [])
   const send = () => (scheduleCheck ? setChecking(true) : submit.mutate())
 
-  const dt = holidays.data ? dayType(businessDate, holidays.data) : 'weekday'
-  const suggestedTarget = targets.data?.find(
-    (x) => x.store_id === effectiveStore && x.month === monthOf(businessDate) && x.shift === shift && x.day_type === dt,
-  )?.bowls
+  const targetEvents = useTargetEvents()
+  const found =
+    holidays.data && targets.data ? findTarget(targets.data, targetEvents.data ?? [], effectiveStore, businessDate, shift, holidays.data) : null
+  const suggestedTarget = found?.bowls
   const targetValue = targetOverride ?? (suggestedTarget !== undefined ? String(suggestedTarget) : '')
 
 
@@ -292,7 +293,7 @@ export function ChoreiFormPage() {
               min={0}
               value={targetValue}
               onChange={(e) => setTargetOverride(e.target.value)}
-              hint={suggestedTarget !== undefined ? t('target.hint', { dayType: t(`target.${dt}`), bowls: suggestedTarget }) : undefined}
+              hint={found ? targetHint(t, found) : undefined}
             />
             <TextArea label={t('caution.label')} placeholder={t('caution.placeholder')} value={caution} onChange={(e) => setCaution(e.target.value)} />
             <details>

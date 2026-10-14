@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from './supabase'
 import type { Scheduled } from '../domain/participants'
+import type { TargetEvent } from '../domain/targets'
 import type { RosterEntry, StaffEntry, Store, TargetBowls } from './types'
 
 /** Throw the PostgREST error so react-query / callers see it. */
@@ -34,6 +35,15 @@ export function useTargets() {
     queryKey: ['target_bowls'],
     staleTime: 60 * 60 * 1000,
     queryFn: async () => unwrap<TargetBowls[]>(await supabase.from('target_bowls').select('*')),
+  })
+}
+
+/** 目標杯数 events (阪神, Halloween…): % per store and shift on a date. */
+export function useTargetEvents() {
+  return useQuery({
+    queryKey: ['target_events'],
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => unwrap<TargetEvent[]>(await supabase.from('target_events').select('*').order('event_date')),
   })
 }
 

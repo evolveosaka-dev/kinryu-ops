@@ -29,9 +29,14 @@
   "target": {
     "label": "目標杯数",
     "hint": "{{dayType}}の目安：{{bowls}}杯",
-    "weekday": "平日",
+    "weekday": "平日（月〜木）",
     "weekend_holiday": "土日祝",
-    "unit": "杯"
+    "unit": "杯",
+    "friday": "金曜・祝前日",
+    "saturday": "土曜",
+    "sunday_holiday": "日曜・祝日",
+    "long_holiday": "連休中",
+    "peak": "繁忙期（年末年始・お盆）"
   },
   "caution": {
     "label": "注意点",
