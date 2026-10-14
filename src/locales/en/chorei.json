@@ -89,5 +89,17 @@
     "banner": "A manager records this afterwards ({{date}} 朝礼). The sent time will be the meeting time {{time}}.",
     "note": "Manager note",
     "notePlaceholder": "e.g. The 朝礼 was held but not recorded. Led by ..."
+  },
+  "scheduleCheck": {
+    "title": "Participants differ from the schedule",
+    "body": "The participants you entered are different from the shift table. Please check.",
+    "atMeeting": "Scheduled at the meeting time (shift table)",
+    "listed": "listed",
+    "notListed": "missing",
+    "extra": "Participants not in the schedule",
+    "later": "Start after the meeting",
+    "confirm": "Record as it is",
+    "back": "Go back and fix the participants",
+    "leader": "leader"
   }
 }

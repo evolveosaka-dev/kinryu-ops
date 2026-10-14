@@ -50,6 +50,7 @@ export interface Person {
   id: string
   display_name: string
   full_name: string | null
+  roster_name: string | null
   status: string
 }
 
@@ -125,7 +126,7 @@ export function usePeople() {
   const q = useQuery({
     queryKey: ['admin', 'people'],
     staleTime: 5 * 60 * 1000,
-    queryFn: async () => unwrap<Person[]>(await supabase.from('profiles').select('id, display_name, full_name, status')),
+    queryFn: async () => unwrap<Person[]>(await supabase.from('profiles').select('id, display_name, full_name, roster_name, status')),
   })
   const byId = new Map((q.data ?? []).map((p) => [p.id, p]))
   const name = (id: string) => {

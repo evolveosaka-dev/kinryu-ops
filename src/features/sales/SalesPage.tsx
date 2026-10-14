@@ -37,11 +37,11 @@ import { currentLocale } from '../../i18n'
 import { cx } from '../../lib/cx'
 import { errorMessage, storeName } from '../../lib/format'
 import { getLastStore, setLastStore } from '../../lib/lastStore'
-import { useHolidays, useRoster, useStores, useTargets } from '../../lib/queries'
+import { useHolidays, useRoster, useSlotSchedule, useStores, useTargets } from '../../lib/queries'
 import type { Store } from '../../lib/types'
 import { addStockEvent, itemName, useStockEvents, useStockItems } from '../stock/data'
 import { TranslationCancelled, useTranslationGate, type GateField } from '../translate/useTranslationGate'
-import { saveSalesReport, useSalesLog, useSalesReport, useSlotStaffTimes } from './data'
+import { saveSalesReport, useSalesLog, useSalesReport } from './data'
 
 interface Slot {
   store: Store
@@ -672,7 +672,7 @@ export function SalesPage() {
   const report = useSalesReport(id, date, shift)
   const prevReport = useSalesReport(id, prev.businessDate, prev.shift)
   const logs = useSalesLog(report.data?.id)
-  const scheduled = useSlotStaffTimes(id, date, shift)
+  const scheduled = useSlotSchedule(id, date, shift)
   const items = useStockItems(id)
   const events = useStockEvents(id, date, shift)
   const prevEvents = useStockEvents(id, prev.businessDate, prev.shift)

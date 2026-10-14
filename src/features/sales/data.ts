@@ -27,19 +27,6 @@ export function useSalesLog(reportId: string | undefined) {
   })
 }
 
-/** People in the shift table for the slot, with their times (minutes from 00:00 of the business date). */
-export function useSlotStaffTimes(storeId: string, date: string, shift: Shift) {
-  return useQuery({
-    queryKey: ['slot_staff_times', storeId, date, shift],
-    enabled: Boolean(storeId && date),
-    staleTime: 10 * 60 * 1000,
-    queryFn: async () =>
-      unwrap<{ roster_name: string; start_min: number; end_min: number }[]>(
-        await supabase.rpc('slot_staff', { p_store: storeId, p_date: date, p_shift: shift }),
-      ),
-  })
-}
-
 export async function saveSalesReport(store: string, date: string, shift: Shift, data: Record<string, unknown>, submit: boolean) {
   return unwrap<string>(await supabase.rpc('save_sales_report', { p_store: store, p_date: date, p_shift: shift, p_data: data, p_submit: submit }))
 }

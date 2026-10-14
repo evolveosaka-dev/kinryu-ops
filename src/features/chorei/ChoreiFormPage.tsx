@@ -12,7 +12,9 @@ import { currentSlot, dayType, formatShortDate, formatTokyoTime, MEETING_TIME, m
 import { ALL_STEPS_DONE, CHOREI_STEPS, SHIFTS, type Shift, type StepsDone } from '../../domain/types'
 import { currentLocale } from '../../i18n'
 import { errorMessage, isNetworkError, storeName } from '../../lib/format'
-import { unwrap, useHolidays, useStores, useTargets } from '../../lib/queries'
+import { unwrap, useHolidays, useSlotSchedule, useStores, useTargets } from '../../lib/queries'
+import { checkParticipants } from '../../domain/participants'
+import { ScheduleCheckDialog } from './ScheduleCheckDialog'
 import { supabase } from '../../lib/supabase'
 import type { ChoreiSlot } from '../../lib/types'
 import { AttachmentPicker } from '../attachments/AttachmentPicker'
@@ -66,6 +68,7 @@ export function ChoreiFormPage() {
   const translation = useTranslationGate()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [checking, setChecking] = useState(false)
 
   const effectiveStore = storeId || stores.data?.find((s) => s.code === preset.storeCode)?.id || stores.data?.[0]?.id || ''
   const slotLabel = `${formatShortDate(businessDate)} ${t(`common:shift.${shift}`)}・${storeName(stores.data?.find((s) => s.id === effectiveStore), locale)}`
@@ -76,6 +79,11 @@ export function ChoreiFormPage() {
     queryFn: async () =>
       unwrap<ChoreiSlot>(await supabase.rpc('chorei_slot', { p_store: effectiveStore, p_date: businessDate, p_shift: shift })),
   })
+
+  // 参加者 vs the shift table: asked to confirm before saving when they differ
+  const schedule = useSlotSchedule(effectiveStore, businessDate, shift)
+  const scheduleCheck = checkParticipants(shift, participantNames, [me.roster_name, me.display_name], schedule.data ?? [])
+  const send = () => (scheduleCheck ? setChecking(true) : submit.mutate())
 
   const dt = holidays.data ? dayType(businessDate, holidays.data) : 'weekday'
   const suggestedTarget = targets.data?.find(
@@ -165,6 +173,17 @@ export function ChoreiFormPage() {
   return (
     <div className="flex flex-col gap-4">
       {translation.review}
+      {checking && scheduleCheck && (
+        <ScheduleCheckDialog
+          check={scheduleCheck}
+          busy={submit.isPending}
+          onCancel={() => setChecking(false)}
+          onConfirm={() => {
+            setChecking(false)
+            submit.mutate()
+          }}
+        />
+      )}
       <div className="flex items-center justify-between">
         <PageTitle title={t('title')} />
         <Link to="/genko" className="flex min-h-11 items-center rounded-xl px-3 text-sm font-bold text-brand ring-1 ring-brand">
@@ -331,7 +350,7 @@ export function ChoreiFormPage() {
           <StickyActions>
             {submitError && <ErrorBox message={submitError} />}
             {Object.keys(errors).length > 0 && <ErrorBox message={t('common:error.required')} />}
-            <Button className="mt-2 w-full" onClick={() => submit.mutate()} disabled={submit.isPending || !effectiveStore}>
+            <Button className="mt-2 w-full" onClick={send} disabled={submit.isPending || !effectiveStore}>
               {submit.isPending ? t('common:action.loading') : t('common:action.submit')}
             </Button>
           </StickyActions>

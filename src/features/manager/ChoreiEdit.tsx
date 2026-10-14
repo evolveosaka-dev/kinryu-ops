@@ -15,6 +15,9 @@ import { choreiSchema, fieldErrors } from '../chorei/schema'
 import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 import { AttachmentList } from './AttachmentList'
 import { jstDateTime, usePeople, type AdminChorei } from './data'
+import { checkParticipants } from '../../domain/participants'
+import { useSlotSchedule } from '../../lib/queries'
+import { ScheduleCheckDialog } from '../chorei/ScheduleCheckDialog'
 
 const TEXT_FIELDS = ['stock_text', 'caution_text', 'skip_reason'] as const
 
@@ -42,6 +45,12 @@ export function ChoreiEdit({ record: r, onDone }: { record: AdminChorei; onDone:
     videos: [...live, ...waiting].filter((a) => a.kind === 'video').length,
   }
   const allDone = Object.values(steps).every(Boolean)
+  // 参加者 vs the shift table: the manager confirms too when they differ
+  const people = usePeople()
+  const leader = people.data?.find((p) => p.id === r.leader_id)
+  const schedule = useSlotSchedule(r.store_id, r.business_date, r.shift)
+  const scheduleCheck = checkParticipants(r.shift, participants, [leader?.roster_name, leader?.display_name], schedule.data ?? [])
+  const [checking, setChecking] = useState(false)
 
   const save = useMutation({
     mutationFn: async () => {
@@ -96,6 +105,17 @@ export function ChoreiEdit({ record: r, onDone }: { record: AdminChorei; onDone:
   return (
     <Card className="flex flex-col gap-3 ring-2 ring-blue-300">
       {translation.review}
+      {checking && scheduleCheck && (
+        <ScheduleCheckDialog
+          check={scheduleCheck}
+          busy={save.isPending}
+          onCancel={() => setChecking(false)}
+          onConfirm={() => {
+            setChecking(false)
+            save.mutate()
+          }}
+        />
+      )}
       <h3 className="font-bold">{t('choreiEdit.title')}</h3>
       <StaffPicker label={t('chorei:participants.label')} value={participants} onChange={setParticipants} storeId={r.store_id} slot={{ date: r.business_date, shift: r.shift }} />
       <Checkbox checked={stockNone} onChange={setStockNone}>
@@ -145,7 +165,7 @@ export function ChoreiEdit({ record: r, onDone }: { record: AdminChorei; onDone:
         <Button variant="secondary" onClick={onDone} disabled={save.isPending}>
           {t('choreiEdit.cancel')}
         </Button>
-        <Button onClick={() => save.mutate()} disabled={save.isPending}>
+        <Button onClick={() => (scheduleCheck ? setChecking(true) : save.mutate())} disabled={save.isPending}>
           {save.isPending ? t('common:action.loading') : t('choreiEdit.save')}
         </Button>
       </div>

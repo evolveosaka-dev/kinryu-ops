@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from './supabase'
+import type { Scheduled } from '../domain/participants'
 import type { RosterEntry, StaffEntry, Store, TargetBowls } from './types'
 
 /** Throw the PostgREST error so react-query / callers see it. */
@@ -36,15 +37,21 @@ export function useTargets() {
   })
 }
 
-/** Names scheduled for one 朝礼 slot (store, date, shift), from the imported shift table. */
-export function useSlotStaff(storeId: string, date: string | undefined, shift: string | undefined) {
+/** People in the shift table for one store / date / shift, with their times (minutes from 00:00 of the business date). */
+export function useSlotSchedule(storeId: string, date: string | undefined, shift: string | undefined) {
   return useQuery({
     queryKey: ['slot_staff', storeId, date, shift],
     enabled: Boolean(storeId && date && shift),
     staleTime: 10 * 60 * 1000,
     queryFn: async () =>
-      unwrap<{ roster_name: string }[]>(await supabase.rpc('slot_staff', { p_store: storeId, p_date: date, p_shift: shift })).map((r) => r.roster_name),
+      unwrap<Scheduled[]>(await supabase.rpc('slot_staff', { p_store: storeId, p_date: date, p_shift: shift })),
   })
+}
+
+/** Names scheduled for one 朝礼 slot (store, date, shift), from the imported shift table. */
+export function useSlotStaff(storeId: string, date: string | undefined, shift: string | undefined) {
+  const q = useSlotSchedule(storeId, date, shift)
+  return { ...q, data: q.data?.map((r) => r.roster_name) }
 }
 
 /** Active staff names from the shift table (for the per-person pickers). */

@@ -89,5 +89,17 @@
     "banner": "Quản lý ghi bổ sung sau (朝礼 ngày {{date}}). Giờ gửi sẽ là giờ 朝礼 {{time}}.",
     "note": "Ghi chú của quản lý",
     "notePlaceholder": "Ví dụ: Đã làm 朝礼 nhưng quên ghi. Người dẫn là ..."
+  },
+  "scheduleCheck": {
+    "title": "Người tham gia khác với lịch làm",
+    "body": "Danh sách người tham gia khác với lịch trong bảng ca. Hãy kiểm tra lại.",
+    "atMeeting": "Lịch làm vào giờ 朝礼 (bảng ca)",
+    "listed": "có mặt",
+    "notListed": "chưa nhập",
+    "extra": "Người tham gia không có trong lịch làm",
+    "later": "Vào ca sau giờ 朝礼",
+    "confirm": "Vẫn ghi như vậy",
+    "back": "Quay lại sửa người tham gia",
+    "leader": "người dẫn"
   }
 }
