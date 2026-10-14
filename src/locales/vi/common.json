@@ -194,7 +194,9 @@
     "remove": "Xóa",
     "processing": "Đang chuẩn bị…",
     "count": "{{n}} file đính kèm",
-    "photoRequired": "Hãy chụp ít nhất 1 ảnh tiệm."
+    "photoRequired": "Hãy thêm ít nhất 1 ảnh tiệm.",
+    "takePhoto": "Chụp ảnh",
+    "choosePhoto": "Chọn ảnh"
   },
   "upload": {
     "uploading": "Đang tải lên {{n}} file ({{pct}}%)",

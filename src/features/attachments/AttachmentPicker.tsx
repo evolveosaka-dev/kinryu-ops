@@ -46,7 +46,7 @@ export function AttachmentPicker({
   onChange: (v: PreparedMedia[]) => void
   /** at least one photo is required (巡回) */
   requirePhoto?: boolean
-  /** open the camera directly instead of the gallery */
+  /** two photo buttons: 撮影 (opens the camera) and 写真を選ぶ (from the phone) */
   camera?: boolean
   hint?: string
   /** when set, adding is disabled and this text explains why */
@@ -58,6 +58,7 @@ export function AttachmentPicker({
 }) {
   const { t } = useTranslation()
   const photoInput = useRef<HTMLInputElement>(null)
+  const galleryInput = useRef<HTMLInputElement>(null)
   const videoInput = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -108,19 +109,30 @@ export function AttachmentPicker({
           onClick={() => photoInput.current?.click()}
           className="min-h-12 rounded-xl border border-slate-300 bg-white font-bold disabled:text-slate-500"
         >
-          📷 {t('attach.addPhoto')}（{images}/{MAX_IMAGES}）
+          📷 {camera ? t('attach.takePhoto') : t('attach.addPhoto')}（{images}/{MAX_IMAGES}）
         </button>
+        {camera && (
+          <button
+            type="button"
+            disabled={busy || images >= MAX_IMAGES || Boolean(lockedNote)}
+            onClick={() => galleryInput.current?.click()}
+            className="min-h-12 rounded-xl border border-slate-300 bg-white font-bold disabled:text-slate-500"
+          >
+            🖼️ {t('attach.choosePhoto')}
+          </button>
+        )}
         <button
           type="button"
           disabled={busy || videos >= MAX_VIDEOS || Boolean(lockedNote)}
           onClick={() => videoInput.current?.click()}
-          className="min-h-12 rounded-xl border border-slate-300 bg-white font-bold disabled:text-slate-500"
+          className={`min-h-12 rounded-xl border border-slate-300 bg-white font-bold disabled:text-slate-500 ${camera ? 'col-span-2' : ''}`}
         >
           🎥 {t('attach.addVideo')}（{videos}/{MAX_VIDEOS}）
         </button>
       </div>
       {lockedNote && <p className="text-sm text-slate-600">{lockedNote}</p>}
       <input ref={photoInput} type="file" accept="image/*" multiple={!camera} capture={camera ? 'environment' : undefined} hidden onChange={(e) => void add(e.target.files, 'image').then(() => (e.target.value = ''))} />
+      <input ref={galleryInput} type="file" accept="image/*" multiple hidden onChange={(e) => void add(e.target.files, 'image').then(() => (e.target.value = ''))} />
       <input ref={videoInput} type="file" accept="video/*" multiple hidden onChange={(e) => void add(e.target.files, 'video').then(() => (e.target.value = ''))} />
       {busy && <p className="text-sm text-slate-600">{t('attach.processing')}</p>}
       <p className="text-xs text-slate-600">{t('attach.limit')}</p>

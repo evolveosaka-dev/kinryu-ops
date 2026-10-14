@@ -94,8 +94,8 @@
   "minutes": "{{min}} min",
   "timeReview": "Time needs review",
   "staffOnShiftHint": "Choose each staff member on shift. If nobody is chosen, it is recorded as \"everyone\".",
-  "photoHint": "Take at least 1 photo of the store during the patrol. Photos with staff are even better (do not film customers’ faces).",
-  "photoAfterStart": "You can take photos after tapping \"Start\".",
+  "photoHint": "Take or choose (from your phone) at least 1 photo of the store from the patrol. Photos with staff are even better (do not film customers’ faces).",
+  "photoAfterStart": "You can add photos after tapping \"Start\".",
   "cancel": {
     "button": "Cancel",
     "title": "Cancel this patrol?",

@@ -194,7 +194,9 @@
     "remove": "削除",
     "processing": "準備中…",
     "count": "添付 {{n}}件",
-    "photoRequired": "店の写真を1枚以上撮ってください。"
+    "photoRequired": "店の写真を1枚以上追加してください。",
+    "takePhoto": "撮影",
+    "choosePhoto": "写真を選ぶ"
   },
   "upload": {
     "uploading": "アップロード中 {{n}}件（{{pct}}%）",

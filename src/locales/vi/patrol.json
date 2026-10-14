@@ -94,8 +94,8 @@
   "minutes": "{{min}} phút",
   "timeReview": "Cần kiểm tra lại thời gian",
   "staffOnShiftHint": "Chọn từng nhân viên đang làm ca. Nếu không chọn ai, sẽ ghi là \"tất cả\".",
-  "photoHint": "Chụp ít nhất 1 ảnh tiệm trong lúc tuần tra. Có nhân viên trong ảnh càng tốt (không chụp mặt khách).",
-  "photoAfterStart": "Bấm \"Bắt đầu\" rồi mới chụp được.",
+  "photoHint": "Chụp hoặc chọn từ điện thoại ít nhất 1 ảnh tiệm trong lúc tuần tra. Có nhân viên trong ảnh càng tốt (không chụp mặt khách).",
+  "photoAfterStart": "Bấm \"Bắt đầu\" rồi mới thêm ảnh được.",
   "cancel": {
     "button": "Hủy",
     "title": "Hủy lượt tuần tra này?",

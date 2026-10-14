@@ -194,7 +194,9 @@
     "remove": "Remove",
     "processing": "Preparing…",
     "count": "{{n}} attachment(s)",
-    "photoRequired": "Please take at least 1 photo of the store."
+    "photoRequired": "Please add at least 1 photo of the store.",
+    "takePhoto": "Take photo",
+    "choosePhoto": "Choose photo"
   },
   "upload": {
     "uploading": "Uploading {{n}} file(s) ({{pct}}%)",
