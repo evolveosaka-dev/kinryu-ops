@@ -213,7 +213,7 @@ export function AnalysisPage() {
                   {Number(d.date.slice(8))}
                   {d.events.length > 0 && eventIcon(d.events[0]!)}
                 </span>
-                <b className={cx('text-sm', rateCls(r))}>{r === null ? (d.date >= now ? '' : '—') : `${Math.round(r)}`}</b>
+                <b className={cx('text-sm', rateCls(r))}>{r === null ? (d.date >= now ? '' : '—') : `${Math.round(r)}%`}</b>
                 <span className="text-[10px] text-slate-600">{d.actual ?? d.targetAll ?? ''}</span>
               </button>
             )

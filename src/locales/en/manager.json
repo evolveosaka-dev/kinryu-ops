@@ -488,7 +488,7 @@
     "bestWorst": "Best day",
     "lowest": "Lowest",
     "calendar": "Achievement calendar",
-    "calendarHelp": "Number = achievement % (below: bowls, target for future days). Green ≥100%, amber 90–99%, red <90%. Tap a day for stores and shifts.",
+    "calendarHelp": "% = achievement (below: bowls, target for future days). Green ≥100%, amber 90–99%, red <90%. Tap a day for stores and shifts.",
     "daily": "Bowls per day",
     "dailyHelp": "Bars = actual (colour = achievement), dashed blue = target, grey = same weekday last year.",
     "types": "Shift × day type",
