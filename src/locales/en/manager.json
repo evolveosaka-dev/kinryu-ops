@@ -552,7 +552,7 @@
     "draft": "draft",
     "tab": "Analysis",
     "how": {
-      "tap": "ⓘ Tap a figure to see how it is calculated and the numbers of each day.",
+      "tap": "ⓘ Tap a figure or a chart to see how it is calculated and its numbers.",
       "open": "How it is calculated",
       "day": "Date",
       "dayType": "Day type",
@@ -578,6 +578,36 @@
     "typeYears": "Day types of month {{month}} vs the same month of earlier years",
     "typeYearsHelp": "Average bowls per day for each of the six day types, compared with the same month of earlier years. Only complete days; years without data are left out. YoY = this year ÷ last year − 1.",
     "yearCol": "{{year}}",
-    "yoyCol": "YoY"
+    "yoyCol": "YoY",
+    "legend": {
+      "actual": "Actual (colour = achievement)",
+      "target": "Target",
+      "lastYear": "Same weekday last year"
+    },
+    "monthCol": "Month",
+    "weekCol": "Week",
+    "patrolCount": "Patrols",
+    "chartHow": {
+      "daily": {
+        "formula": "Bar = bowls of the day / dashed blue = target of the day / grey = same weekday last year (364 days before)",
+        "note": "Bar colour = achievement (actual ÷ target): green ≥ 100%, orange 90–99%, red < 90%, grey = no target.\nTargets include the event %.\nTotal of the selected stores and shifts. Bowls = ramen + chashu-men (coupons not included)."
+      },
+      "monthly": {
+        "formula": "Average per day = bowls of the month ÷ days",
+        "note": "Only days with every shift filled in. One line per year (blue = this year, orange = last year).\nMonths with fewer than 5 such days are left empty. Figures before 2025 are not used."
+      },
+      "weekly": {
+        "formula": "Weekly average = bowls of the week (Mon–Sun) ÷ days",
+        "note": "Only days with every shift filled in. One line per year, same week number compared.\nWeek numbers: weeks start on Monday; week 1 holds the first Thursday of the year.\nWeeks with fewer than 4 such days are left empty."
+      },
+      "yoyWeekly": {
+        "formula": "YoY = bowls of the week ÷ the same weekdays last year (364 days before) − 1",
+        "note": "Only days with figures in both years. Above 0% = more than last year.\nRed dashed line = start of the meetings and patrols (10/12)."
+      },
+      "patrol": {
+        "formula": "Patrol average = sum of the patrol scores of the week ÷ number of patrols (on 25)",
+        "note": "Patrols with ⑤ = \"－\" (on 20) are converted to 25.\nOnly patrols of the selected stores and shifts."
+      }
+    }
   }
 }

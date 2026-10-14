@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { DayView } from '../../../domain/salesAnalysis'
 
 // Small SVG charts (no chart library: the page stays light on phones).
@@ -12,6 +13,7 @@ const niceMax = (v: number) => {
 
 /** Bars = actual (colour = 達成率), dashed blue = target, grey = same weekday last year. */
 export function DailyChart({ days }: { days: DayView[] }) {
+  const { t } = useTranslation('manager')
   const W = 40 + days.length * 12
   const H = 170
   const top = 10, bottom = 150, left = 40
@@ -28,34 +30,52 @@ export function DailyChart({ days }: { days: DayView[] }) {
       }, [[]])
       .filter((seg) => seg.length > 1)
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img">
-      {[0, 0.25, 0.5, 0.75, 1].map((f) => (
-        <g key={f}>
-          <line x1={left} x2={W} y1={y(max * f)} y2={y(max * f)} stroke="#e2e8f0" strokeWidth="0.6" />
-          <text x={left - 3} y={y(max * f) + 3} fontSize="7" textAnchor="end" fill="#64748b">
-            {Math.round(max * f).toLocaleString()}杯
-          </text>
-        </g>
-      ))}
-      {days.map((d, i) =>
-        d.actual === null ? null : (
-          <rect key={d.date} x={x(i) - 4.5} y={y(d.actual)} width="9" height={bottom - y(d.actual)} rx="1.5" fill={RATE_FILL(d.target ? (d.actual / d.target) * 100 : null)} opacity="0.85" />
-        ),
-      )}
-      {line(days.map((d) => d.lastYear)).map((seg, k) => (
-        <polyline key={`ly${k}`} points={seg.join(' ')} fill="none" stroke="#94a3b8" strokeWidth="1.2" />
-      ))}
-      {line(days.map((d) => d.target ?? d.targetAll)).map((seg, k) => (
-        <polyline key={`t${k}`} points={seg.join(' ')} fill="none" stroke="#1d4ed8" strokeWidth="1.3" strokeDasharray="3 2" />
-      ))}
-      {days.map((d, i) =>
-        Number(d.date.slice(8)) % 5 === 1 || i === days.length - 1 ? (
-          <text key={`l${d.date}`} x={x(i)} y={H - 6} fontSize="7" textAnchor="middle" fill="#334155">
-            {Number(d.date.slice(8))}
-          </text>
-        ) : null,
-      )}
-    </svg>
+    <div className="flex flex-col gap-1">
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img">
+        {[0, 0.25, 0.5, 0.75, 1].map((f) => (
+          <g key={f}>
+            <line x1={left} x2={W} y1={y(max * f)} y2={y(max * f)} stroke="#e2e8f0" strokeWidth="0.6" />
+            <text x={left - 3} y={y(max * f) + 3} fontSize="7" textAnchor="end" fill="#64748b">
+              {Math.round(max * f).toLocaleString()}杯
+            </text>
+          </g>
+        ))}
+        {days.map((d, i) =>
+          d.actual === null ? null : (
+            <rect key={d.date} x={x(i) - 4.5} y={y(d.actual)} width="9" height={bottom - y(d.actual)} rx="1.5" fill={RATE_FILL(d.target ? (d.actual / d.target) * 100 : null)} opacity="0.85" />
+          ),
+        )}
+        {line(days.map((d) => d.lastYear)).map((seg, k) => (
+          <polyline key={`ly${k}`} points={seg.join(' ')} fill="none" stroke="#94a3b8" strokeWidth="1.2" />
+        ))}
+        {line(days.map((d) => d.target ?? d.targetAll)).map((seg, k) => (
+          <polyline key={`t${k}`} points={seg.join(' ')} fill="none" stroke="#1d4ed8" strokeWidth="1.3" strokeDasharray="3 2" />
+        ))}
+        {days.map((d, i) =>
+          Number(d.date.slice(8)) % 5 === 1 || i === days.length - 1 ? (
+            <text key={`l${d.date}`} x={x(i)} y={H - 6} fontSize="7" textAnchor="middle" fill="#334155">
+              {Number(d.date.slice(8))}
+            </text>
+          ) : null,
+        )}
+      </svg>
+      <p className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
+        <span className="flex items-center gap-1">
+          {['#16a34a', '#f59e0b', '#dc2626'].map((c) => (
+            <span key={c} className="inline-block h-2.5 w-2 rounded-sm" style={{ background: c }} />
+          ))}
+          {t('analysis.legend.actual')}
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="inline-block w-4 border-t-2 border-dashed border-[#1d4ed8]" />
+          {t('analysis.legend.target')}
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="inline-block h-0.5 w-4 bg-[#94a3b8]" />
+          {t('analysis.legend.lastYear')}
+        </span>
+      </p>
+    </div>
   )
 }
 
@@ -124,10 +144,10 @@ export function LineChart({ series, labels, marker, zero, unit = '' }: { series:
           ) : null,
         )}
       </svg>
-      <p className="flex flex-wrap gap-3 text-xs">
+      <p className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
         {series.map((s) => (
           <span key={s.label} className="flex items-center gap-1">
-            <span className="inline-block h-0.5 w-4" style={{ background: s.color }} />
+            <span className={s.dashed ? 'inline-block w-4 border-t-2 border-dashed' : 'inline-block h-0.5 w-4'} style={s.dashed ? { borderColor: s.color } : { background: s.color }} />
             {s.label}
           </span>
         ))}

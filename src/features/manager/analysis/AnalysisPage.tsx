@@ -30,6 +30,7 @@ import { exportXlsx, today, usePeriod } from '../data'
 import { ManagerTabs } from '../ManagerTabs'
 import { DailyChart, LineChart } from './charts'
 import { useAnalysisPatrols, useDailySales, useMonthReports, type ReportFigures } from './data'
+import { ChartDetail, TapChart, type ChartInfo, type ChartKind } from './ChartDetail'
 import { SummaryDetail, type SummaryKind } from './SummaryDetail'
 
 /** 朝礼・巡回 started on this day (改善の効果 compares before / after). */
@@ -123,6 +124,7 @@ export function AnalysisPage() {
   const [shift, setShift] = useState<'all' | Shift>('all')
   const [openDay, setOpenDay] = useState<string | null>(null)
   const [openStat, setOpenStat] = useState<SummaryKind | null>(null)
+  const [openChart, setOpenChart] = useState<ChartKind | null>(null)
 
   const storeLabel = (id: string) => storeName(stores.data?.find((s) => s.id === id), 'ja').replace('店', '')
   const ready = stores.data && holidays.data && targets.data && events.data && sales.data
@@ -189,6 +191,61 @@ export function AnalysisPage() {
   const first = monthDays(month)[0]!
   const lead = (weekdayOf(first) + 6) % 7
   const dayOpen = openDay ? days.find((d) => d.date === openDay) ?? null : null
+  const small = (s: ReactNode) => <span className="block text-[11px] text-slate-500">{s}</span>
+  const wk = (mon: string) => `${Number(mon.slice(5, 7))}/${Number(mon.slice(8))}〜`
+  const chartInfo = (kind: ChartKind): ChartInfo => {
+    if (kind === 'daily')
+      return {
+        kind,
+        title: t('analysis.daily'),
+        head: [t('analysis.how.day'), t('analysis.actual'), t('analysis.target'), t('analysis.rate'), t('analysis.lastYear')],
+        rows: days
+          .filter((d) => d.actual !== null)
+          .map((d) => ({ key: d.date, cells: [`${formatShortDate(d.date)}(${t(`weekday.${weekdayOf(d.date)}`)})`, bw(d.actual), bw(d.target), `${rateOf(d.actual, d.target) ?? '—'}%`, bw(d.lastYear)] })),
+      }
+    if (kind === 'monthly')
+      return {
+        kind,
+        title: t('analysis.trend'),
+        head: [t('analysis.monthCol'), ...years.map((y) => t('analysis.yearCol', { year: y }))],
+        rows: Array.from({ length: 12 }, (_, m) => ({
+          key: String(m),
+          cells: [
+            `${m + 1}月`,
+            ...years.map((y) => {
+              const r = trend.find((x) => x.month === `${y}-${String(m + 1).padStart(2, '0')}-01`)
+              return r && r.days >= 5 ? <>{bw(r.avg)}{small(t('analysis.days', { n: r.days }))}</> : '—'
+            }),
+          ],
+        })),
+      }
+    if (kind === 'weekly')
+      return {
+        kind,
+        title: t('analysis.weekTrend'),
+        head: [t('analysis.weekCol'), ...wYears.map((y) => t('analysis.yearCol', { year: y }))],
+        rows: Array.from({ length: 53 }, (_, k) => k + 1)
+          .map((n) => ({ n, cells: wYears.map((y) => wtrend.find((x) => x.year === y && x.week === n)) }))
+          .filter((r) => r.cells.some((c) => c && c.days >= 4))
+          .map((r) => ({
+            key: String(r.n),
+            cells: [`${r.n}週`, ...r.cells.map((c) => (c && c.days >= 4 ? <>{bw(c.avg)}{small(`${wk(c.monday)}・${t('analysis.days', { n: c.days })}`)}</> : '—'))],
+          })),
+      }
+    if (kind === 'yoyWeekly')
+      return {
+        kind,
+        title: t('analysis.weeklyYoy'),
+        head: [t('analysis.weekCol'), t('analysis.how.thisYear'), t('analysis.lastYear'), t('analysis.yoyCol')],
+        rows: weeks.map((w) => ({ key: w.monday, muted: w.yoy === null, cells: [wk(w.monday), bw(w.avg), bw(w.lyAvg), pct(w.yoy)] })),
+      }
+    return {
+      kind,
+      title: t('analysis.patrolAvg'),
+      head: [t('analysis.weekCol'), t('analysis.patrolAvg'), t('analysis.patrolCount')],
+      rows: weeks.map((w) => ({ key: w.monday, muted: w.patrol === null, cells: [wk(w.monday), w.patrol === null ? '—' : `${w.patrol}/25`, w.patrols] })),
+    }
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -252,7 +309,9 @@ export function AnalysisPage() {
 
       {/* ③ daily chart */}
       <Section title={`③ ${t('analysis.daily')}`} help={t('analysis.dailyHelp')}>
-        <DailyChart days={days} />
+        <TapChart label={t('analysis.how.open')} onOpen={() => setOpenChart('daily')}>
+          <DailyChart days={days} />
+        </TapChart>
       </Section>
 
       {/* ④ shift × day type */}
@@ -290,36 +349,40 @@ export function AnalysisPage() {
 
       {/* ⑤ monthly trend */}
       <Section title={`⑤ ${t('analysis.trend')}`} help={t('analysis.trendHelp')}>
-        <LineChart
-          unit="杯"
-          labels={Array.from({ length: 12 }, (_, i) => `${i + 1}月`)}
-          series={years.map((y, i) => ({
-            label: y,
-            color: yearColor(i),
-            // a month with fewer than 5 complete days is left out (too few to compare)
-            values: Array.from({ length: 12 }, (_, m) => {
-              const r = trend.find((x) => x.month === `${y}-${String(m + 1).padStart(2, '0')}-01`)
-              return r && r.days >= 5 ? r.avg : null
-            }),
-          }))}
-        />
+        <TapChart label={t('analysis.how.open')} onOpen={() => setOpenChart('monthly')}>
+          <LineChart
+            unit="杯"
+            labels={Array.from({ length: 12 }, (_, i) => `${i + 1}月`)}
+            series={years.map((y, i) => ({
+              label: y,
+              color: yearColor(i),
+              // a month with fewer than 5 complete days is left out (too few to compare)
+              values: Array.from({ length: 12 }, (_, m) => {
+                const r = trend.find((x) => x.month === `${y}-${String(m + 1).padStart(2, '0')}-01`)
+                return r && r.days >= 5 ? r.avg : null
+              }),
+            }))}
+          />
+        </TapChart>
       </Section>
 
       {/* ⑥ weekly trend */}
       <Section title={`⑥ ${t('analysis.weekTrend')}`} help={t('analysis.weekTrendHelp')}>
-        <LineChart
-          unit="杯"
-          labels={Array.from({ length: 53 }, (_, i) => `${i + 1}週`)}
-          series={wYears.map((y, i) => ({
-            label: y,
-            color: yearColor(i, wYears.length),
-            // a week with fewer than 4 complete days is left out
-            values: Array.from({ length: 53 }, (_, k) => {
-              const r = wtrend.find((x) => x.year === y && x.week === k + 1)
-              return r && r.days >= 4 ? r.avg : null
-            }),
-          }))}
-        />
+        <TapChart label={t('analysis.how.open')} onOpen={() => setOpenChart('weekly')}>
+          <LineChart
+            unit="杯"
+            labels={Array.from({ length: 53 }, (_, i) => `${i + 1}週`)}
+            series={wYears.map((y, i) => ({
+              label: y,
+              color: yearColor(i, wYears.length),
+              // a week with fewer than 4 complete days is left out
+              values: Array.from({ length: 53 }, (_, k) => {
+                const r = wtrend.find((x) => x.year === y && x.week === k + 1)
+                return r && r.days >= 4 ? r.avg : null
+              }),
+            }))}
+          />
+        </TapChart>
       </Section>
 
       {/* ⑦ day types vs the same month of the years before */}
@@ -364,18 +427,22 @@ export function AnalysisPage() {
 
       {/* ⑧ improvement */}
       <Section title={`⑧ ${t('analysis.improvement')}`} help={t('analysis.improvementHelp')}>
-        <LineChart
-          labels={weeks.map((w) => `${Number(w.monday.slice(5, 7))}/${Number(w.monday.slice(8))}`)}
-          marker={startIdx}
-          zero
-          unit="%"
-          series={[{ label: t('analysis.weeklyYoy'), color: '#1d4ed8', values: weeks.map((w) => w.yoy) }]}
-        />
-        <LineChart
-          labels={weeks.map((w) => `${Number(w.monday.slice(5, 7))}/${Number(w.monday.slice(8))}`)}
-          marker={startIdx}
-          series={[{ label: t('analysis.patrolAvg'), color: '#16a34a', values: weeks.map((w) => w.patrol) }]}
-        />
+        <TapChart label={t('analysis.how.open')} onOpen={() => setOpenChart('yoyWeekly')}>
+          <LineChart
+            labels={weeks.map((w) => `${Number(w.monday.slice(5, 7))}/${Number(w.monday.slice(8))}`)}
+            marker={startIdx}
+            zero
+            unit="%"
+            series={[{ label: t('analysis.weeklyYoy'), color: '#1d4ed8', values: weeks.map((w) => w.yoy) }]}
+          />
+        </TapChart>
+        <TapChart label={t('analysis.how.open')} onOpen={() => setOpenChart('patrol')}>
+          <LineChart
+            labels={weeks.map((w) => `${Number(w.monday.slice(5, 7))}/${Number(w.monday.slice(8))}`)}
+            marker={startIdx}
+            series={[{ label: t('analysis.patrolAvg'), color: '#16a34a', values: weeks.map((w) => w.patrol) }]}
+          />
+        </TapChart>
         <h3 className="mt-1 text-sm font-bold">{t('analysis.bands')}</h3>
         <ul className="grid grid-cols-3 gap-2 text-center text-xs">
           {bands.map((b) => (
@@ -428,6 +495,7 @@ export function AnalysisPage() {
       {download.error && <ErrorBox message={errorMessage(download.error)} />}
       <p className="text-xs text-muted">{t('analysis.note')}</p>
 
+      {openChart && <ChartDetail info={chartInfo(openChart)} onClose={() => setOpenChart(null)} />}
       {openStat && <SummaryDetail kind={openStat} days={days} summary={summary} today={now} onClose={() => setOpenStat(null)} />}
       {dayOpen && (
         <DaySheet

@@ -11,11 +11,11 @@ const n = (v: number | null | undefined) => (v === null || v === undefined ? '�
 /** in the tables: with the unit */
 const nb = (v: number | null | undefined) => (v === null || v === undefined ? '—' : `${v.toLocaleString()}杯`)
 
-function Formula({ children }: { children: ReactNode }) {
+export function Formula({ children }: { children: ReactNode }) {
   return <p className="rounded-xl bg-sky-50 p-3 text-sm font-bold text-sky-900">{children}</p>
 }
 
-function Table({ head, rows, foot }: { head: string[]; rows: { key: string; cells: ReactNode[]; muted?: boolean }[]; foot?: ReactNode[] }) {
+export function Table({ head, rows, foot }: { head: string[]; rows: { key: string; cells: ReactNode[]; muted?: boolean }[]; foot?: ReactNode[] }) {
   return (
     <table className="w-full text-sm">
       <thead className="text-xs text-slate-600">
