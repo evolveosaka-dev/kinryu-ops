@@ -636,5 +636,16 @@
       "dataFrom": "2024 figures are not used (from January 2025)."
     },
     "score": "Score"
+  },
+  "patrolEdit": {
+    "title": "Edit the patrol check",
+    "timesHint": "Correct the start / end times with \"Correct the time\" above.",
+    "historyNote": "Patrol time changes only when the times are corrected. This history is shown on manager screens only.",
+    "field": {
+      "good_points": "Good points",
+      "improvements": "Improvements / coaching",
+      "remarks": "Remarks",
+      "customer_reason": "Customer satisfaction (reason)"
+    }
   }
 }

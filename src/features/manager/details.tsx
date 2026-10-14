@@ -15,6 +15,7 @@ import { issueTagsToSave, STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { CustomerResult } from '../patrol/CustomerItem'
 import { AttachmentList } from './AttachmentList'
 import { ChoreiEdit, ChoreiEditHistory } from './ChoreiEdit'
+import { PatrolEdit, PatrolEditHistory } from './PatrolEdit'
 import { IssueTagsPicker, IssueTagsView, type IssueValue } from '../patrol/IssueTags'
 import { Sheet, Dot } from './common'
 import { fromLocalInput, jstDateTime, toLocalInput, type AdminChorei, type AdminPatrol, JUDGE_STYLE } from './data'
@@ -122,6 +123,7 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
   const [voidReason, setVoidReason] = useState('')
   // managers may correct the times at any time, not only when 時間の確認 is flagged
   const [timeEdit, setTimeEdit] = useState(false)
+  const [editing, setEditing] = useState(false)
   const store = storeName(stores.data?.find((s) => s.id === p.store_id), currentLocale())
   const score = p.total !== null && p.max_total ? Math.round(normalizedTo25(p.total, p.max_total) * 10) / 10 : null
 
@@ -183,6 +185,15 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
         <Attachments list={p.attachments} parentId={p.id} />
         <RecordComments kind="patrol" recordId={p.id} comments={p.comments ?? []} canWrite={p.status === 'valid'} />
       </Card>
+      <PatrolEditHistory patrol={p} />
+      {p.status === 'valid' &&
+        (editing ? (
+          <PatrolEdit patrol={p} onDone={() => setEditing(false)} />
+        ) : (
+          <Button variant="secondary" onClick={() => setEditing(true)}>
+            ✏️ {t('choreiEdit.open')}
+          </Button>
+        ))}
 
       {p.judgement === 'coaching' && p.status === 'valid' && (
         <Card className="flex flex-col gap-2 ring-2 ring-red-300">
