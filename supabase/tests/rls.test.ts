@@ -802,3 +802,19 @@ describe('販売日報 (sales_reports)', () => {
     expect(await t.as(waiting, `select id from public.sales_reports`)).toEqual([])
   })
 })
+
+describe('daily_sales (販売杯数)', () => {
+  it('a sent 販売日報 writes ラーメン + チャーシューメン; a later change updates it; a draft does not; managers only read', async () => {
+    await t.admin(`insert into public.daily_sales (store_id, business_date, shift, bowls, source) values ($1, ${TODAY} + 1, 'early', 999, 'excel')`, [midosuji])
+    const data = (ramen: number) => JSON.stringify({ tickets: { ramen, chashu: 26, coupon: 3 }, cash_counts: { '1000': 1 }, cash_carried: 1000 })
+    await t.as(staffM, `select public.save_sales_report($1, ${TODAY} + 1, 'early', '${data(100)}'::jsonb, false)`, [midosuji])
+    const q = `select bowls, coupons, source from public.daily_sales where store_id = $1 and business_date = ${TODAY} + 1 and shift = 'early'`
+    expect(await t.admin(q, [midosuji])).toEqual([{ bowls: 999, coupons: null, source: 'excel' }])
+    await t.as(staffM, `select public.save_sales_report($1, ${TODAY} + 1, 'early', '${data(100)}'::jsonb, true)`, [midosuji])
+    expect(await t.admin(q, [midosuji])).toEqual([{ bowls: 126, coupons: 3, source: 'report' }])
+    await t.as(staffM, `select public.save_sales_report($1, ${TODAY} + 1, 'early', '${data(154)}'::jsonb, false)`, [midosuji])
+    expect(await t.admin(q, [midosuji])).toEqual([{ bowls: 180, coupons: 3, source: 'report' }])
+    expect(await t.as(staffM, `select * from public.daily_sales`)).toEqual([])
+    expect((await t.as(manager, `select * from public.daily_sales`)).length).toBeGreaterThan(0)
+  })
+})
