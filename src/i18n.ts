@@ -33,15 +33,20 @@ import enLearn from './locales/en/learn.json'
 import viLearn from './locales/vi/learn.json'
 import siLearn from './locales/si/learn.json'
 import neLearn from './locales/ne/learn.json'
+import jaStock from './locales/ja/stock.json'
+import enStock from './locales/en/stock.json'
+import viStock from './locales/vi/stock.json'
+import siStock from './locales/si/stock.json'
+import neStock from './locales/ne/stock.json'
 import neChorei from './locales/ne/chorei.json'
 import nePatrol from './locales/ne/patrol.json'
 
 export const resources = {
-  ja: { common: jaCommon, chorei: jaChorei, patrol: jaPatrol, manager: jaManager, genko: jaGenko, shift: jaShift, learn: jaLearn },
-  en: { common: enCommon, chorei: enChorei, patrol: enPatrol, manager: enManager, genko: enGenko, shift: enShift, learn: enLearn },
-  vi: { common: viCommon, chorei: viChorei, patrol: viPatrol, genko: viGenko, shift: viShift, learn: viLearn },
-  si: { common: siCommon, chorei: siChorei, patrol: siPatrol, genko: siGenko, shift: siShift, learn: siLearn },
-  ne: { common: neCommon, chorei: neChorei, patrol: nePatrol, genko: neGenko, shift: neShift, learn: neLearn },
+  ja: { common: jaCommon, chorei: jaChorei, patrol: jaPatrol, manager: jaManager, genko: jaGenko, shift: jaShift, learn: jaLearn, stock: jaStock },
+  en: { common: enCommon, chorei: enChorei, patrol: enPatrol, manager: enManager, genko: enGenko, shift: enShift, learn: enLearn, stock: enStock },
+  vi: { common: viCommon, chorei: viChorei, patrol: viPatrol, genko: viGenko, shift: viShift, learn: viLearn, stock: viStock },
+  si: { common: siCommon, chorei: siChorei, patrol: siPatrol, genko: siGenko, shift: siShift, learn: siLearn, stock: siStock },
+  ne: { common: neCommon, chorei: neChorei, patrol: nePatrol, genko: neGenko, shift: neShift, learn: neLearn, stock: neStock },
 } as const
 
 // Load only the font a locale needs (slow mobile data).
@@ -75,7 +80,7 @@ void i18n
     nonExplicitSupportedLngs: true,
     fallbackLng: 'ja',
     defaultNS: 'common',
-    ns: ['common', 'chorei', 'patrol', 'manager', 'genko', 'shift', 'learn'],
+    ns: ['common', 'chorei', 'patrol', 'manager', 'genko', 'shift', 'learn', 'stock'],
     interpolation: { escapeValue: false },
     detection: { order: ['localStorage', 'navigator'], caches: ['localStorage'], lookupLocalStorage: 'kinryu.locale' },
   })

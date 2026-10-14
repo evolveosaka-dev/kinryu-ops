@@ -410,5 +410,24 @@
     "retranslate": "🌐 Translate again",
     "fixHint": "Choose a language to check or fix (saving changed Japanese translates it again automatically).",
     "saveLang": "Save this language"
+  },
+  "stockItems": {
+    "title": "Stock items",
+    "sub": "Items, units, standard amounts, number of fridges",
+    "name": "Item",
+    "unit": "Unit",
+    "standard": "Standard",
+    "packSize": "Per pack",
+    "packUnit": "Pack",
+    "order": "Order",
+    "active": "Use",
+    "add": "+ Add an item",
+    "fridges": "Number of fridges",
+    "save": "Save",
+    "saved": "Saved",
+    "nameRequired": "Enter the item name.",
+    "badNumber": "A number is not valid.",
+    "none": "none",
+    "note": "Renaming an original item does not change its name in other languages."
   }
 }

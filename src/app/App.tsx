@@ -42,6 +42,8 @@ const VideoListPage = page(() => import('../features/learn/LearnListPage'), 'Vid
 const SkillsPage = page(() => import('../features/learn/LearnListPage'), 'SkillsPage')
 const LearnItemPage = page(() => import('../features/learn/LearnItemPage'), 'LearnItemPage')
 const LearnEditPage = page(() => import('../features/learn/LearnEditPage'), 'LearnEditPage')
+const StockPage = page(() => import('../features/stock/StockPage'), 'StockPage')
+const StockItemsPage = page(() => import('../features/manager/StockItemsPage'), 'StockItemsPage')
 const ShiftRequestPage = page(() => import('../features/shift/ShiftRequestPage'), 'ShiftRequestPage')
 
 /** Decides which screen a visitor may see: login → approval → privacy notice → app. */
@@ -85,6 +87,7 @@ function Gate() {
         <Route path="history" element={<HistoryPage />} />
         <Route path="shift-request" element={<ShiftRequestPage />} />
         <Route path="schedule" element={<SchedulePage />} />
+        <Route path="stock" element={<StockPage />} />
         {isManager && <Route path="all-shifts" element={<AllShiftsPage />} />}
         <Route path="profile" element={<ProfilePage />} />
         <Route path="learn/manual" element={<ManualListPage />} />
@@ -103,6 +106,7 @@ function Gate() {
             <Route path="hours" element={<HoursPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="targets" element={<TargetsPage />} />
+            <Route path="stock-items" element={<StockItemsPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="roster" element={<RosterPage />} />
             <Route path="sync" element={<SyncPage />} />

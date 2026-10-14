@@ -9,6 +9,8 @@ export interface Store {
   name_en: string
   sort_order: number
   active: boolean
+  /** 在庫・仕入: number of fridges for 冷蔵庫温度 */
+  fridge_count?: number
 }
 
 export interface Profile {

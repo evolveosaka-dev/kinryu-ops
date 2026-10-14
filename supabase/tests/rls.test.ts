@@ -670,3 +670,65 @@ describe('学ぶ (learn_items)', () => {
     expect(b!.by).toBe(manager)
   })
 })
+
+describe('在庫・仕入 (stock)', () => {
+  const add = (kind: string, lines: string, place: string | null = null, note: string | null = null, date = TODAY, temps: string | null = null) =>
+    `select public.add_stock_event($1, ${date}, 'early', '${kind}', '${lines}'::jsonb, ${place ? `'${place}'` : 'null'}, ${note ? `'${note}'` : 'null'}, ${temps ?? 'null'}) as id`
+  let items: { id: string; code: string }[]
+  const line = (code: string, qty: number) => ({ item: items.find((i) => i.code === code)!.id, qty })
+  beforeAll(async () => {
+    items = await t.admin(`select id, code from public.stock_items where store_id = $1`, [sennichimae])
+  })
+
+  it('items per store: 米 only at 千日前店, standards differ, fridges 4 / 3', async () => {
+    const rows = await t.as<{ store: string; code: string; standard: string | null }>(
+      staffM,
+      `select s.code as store, i.code, i.standard::text as standard from public.stock_items i join public.stores s on s.id = i.store_id where i.code in ('rice', 'noodle')`,
+    )
+    expect(rows.filter((r) => r.code === 'rice').map((r) => r.store)).toEqual(['sennichimae'])
+    expect(rows.filter((r) => r.code === 'noodle').map((r) => Number(r.standard)).sort()).toEqual([500, 750])
+    expect(await t.as(staffM, `select code, fridge_count from public.stores order by code`)).toEqual([
+      { code: 'midosuji', fridge_count: 3 },
+      { code: 'sennichimae', fridge_count: 4 },
+    ])
+    await expect(t.as(staffM, `update public.stock_items set standard = 1 returning id`)).resolves.toHaveLength(0)
+  })
+
+  it('staff record 受入 / 払出 with a valid place; wrong input is refused', async () => {
+    const ok = JSON.stringify([line('noodle', 400), line('kimchi', 2.25)])
+    const [r] = await t.as<{ id: string }>(staffM, add('in', ok, 'honten', 'ド'), [sennichimae])
+    const [row] = await t.admin<{ lines: { qty: number }[]; author_name: string }>(`select lines, author_name from public.stock_events where id = $1`, [r!.id])
+    expect(row!.lines.map((l) => l.qty)).toEqual([400, 2.3])
+    expect(row!.author_name).toBe('スタッフM')
+    await expect(t.as(staffM, add('in', ok, 'sennichimae'), [sennichimae])).rejects.toThrow(/bad place/)
+    await expect(t.as(staffM, add('out', ok, 'other'), [sennichimae])).rejects.toThrow(/note required/)
+    await expect(t.as(staffM, add('in', JSON.stringify([line('noodle', -1)]), 'vendor'), [sennichimae])).rejects.toThrow(/bad lines/)
+    await expect(t.as(staffM, add('in', ok, 'vendor'), [midosuji])).rejects.toThrow(/bad lines/) // items of another store
+    await expect(t.as(staffM, add('in', ok, 'vendor', null, `${TODAY} - 3`), [sennichimae])).rejects.toThrow(/date out of range/)
+    await t.as(manager, add('in', ok, 'vendor', null, `${TODAY} - 3`), [sennichimae])
+    const waiting = await t.createUser('stock-wait@example.com')
+    await expect(t.as(waiting, add('in', ok, 'vendor'), [sennichimae])).rejects.toThrow(/active users only/)
+    await expect(t.as(staffM, `insert into public.stock_events (store_id, business_date, shift, kind, author_id, author_name) values ($1, ${TODAY}, 'early', 'in', auth.uid(), 'x')`, [sennichimae])).rejects.toThrow(/row-level security/)
+  })
+
+  it('終わりの在庫 needs every item; temperatures one per fridge', async () => {
+    await expect(t.as(staffM, add('close', JSON.stringify([line('noodle', 481)])), [sennichimae])).rejects.toThrow(/count every item/)
+    const all = JSON.stringify(items.map((i) => ({ item: i.id, qty: 1 })))
+    await t.as(staffM, add('close', all), [sennichimae])
+    await expect(t.as(staffM, add('temp_start', '[]', null, null, TODAY, `array[3, 3, 1]`), [sennichimae])).rejects.toThrow(/one temperature per fridge/)
+    await t.as(staffM, add('temp_start', '[]', null, null, TODAY, `array[3, 3, 1, -18]`), [sennichimae])
+    expect(await t.as(staffS, `select kind from public.stock_events where kind like 'temp%'`)).toEqual([{ kind: 'temp_start' }])
+  })
+
+  it('the writer or a manager cancels a row; others cannot', async () => {
+    const [r] = await t.as<{ id: string }>(staffM, add('out', JSON.stringify([line('moyashi', 4)]), 'ebisubashi', 'ジョ'), [sennichimae])
+    await expect(t.as(staffS, `select public.void_stock_event($1)`, [r!.id])).rejects.toThrow(/not allowed/)
+    await t.as(staffM, `select public.void_stock_event($1)`, [r!.id])
+    await expect(t.as(manager, `select public.void_stock_event($1)`, [r!.id])).rejects.toThrow(/not allowed/) // already cancelled
+    const [r2] = await t.as<{ id: string }>(staffS, add('out', JSON.stringify([line('moyashi', 1)]), 'midosuji'), [sennichimae])
+    await t.as(manager, `select public.void_stock_event($1)`, [r2!.id])
+    const rows = await t.admin<{ voided_by_name: string }>(`select voided_by_name from public.stock_events where id in ($1, $2) order by voided_at`, [r!.id, r2!.id])
+    expect(rows.map((x) => x.voided_by_name)).toEqual(['スタッフM', rows[1]!.voided_by_name])
+    expect(rows[1]!.voided_by_name).not.toBe('スタッフM')
+  })
+})
