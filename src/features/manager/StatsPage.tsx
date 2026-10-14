@@ -11,16 +11,19 @@ import {
   itemAverages,
   patrolSummary,
   score25,
+  scored,
   skippedSteps,
   staffRanking,
   weeklyTrend,
 } from '../../domain/stats'
 import { countFrom } from '../../domain/operation'
-import { formatShortDate } from '../../domain/time'
+import { addDays, formatShortDate } from '../../domain/time'
 import { cx } from '../../lib/cx'
 import { errorMessage, storeName } from '../../lib/format'
 import { useStores } from '../../lib/queries'
-import { Bar, PeriodBar, Stat } from './common'
+import { Bar, PeriodBar } from './common'
+import { DrillSheet, TapNum, TapStat } from './drill'
+import { avgHow, recordSlot, score25Line, useDrill } from './drillState'
 import { exportXlsx, jstDateTime, usePeople, useRecords, usePeriod } from './data'
 import { ManagerTabs } from './ManagerTabs'
 
@@ -34,6 +37,7 @@ export function StatsPage() {
   const { chorei, patrols, misses, isLoading, error } = useRecords(period.range)
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState<string | null>(null)
+  const drill = useDrill()
 
   if (isLoading || stores.isLoading) return <Spinner />
   if (error) return <ErrorBox message={errorMessage(error)} />
@@ -50,12 +54,19 @@ export function StatsPage() {
   const choreiRate = completion(slots)
   const table = byStoreShift(ps, storeIds)
   const items = itemAverages(ps)
-  const trend = weeklyTrend(ps, rs, from, to, storeIds, now)
+  const trend = weeklyTrend(ps, rs, from, to, storeIds, now, misses.data ?? [])
   const ranking = staffRanking(ps)
   const crowd = choreiPeople(rs, people.name)
   const skipped = skippedSteps(rs).filter((s) => s.count > 0)
   const storeJa = (id: string) => storeName(stores.data?.find((s) => s.id === id), 'ja')
   const shiftJa = (s: string) => t(`common:shift.${s}`, { lng: 'ja' })
+  // what the figures are counted from (tap a figure → its records)
+  const good = scored(ps)
+  const due = slots.filter((s) => s.state === 'done' || s.state === 'missing')
+  const validRs = rs.filter((r) => r.status === 'valid')
+  const rateHow = (c: { done: number; due: number; rate: number | null }) => t('drill.choreiRate', { done: c.done, due: c.due, rate: c.rate ?? '—' })
+  const openPatrols = (title: string, list: typeof good, how?: string) => drill.open(() => ({ kind: 'patrol', title, how: how ?? avgHow(t, list), patrols: list, extra: score25Line(t) }))
+  const openRecords = (title: string, list: typeof validRs, how?: string) => drill.open(() => ({ kind: 'chorei', title, how, slots: list.map(recordSlot) }))
 
   const doExport = async () => {
     setExporting(true)
@@ -142,22 +153,39 @@ export function StatsPage() {
       {exportError && <ErrorBox message={exportError} />}
 
       <div className="grid grid-cols-2 gap-2">
-        <Stat
+        <TapStat
           label={t('dashboard.avgScore')}
           value={summary.average ?? '—'}
           sub={t('dashboard.target', { n: PATROL_TARGET_25 })}
           tone={summary.average === null ? undefined : summary.average >= PATROL_TARGET_25 ? 'good' : 'warn'}
+          onOpen={() => openPatrols(t('dashboard.avgScore'), good)}
         />
-        <Stat label={t('dashboard.choreiRate')} value={choreiRate.rate === null ? '—' : `${choreiRate.rate}%`} sub={`${choreiRate.done}/${choreiRate.due}`} />
-        <Stat label={t('dashboard.patrols')} value={summary.count} sub={`${t('common:judgement.coaching')} ${summary.coaching}`} tone={summary.coaching ? 'bad' : undefined} />
-        <Stat label={t('dashboard.mask')} value={summary.mask} />
+        <TapStat
+          label={t('dashboard.choreiRate')}
+          value={choreiRate.rate === null ? '—' : `${choreiRate.rate}%`}
+          sub={`${choreiRate.done}/${choreiRate.due}`}
+          onOpen={() => drill.open(() => ({ kind: 'chorei', title: t('dashboard.choreiRate'), how: rateHow(choreiRate), slots: due }))}
+        />
+        <TapStat
+          label={t('dashboard.patrols')}
+          value={summary.count}
+          sub={`${t('common:judgement.coaching')} ${summary.coaching}`}
+          tone={summary.coaching ? 'bad' : undefined}
+          onOpen={() => openPatrols(t('dashboard.patrols'), good, t('drill.patrols'))}
+        />
+        <TapStat label={t('dashboard.mask')} value={summary.mask} onOpen={() => openPatrols(t('dashboard.mask'), good.filter((p) => p.mask_worn), t('drill.mask'))} />
       </div>
 
       <Card className="flex flex-col gap-2">
         <h2 className="font-bold">{t('stats.byStoreShift')}</h2>
         {table.map((r) => (
-          <div key={`${r.storeId}-${r.shift}`} className="grid grid-cols-[7rem_1fr_3.5rem] items-center gap-2 text-sm">
-            <span>
+          <button
+            type="button"
+            key={`${r.storeId}-${r.shift}`}
+            onClick={() => openPatrols(`${storeJa(r.storeId).replace('店', '')} ${t(`common:shift.${r.shift}`)}`, good.filter((p) => p.store_id === r.storeId && p.shift === r.shift))}
+            className="grid min-h-9 grid-cols-[7rem_1fr_3.5rem] items-center gap-2 rounded text-left text-sm active:bg-slate-50"
+          >
+            <span className="underline decoration-dotted underline-offset-2">
               {storeJa(r.storeId).replace('店', '')} {t(`common:shift.${r.shift}`)}
             </span>
             <Bar value={r.average} max={25} target={PATROL_TARGET_25} />
@@ -165,7 +193,7 @@ export function StatsPage() {
               {r.average ?? '—'}
               <span className="text-xs font-normal text-slate-600">（{r.count}）</span>
             </span>
-          </div>
+          </button>
         ))}
         <p className="text-xs text-slate-600">{t('stats.scaleNote')}</p>
       </Card>
@@ -173,11 +201,31 @@ export function StatsPage() {
       <Card className="flex flex-col gap-2">
         <h2 className="font-bold">{t('stats.byItem')}</h2>
         {items.map((i) => (
-          <div key={i.key} className="grid grid-cols-[7rem_1fr_3rem] items-center gap-2 text-sm">
-            <span>{t(`patrol:items.${ITEM_NAME[i.key]}.name`)}</span>
+          <button
+            type="button"
+            key={i.key}
+            onClick={() => {
+              const name = t(`patrol:items.${ITEM_NAME[i.key]}.name`)
+              const list = good.filter((p) => p[i.key] !== null)
+              const sum = list.reduce((a, p) => a + (p[i.key] ?? 0), 0)
+              drill.open(() => ({
+                kind: 'patrol',
+                title: name,
+                how: t('drill.itemAvg', { item: name, sum, n: list.length, avg: i.average ?? '—' }),
+                patrols: list,
+                extra: (p) => (
+                  <span className="text-xs font-bold text-sky-800">
+                    {name}: {p[i.key]}
+                  </span>
+                ),
+              }))
+            }}
+            className="grid min-h-9 grid-cols-[7rem_1fr_3rem] items-center gap-2 rounded text-left text-sm active:bg-slate-50"
+          >
+            <span className="underline decoration-dotted underline-offset-2">{t(`patrol:items.${ITEM_NAME[i.key]}.name`)}</span>
             <Bar value={i.average} max={5} target={4} />
             <span className="text-right font-bold">{i.average ?? '—'}</span>
-          </div>
+          </button>
         ))}
         {(() => {
           const weakest = items.filter((i) => i.average !== null).sort((a, b) => a.average! - b.average!)[0]
@@ -198,14 +246,28 @@ export function StatsPage() {
               </tr>
             </thead>
             <tbody>
-              {trend.map((w) => (
-                <tr key={w.week} className="border-t border-slate-100 text-center">
-                  <td className="py-1 text-left">{formatShortDate(w.week)}〜</td>
-                  <td>{w.count}</td>
-                  <td className={cx('font-bold', w.average !== null && (w.average >= PATROL_TARGET_25 ? 'text-green-700' : 'text-amber-700'))}>{w.average ?? '—'}</td>
-                  <td>{w.chorei.rate === null ? '—' : `${w.chorei.rate}%`}</td>
-                </tr>
-              ))}
+              {trend.map((w) => {
+                const end = addDays(w.week, 6)
+                const inWeek = (d: string) => d >= w.week && d <= end
+                const label = `${t('stats.week')} ${formatShortDate(w.week)}〜`
+                const weekPatrols = () => openPatrols(label, good.filter((p) => inWeek(p.business_date)))
+                return (
+                  <tr key={w.week} className="border-t border-slate-100 text-center">
+                    <td className="py-1 text-left">{formatShortDate(w.week)}〜</td>
+                    <td>
+                      <TapNum onOpen={weekPatrols}>{w.count}</TapNum>
+                    </td>
+                    <td className={cx('font-bold', w.average !== null && (w.average >= PATROL_TARGET_25 ? 'text-green-700' : 'text-amber-700'))}>
+                      <TapNum onOpen={weekPatrols}>{w.average ?? '—'}</TapNum>
+                    </td>
+                    <td>
+                      <TapNum onOpen={() => drill.open(() => ({ kind: 'chorei', title: label, how: rateHow(w.chorei), slots: due.filter((s) => inWeek(s.date)) }))}>
+                        {w.chorei.rate === null ? '—' : `${w.chorei.rate}%`}
+                      </TapNum>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </Card>
@@ -231,7 +293,11 @@ export function StatsPage() {
               {ranking.map((r) => (
                 <tr key={r.name} className="border-t border-slate-100 text-center">
                   <td className="py-1 text-left font-bold">{r.rank <= 3 ? ['🥇', '🥈', '🥉'][r.rank - 1] : r.rank}</td>
-                  <td className="text-left">{r.name}</td>
+                  <td className="text-left">
+                    <TapNum className="px-0 text-left" onOpen={() => openPatrols(r.name, good.filter((p) => p.staff_names.includes(r.name)))}>
+                      {r.name}
+                    </TapNum>
+                  </td>
                   <td className={cx('font-bold', r.average >= PATROL_TARGET_25 ? 'text-green-700' : 'text-amber-700')}>{r.average}</td>
                   <td>{r.count}</td>
                   <td className="text-xs">
@@ -248,16 +314,28 @@ export function StatsPage() {
         <h2 className="font-bold">{t('stats.leaders')}</h2>
         <ul className="flex flex-wrap gap-2 text-sm">
           {crowd.leaders.map((x) => (
-            <li key={x.name} className="rounded-full bg-slate-100 px-3 py-1">
-              {x.name} <b>{x.count}</b>
+            <li key={x.name}>
+              <button
+                type="button"
+                onClick={() => openRecords(`${t('stats.leaders')}：${x.name}`, validRs.filter((r) => people.name(r.leader_id) === x.name))}
+                className="min-h-9 rounded-full bg-slate-100 px-3 py-1 active:bg-slate-200"
+              >
+                {x.name} <b className="underline decoration-dotted underline-offset-2">{x.count}</b>
+              </button>
             </li>
           ))}
         </ul>
         <h3 className="text-sm font-bold">{t('stats.participants')}</h3>
         <ul className="flex flex-wrap gap-2 text-sm">
           {crowd.participants.map((x) => (
-            <li key={x.name} className="rounded-full bg-slate-50 px-3 py-1">
-              {x.name} <b>{x.count}</b>
+            <li key={x.name}>
+              <button
+                type="button"
+                onClick={() => openRecords(`${t('stats.participants')}：${x.name}`, validRs.filter((r) => r.participants_extra.includes(x.name)))}
+                className="min-h-9 rounded-full bg-slate-50 px-3 py-1 active:bg-slate-200"
+              >
+                {x.name} <b className="underline decoration-dotted underline-offset-2">{x.count}</b>
+              </button>
             </li>
           ))}
         </ul>
@@ -267,13 +345,18 @@ export function StatsPage() {
             <ul className="text-sm">
               {skipped.map((s) => (
                 <li key={s.step}>
-                  {t(`chorei:steps.${s.step}`)}: <b>{s.count}</b> {s.reasons.length > 0 && `（${s.reasons.join(' / ')}）`}
+                  {t(`chorei:steps.${s.step}`)}:{' '}
+                  <TapNum className="font-bold" onOpen={() => openRecords(`${t('stats.skipped')}：${t(`chorei:steps.${s.step}`)}`, validRs.filter((r) => r.steps_done[s.step] === false), t('drill.skipped'))}>
+                    {s.count}
+                  </TapNum>{' '}
+                  {s.reasons.length > 0 && `（${s.reasons.join(' / ')}）`}
                 </li>
               ))}
             </ul>
           </>
         )}
       </Card>
+      <DrillSheet drill={drill} slots={slots} patrols={ps} />
     </div>
   )
 }

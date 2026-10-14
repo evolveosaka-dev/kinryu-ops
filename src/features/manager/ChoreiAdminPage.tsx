@@ -8,7 +8,9 @@ import { currentLocale } from '../../i18n'
 import { cx } from '../../lib/cx'
 import { errorMessage, storeName } from '../../lib/format'
 import { useStores } from '../../lib/queries'
-import { PeriodBar, Stat } from './common'
+import { PeriodBar } from './common'
+import { DrillSheet, TapNum, TapStat } from './drill'
+import { useDrill, type ChoreiSlot } from './drillState'
 import { usePeople, useRecords, type AdminChorei, usePeriod } from './data'
 import { ChoreiMissSheet } from './ChoreiMissSheet'
 import { ChoreiDetail } from './details'
@@ -24,6 +26,7 @@ export function ChoreiAdminPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   // a slot without a record (✗ / reason / manager's ✓), by key
   const [missKey, setMissKey] = useState<string | null>(null)
+  const drill = useDrill()
 
   if (isLoading || stores.isLoading) return <Spinner />
   if (error) return <ErrorBox message={errorMessage(error)} />
@@ -40,6 +43,10 @@ export function ChoreiAdminPage() {
   const voided = (chorei.data ?? []).filter((r) => r.status === 'void')
   const short = (id: string) => storeName(stores.data?.find((s) => s.id === id), 'ja').replace('店', '')
   const wd = (d: string) => t(`weekday.${weekdayOf(d)}`)
+  const due = slots.filter((s) => s.state === 'done' || s.state === 'missing') as ChoreiSlot[]
+  const missing = due.filter((s) => s.state === 'missing')
+  const reasonOf = (s: ChoreiSlot) => (s.miss?.kind === 'missed' ? s.miss.reason : null)
+  const rateHow = (c: { done: number; due: number; rate: number | null }) => t('drill.choreiRate', { done: c.done, due: c.due, rate: c.rate ?? '—' })
 
   return (
     <div className="flex flex-col gap-3">
@@ -47,8 +54,18 @@ export function ChoreiAdminPage() {
       <PageTitle title={t('choreiList.title')} />
       <PeriodBar period={period} />
       <div className="grid grid-cols-2 gap-2">
-        <Stat label={t('dashboard.choreiRate')} value={total.rate === null ? '—' : `${total.rate}%`} sub={`${total.done}/${total.due}`} />
-        <Stat label={t('choreiList.missing')} value={total.due - total.done} tone={total.due - total.done > 0 ? 'warn' : 'good'} />
+        <TapStat
+          label={t('dashboard.choreiRate')}
+          value={total.rate === null ? '—' : `${total.rate}%`}
+          sub={`${total.done}/${total.due}`}
+          onOpen={() => drill.open(() => ({ kind: 'chorei', title: t('dashboard.choreiRate'), how: rateHow(completion(due)), slots: due }))}
+        />
+        <TapStat
+          label={t('choreiList.missing')}
+          value={total.due - total.done}
+          tone={total.due - total.done > 0 ? 'warn' : 'good'}
+          onOpen={() => drill.open(() => ({ kind: 'chorei', title: t('choreiList.missing'), how: t('drill.missing'), slots: missing }))}
+        />
       </div>
 
       <Card className="overflow-x-auto p-2">
@@ -119,9 +136,16 @@ export function ChoreiAdminPage() {
         <ul className="grid grid-cols-3 gap-2 text-center text-sm">
           {storeIds.flatMap((sid) =>
             SHIFTS.map((shift) => {
-              const c = completion(slots.filter((s) => s.storeId === sid && s.shift === shift))
+              const here = due.filter((s) => s.storeId === sid && s.shift === shift)
+              const c = completion(here)
+              const title = `${short(sid)} ${t(`common:shift.${shift}`)}`
               return (
-                <li key={`${sid}-${shift}`} className="rounded-lg bg-slate-50 p-2">
+                <li key={`${sid}-${shift}`}>
+                  <button
+                    type="button"
+                    onClick={() => drill.open(() => ({ kind: 'chorei', title, how: rateHow(completion(here)), slots: here }))}
+                    className="w-full rounded-lg bg-slate-50 p-2 active:bg-slate-100"
+                  >
                   <span className="block text-xs">
                     {short(sid)} {t(`common:shift.${shift}`)}
                   </span>
@@ -129,6 +153,7 @@ export function ChoreiAdminPage() {
                   {(missStats.byStoreShift.get(`${sid}|${shift}`) ?? 0) > 0 && (
                     <span className="block text-xs text-red-700">{t('misses.count', { n: missStats.byStoreShift.get(`${sid}|${shift}`) })}</span>
                   )}
+                  </button>
                 </li>
               )
             }),
@@ -144,9 +169,19 @@ export function ChoreiAdminPage() {
           <>
             <ul className="flex flex-col gap-1 text-sm">
               {missStats.byReason.map(({ reason, count }) => (
-                <li key={reason ?? 'none'} className={cx('flex items-center justify-between rounded-lg px-2 py-1', reason ? 'bg-amber-50' : 'bg-red-50 font-bold text-red-800')}>
-                  <span>{reason ? `${MISS_ICON[reason]} ${t(`chorei:miss.reason.${reason}`)}` : `✗ ${t('misses.unreported')}`}</span>
-                  <span>{t('misses.count', { n: count })}</span>
+                <li key={reason ?? 'none'}>
+                  <button
+                    type="button"
+                    disabled={count === 0}
+                    onClick={() => {
+                      const label = reason ? `${MISS_ICON[reason]} ${t(`chorei:miss.reason.${reason}`)}` : `✗ ${t('misses.unreported')}`
+                      drill.open(() => ({ kind: 'chorei', title: label, slots: missing.filter((s) => reasonOf(s) === reason) }))
+                    }}
+                    className={cx('flex min-h-9 w-full items-center justify-between rounded-lg px-2 py-1 text-left', reason ? 'bg-amber-50' : 'bg-red-50 font-bold text-red-800')}
+                  >
+                    <span>{reason ? `${MISS_ICON[reason]} ${t(`chorei:miss.reason.${reason}`)}` : `✗ ${t('misses.unreported')}`}</span>
+                    <span className={cx(count > 0 && 'underline decoration-dotted underline-offset-2')}>{t('misses.count', { n: count })} {count > 0 && '›'}</span>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -155,7 +190,16 @@ export function ChoreiAdminPage() {
               {[1, 2, 3, 4, 5, 6, 0].map((wd) => (
                 <li key={wd} className="rounded-lg bg-slate-50 p-1">
                   <span className="block">{t(`weekday.${wd}`)}</span>
-                  <b className={missStats.byWeekday[wd] ? 'text-red-700' : 'text-slate-400'}>{missStats.byWeekday[wd]}</b>
+                  {missStats.byWeekday[wd] ? (
+                    <TapNum
+                      className="font-bold text-red-700"
+                      onOpen={() => drill.open(() => ({ kind: 'chorei', title: `${t('misses.title')}（${t(`weekday.${wd}`)}）`, slots: missing.filter((s) => weekdayOf(s.date) === wd) }))}
+                    >
+                      {missStats.byWeekday[wd]}
+                    </TapNum>
+                  ) : (
+                    <b className="text-slate-400">0</b>
+                  )}
                 </li>
               ))}
             </ul>
@@ -187,6 +231,7 @@ export function ChoreiAdminPage() {
           onClose={() => setMissKey(null)}
         />
       )}
+      <DrillSheet drill={drill} slots={slots} />
       {selected && <ChoreiDetail record={selected} leaderName={people.name(selected.leader_id)} onClose={() => setSelected(null)} />}
     </div>
   )

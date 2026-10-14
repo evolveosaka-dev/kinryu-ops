@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { Card, ErrorBox, Spinner, PageTitle } from '../../components/ui'
 import { PATROL_TARGET_25 } from '../../domain/patrol'
-import { choreiSlots, completion, dateRange, patrolSummary } from '../../domain/stats'
+import { choreiSlots, completion, dateRange, patrolSummary, scored } from '../../domain/stats'
 import { addDays, formatShortDate, formatTokyoTime } from '../../domain/time'
 import { MISS_ICON, SHIFTS } from '../../domain/types'
 import { currentLocale } from '../../i18n'
@@ -12,7 +12,9 @@ import { cx } from '../../lib/cx'
 import { errorMessage, storeName } from '../../lib/format'
 import { unwrap, useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
-import { Stat, Dot } from './common'
+import { Dot } from './common'
+import { ChoreiSlotSheets, DrillSheet, TapStat } from './drill'
+import { avgHow, score25Line, useDrill } from './drillState'
 import { today, useIssueStatus, usePeople, useRecords, weekOf, type AdminPatrol } from './data'
 import { STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { PatrolDetail } from './details'
@@ -78,6 +80,9 @@ export function DashboardPage() {
   const records = useRecords({ from: addDays(day, -13), to: day })
   const open = useOpenItems()
   const [selected, setSelected] = useState<AdminPatrol | null>(null)
+  // today's slot opened from the grid (date|store|shift)
+  const [slotKey, setSlotKey] = useState<string | null>(null)
+  const drill = useDrill()
 
   if (records.isLoading || stores.isLoading) return <Spinner />
   if (records.error) return <ErrorBox message={errorMessage(records.error)} />
@@ -92,7 +97,10 @@ export function DashboardPage() {
   const inRange = (r: { from: string; to: string }) => patrols.filter((p) => p.business_date >= r.from && p.business_date <= r.to)
   const cur = patrolSummary(inRange(thisWeek))
   const prev = patrolSummary(inRange(lastWeek))
-  const weekChorei = completion(choreiSlots(chorei, dateRange(thisWeek.from, day), storeIds, now, misses))
+  const weekSlots = choreiSlots(chorei, dateRange(thisWeek.from, day), storeIds, now, misses).filter((s) => s.state === 'done' || s.state === 'missing')
+  const weekChorei = completion(weekSlots)
+  const weekScored = scored(inRange(thisWeek))
+  const openSlot = todaySlots.find((s) => `${s.date}|${s.storeId}|${s.shift}` === slotKey) ?? null
   const coaching = (open.data ?? []).filter((p) => p.judgement === 'coaching' && !p.follow_up_done_at && p.status === 'valid')
   const timeReview = (open.data ?? []).filter((p) => p.needs_time_review)
   const pending = (people.data ?? []).filter((p) => p.status === 'pending').length
@@ -123,9 +131,8 @@ export function DashboardPage() {
                 <th className="py-2 text-left">{storeLabel(sid)}</th>
                 {SHIFTS.map((shift) => {
                   const slot = todaySlots.find((x) => x.storeId === sid && x.shift === shift)!
-                  return (
-                    <td key={shift} className={cx('py-2 font-bold', slot.state === 'done' ? 'text-green-700' : slot.state === 'missing' ? (slot.miss ? 'text-amber-800' : 'text-red-700') : 'text-slate-500')}>
-                      {slot.state === 'done'
+                  const label =
+                    slot.state === 'done'
                         ? slot.record
                           ? `✓ ${formatTokyoTime(new Date(slot.record.submitted_at))}`
                           : `✓ ${t('misses.confirmedShort')}`
@@ -133,7 +140,17 @@ export function DashboardPage() {
                           ? slot.miss?.reason
                             ? `${MISS_ICON[slot.miss.reason]} ${t(`chorei:miss.reason.${slot.miss.reason}`)}`
                             : `✗ ${t('dashboard.missing')}`
-                          : '―'}
+                          : '―'
+                  const tone = slot.state === 'done' ? 'text-green-700' : slot.state === 'missing' ? (slot.miss ? 'text-amber-800' : 'text-red-700') : 'text-slate-500'
+                  return (
+                    <td key={shift} className={cx('py-1 font-bold', tone)}>
+                      {slot.state === 'done' || slot.state === 'missing' ? (
+                        <button type="button" onClick={() => setSlotKey(`${slot.date}|${slot.storeId}|${slot.shift}`)} className="min-h-10 w-full rounded underline decoration-dotted underline-offset-2 active:bg-slate-50">
+                          {label}
+                        </button>
+                      ) : (
+                        label
+                      )}
                     </td>
                   )
                 })}
@@ -164,12 +181,16 @@ export function DashboardPage() {
             </Link>
           </li>
           <li>
-            <Link to="/manager/chorei" className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-amber-50 px-3 font-semibold text-amber-900">
+            <button
+              type="button"
+              onClick={() => drill.open(() => ({ kind: 'chorei', title: t('dashboard.missingChorei'), how: t('drill.missingRecent'), slots: missingSlots }))}
+              className="flex min-h-11 w-full items-center justify-between gap-2 rounded-xl bg-amber-50 px-3 text-left font-semibold text-amber-900"
+            >
               <span className="flex items-center gap-2">
                 <Dot tone="amber" /> {t('dashboard.missingChorei')}
               </span>
-              <span>{missingSlots.length}</span>
-            </Link>
+              <span>{missingSlots.length} ›</span>
+            </button>
           </li>
           <li>
             <Link to="/manager/users" className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-blue-50 px-3 font-semibold text-blue-900">
@@ -192,17 +213,34 @@ export function DashboardPage() {
 
       <h2 className="font-bold">{t('dashboard.thisWeek', { from: formatShortDate(thisWeek.from), to: formatShortDate(thisWeek.to) })}</h2>
       <div className="grid grid-cols-2 gap-2">
-        <Stat
+        <TapStat
           label={t('dashboard.avgScore')}
           value={cur.average ?? '—'}
           sub={`${t('dashboard.target', { n: PATROL_TARGET_25 })}${delta !== null ? ` / ${t('dashboard.vsLastWeek')} ${delta >= 0 ? '▲+' : '▼'}${delta}` : ''}`}
           tone={cur.average === null ? undefined : cur.average >= PATROL_TARGET_25 ? 'good' : 'warn'}
+          onOpen={() => drill.open(() => ({ kind: 'patrol', title: t('dashboard.avgScore'), how: avgHow(t, weekScored), patrols: weekScored, extra: score25Line(t) }))}
         />
-        <Stat label={t('dashboard.choreiRate')} value={weekChorei.rate === null ? '—' : `${weekChorei.rate}%`} sub={`${weekChorei.done}/${weekChorei.due}`} />
-        <Stat label={t('dashboard.patrols')} value={cur.count} sub={`${t('common:judgement.good')} ${cur.good} / ${t('common:judgement.improve')} ${cur.improve} / ${t('common:judgement.coaching')} ${cur.coaching}`} />
-        <Stat label={t('dashboard.mask')} value={cur.mask} />
+        <TapStat
+          label={t('dashboard.choreiRate')}
+          value={weekChorei.rate === null ? '—' : `${weekChorei.rate}%`}
+          sub={`${weekChorei.done}/${weekChorei.due}`}
+          onOpen={() => drill.open(() => ({ kind: 'chorei', title: t('dashboard.choreiRate'), how: t('drill.choreiRate', { done: weekChorei.done, due: weekChorei.due, rate: weekChorei.rate ?? '—' }), slots: weekSlots }))}
+        />
+        <TapStat
+          label={t('dashboard.patrols')}
+          value={cur.count}
+          sub={`${t('common:judgement.good')} ${cur.good} / ${t('common:judgement.improve')} ${cur.improve} / ${t('common:judgement.coaching')} ${cur.coaching}`}
+          onOpen={() => drill.open(() => ({ kind: 'patrol', title: t('dashboard.patrols'), how: t('drill.patrols'), patrols: weekScored }))}
+        />
+        <TapStat
+          label={t('dashboard.mask')}
+          value={cur.mask}
+          onOpen={() => drill.open(() => ({ kind: 'patrol', title: t('dashboard.mask'), how: t('drill.mask'), patrols: weekScored.filter((p) => p.mask_worn) }))}
+        />
       </div>
 
+      <DrillSheet drill={drill} slots={choreiSlots(chorei, dateRange(addDays(day, -13), day), storeIds, now, misses)} patrols={patrols} />
+      {openSlot && <ChoreiSlotSheets key={slotKey} slot={openSlot} onClose={() => setSlotKey(null)} />}
       {selected && <PatrolDetail patrol={selected} patrollerName={people.name(selected.patroller_id)} onClose={() => setSelected(null)} />}
     </div>
   )

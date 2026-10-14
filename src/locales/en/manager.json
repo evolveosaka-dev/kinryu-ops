@@ -647,5 +647,23 @@
       "remarks": "Remarks",
       "customer_reason": "Customer satisfaction (reason)"
     }
+  },
+  "drill": {
+    "count": "{{n}} records",
+    "tapRow": "tap for details / corrections",
+    "leader": "Leader",
+    "participants": "Participants",
+    "choreiRate": "Completion = done {{done}} ÷ due {{due}} = {{rate}}%\nDue = shifts 30 min past the meeting time (from 10/12). Done = recorded or ✓ confirmed by a manager.",
+    "missing": "Shifts without a record 30 min after the meeting (including those with a reported reason). Tap to set a reason, ✓, or record afterwards.",
+    "missingRecent": "Last 7 days: shifts with neither a record nor a reported reason. Tap to set a reason or record afterwards.",
+    "avgScore": "Average = sum on 25 {{sum}} ÷ {{n}} patrols = {{avg}}\nPatrols without ⑤ (out of 20) are converted ×25/20. Drafts and voided ones are not included.",
+    "patrols": "Sent (valid) patrols. Drafts and voided ones are not included.",
+    "mask": "Patrols with 「マスク利用」 checked under ① Smile.",
+    "itemAvg": "{{item}} average = sum {{sum}} ÷ {{n}} = {{avg}}\nPatrols without this score (⑤ not checked) are not included.",
+    "patrolRate": "Duty completion = patrolled {{done}} ÷ with duty {{due}} = {{rate}}%\nWith duty = shifts with a patrol duty in the duty table (counted from 1 h after the shift end).",
+    "patrolMissed": "Shifts with a patrol duty but no valid patrol by 1 h after the shift end.",
+    "patrolExtra": "Patrols done in shifts without a patrol duty.",
+    "skipped": "朝礼 sent with this step unchecked (reason in the detail).",
+    "hours": "{{n}} valid patrols, {{min}} min in total (actual start → end)."
   }
 }

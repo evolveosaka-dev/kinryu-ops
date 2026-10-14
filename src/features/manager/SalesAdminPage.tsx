@@ -66,7 +66,11 @@ export function SalesAdminPage() {
       <Card className="flex flex-col gap-2">
         <p className="text-sm">
           {t('sales.count', { n: inScope.length })}
-          {flaggedCount > 0 && <b className="ml-2 text-red-700">⚠ {t('sales.flagged', { n: flaggedCount })}</b>}
+          {flaggedCount > 0 && (
+            <button type="button" onClick={() => setOnlyFlagged(!onlyFlagged)} className="ml-2 min-h-9 font-bold text-red-700 underline decoration-dotted underline-offset-2">
+              ⚠ {t('sales.flagged', { n: flaggedCount })} ›
+            </button>
+          )}
         </p>
         <Checkbox checked={onlyFlagged} onChange={setOnlyFlagged}>
           {t('sales.onlyFlagged')}

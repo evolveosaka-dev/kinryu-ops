@@ -13,7 +13,7 @@ import { cx } from '../../lib/cx'
 import { storeName } from '../../lib/format'
 import { unwrap, useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
-import { Stat } from './common'
+import { TapStat } from './drill'
 import { JUDGE_STYLE, today, usePeople, useRecords, type AdminPatrol } from './data'
 
 const ITEM_NAME: Record<(typeof ITEM_KEYS)[number], string> = {
@@ -77,6 +77,53 @@ function SlotSheet({ slot, title, onOpen, onClose }: { slot: PatrolSlot<AdminPat
   )
 }
 
+type ListKind = 'rate' | 'missed' | 'extra'
+
+/** The slots behind 担当の実施率 / 未実施 / 担当外の巡回; a slot with patrols opens them. */
+function SlotListSheet({ title, how, slots, label, onOpen, onClose }: { title: string; how: string; slots: PatrolSlot<AdminPatrol>[]; label: (s: PatrolSlot<AdminPatrol>) => string; onOpen: (s: PatrolSlot<AdminPatrol>) => void; onClose: () => void }) {
+  const { t } = useTranslation('manager')
+  const people = usePeople()
+  return (
+    <Sheet title={title} onClose={onClose}>
+      <p className="rounded-xl bg-sky-50 p-3 text-sm font-bold whitespace-pre-line text-sky-900">{how}</p>
+      <p className="text-sm text-slate-600">
+        {t('drill.count', { n: slots.length })} ・ {t('drill.tapRow')}
+      </p>
+      <ul className="flex flex-col gap-1.5">
+        {slots.map((x) => {
+          const avg = slotAverage(x.patrols)
+          return (
+            <li key={`${x.date}|${x.storeId}|${x.shift}`}>
+              <button
+                type="button"
+                disabled={x.patrols.length === 0}
+                onClick={() => onOpen(x)}
+                className="flex w-full flex-col gap-0.5 rounded-xl border border-line bg-white p-2.5 text-left text-sm active:bg-slate-50 disabled:active:bg-white"
+              >
+                <span className="flex items-center justify-between gap-2">
+                  <b>{label(x)}</b>
+                  {x.state === 'done' ? (
+                    <span className={cx('shrink-0 rounded-full px-2 text-xs font-bold', avg === null ? 'bg-green-100 text-green-900' : JUDGE_STYLE[judgementOf(Math.round(avg), 25)])}>
+                      {avg ?? '✓'}
+                      {x.patrols.length > 1 && ` ×${x.patrols.length}`}
+                    </span>
+                  ) : (
+                    <span className="shrink-0 font-bold text-red-700">✗ {t('patrolList.missed')}</span>
+                  )}
+                </span>
+                <span className="text-xs text-slate-600">
+                  {t('patrolList.duty')}: {x.dutyNames.length ? x.dutyNames.join('、') : '―'}
+                  {x.patrols.length > 0 && ` ・ ${t('detail.patroller')}: ${[...new Set(x.patrols.map((p) => people.name(p.patroller_id)))].join('、')}`}
+                </span>
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </Sheet>
+  )
+}
+
 function useDuties(from: string, to: string) {
   return useQuery({
     queryKey: ['admin', 'patrol_duties', from, to],
@@ -96,6 +143,7 @@ export function PatrolWeekGrid({ onOpen }: { onOpen: (p: AdminPatrol) => void })
   const { patrols, isLoading } = useRecords({ from, to })
   const duties = useDuties(from, to)
   const [open, setOpen] = useState<string | null>(null)
+  const [list, setList] = useState<ListKind | null>(null)
 
   if (isLoading || duties.isLoading || stores.isLoading) return <Spinner />
   const storeIds = (stores.data ?? []).map((s) => s.id)
@@ -105,6 +153,17 @@ export function PatrolWeekGrid({ onOpen }: { onOpen: (p: AdminPatrol) => void })
   const short = (id: string) => storeName(stores.data?.find((s) => s.id === id), 'ja').replace('店', '')
   const keyOf = (x: { date: string; storeId: string; shift: string }) => `${x.date}|${x.storeId}|${x.shift}`
   const openSlot = slots.find((x) => keyOf(x) === open) ?? null
+  const slotLabel = (x: { date: string; storeId: string; shift: string }) =>
+    `${formatShortDate(x.date)}(${t(`weekday.${weekdayOf(x.date)}`)}) ${short(x.storeId)} ${t(`common:shift.${x.shift}`)}`
+  const listed: Record<ListKind, { title: string; how: string; slots: PatrolSlot<AdminPatrol>[] }> = {
+    rate: {
+      title: t('patrolList.rate'),
+      how: t('drill.patrolRate', { done: total.done, due: total.due, rate: total.rate ?? '—' }),
+      slots: slots.filter((x) => x.dutyNames.length > 0 && (x.state === 'done' || x.state === 'missed')),
+    },
+    missed: { title: t('patrolList.missed'), how: t('drill.patrolMissed'), slots: slots.filter((x) => x.state === 'missed') },
+    extra: { title: t('patrolList.extra'), how: t('drill.patrolExtra'), slots: slots.filter((x) => x.state === 'done' && x.dutyNames.length === 0) },
+  }
   const avgCell = (slot: PatrolSlot<AdminPatrol>, title: string | undefined) => {
     const avg = slotAverage(slot.patrols)
     return (
@@ -127,9 +186,9 @@ export function PatrolWeekGrid({ onOpen }: { onOpen: (p: AdminPatrol) => void })
     <Card className="flex flex-col gap-2 p-2">
       <h2 className="px-1 font-bold">{t('patrolList.weekTitle')}</h2>
       <div className="grid grid-cols-3 gap-2">
-        <Stat label={t('patrolList.rate')} value={total.rate === null ? '—' : `${total.rate}%`} sub={`${total.done}/${total.due}`} />
-        <Stat label={t('patrolList.missed')} value={total.missed} tone={total.missed > 0 ? 'warn' : 'good'} />
-        <Stat label={t('patrolList.extra')} value={total.extra} />
+        <TapStat label={t('patrolList.rate')} value={total.rate === null ? '—' : `${total.rate}%`} sub={`${total.done}/${total.due}`} onOpen={() => setList('rate')} />
+        <TapStat label={t('patrolList.missed')} value={total.missed} tone={total.missed > 0 ? 'warn' : 'good'} onOpen={() => setList('missed')} />
+        <TapStat label={t('patrolList.extra')} value={total.extra} onOpen={() => setList('extra')} />
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[22rem] text-center text-xs">
@@ -192,10 +251,11 @@ export function PatrolWeekGrid({ onOpen }: { onOpen: (p: AdminPatrol) => void })
         </table>
       </div>
       <p className="px-1 text-left text-xs text-slate-600">{t('patrolList.legend')}</p>
+      {list && <SlotListSheet {...listed[list]} label={slotLabel} onOpen={(x) => setOpen(keyOf(x))} onClose={() => setList(null)} />}
       {openSlot && (
         <SlotSheet
           slot={openSlot}
-          title={`${formatShortDate(openSlot.date)}(${t(`weekday.${weekdayOf(openSlot.date)}`)}) ${short(openSlot.storeId)} ${t(`common:shift.${openSlot.shift}`)}`}
+          title={slotLabel(openSlot)}
           onClose={() => setOpen(null)}
           onOpen={(p) => {
             setOpen(null)

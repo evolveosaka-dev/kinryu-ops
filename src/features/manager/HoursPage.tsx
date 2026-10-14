@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { useState } from 'react'
 import { Button, Card } from '../../components/ui'
 import { formatHoursMinutes, PATROL_WARN_MINUTES } from '../../domain/patrol'
 import { patrolHours } from '../../domain/stats'
@@ -7,6 +8,7 @@ import { PATROL_TYPES } from '../../domain/types'
 import { storeName } from '../../lib/format'
 import { useStores } from '../../lib/queries'
 import { Dot } from './common'
+import { PatrolList } from './drill'
 import { exportCsv, exportXlsx, jstDateTime, usePeople, type AdminPatrol } from './data'
 
 /**
@@ -17,6 +19,8 @@ export function HoursSummary({ patrols: ps, label, onOpen }: { patrols: AdminPat
   const { t } = useTranslation('manager')
   const stores = useStores()
   const people = usePeople()
+  // patroller whose patrols are listed (tap a row)
+  const [who, setWho] = useState<string | null>(null)
 
   const rows = patrolHours(ps).sort((a, b) => people.name(a.patrollerId).localeCompare(people.name(b.patrollerId), 'ja'))
   const flagged = ps.filter((p) => p.status !== 'void' && (p.needs_time_review || (p.duration_min ?? 0) > PATROL_WARN_MINUTES))
@@ -74,7 +78,11 @@ export function HoursSummary({ patrols: ps, label, onOpen }: { patrols: AdminPat
           <tbody>
             {rows.map((r) => (
               <tr key={r.patrollerId} className="border-t border-slate-100 text-center">
-                <td className="py-2 text-left font-bold">{people.name(r.patrollerId)}</td>
+                <td className="py-1 text-left font-bold">
+                  <button type="button" onClick={() => setWho(r.patrollerId)} className="min-h-9 text-left underline decoration-dotted underline-offset-2">
+                    {people.name(r.patrollerId)} ›
+                  </button>
+                </td>
                 <td>{r.count}</td>
                 <td>{r.minutes}</td>
                 <td className="font-bold">{formatHoursMinutes(r.minutes)}</td>
@@ -98,6 +106,17 @@ export function HoursSummary({ patrols: ps, label, onOpen }: { patrols: AdminPat
             </button>
           ))}
         </div>
+      )}
+      {who && (
+        <PatrolList
+          title={`⏱️ ${people.name(who)}`}
+          how={(() => {
+            const xs = ps.filter((p) => p.status === 'valid' && p.duration_min !== null && p.patroller_id === who)
+            return t('drill.hours', { n: xs.length, min: xs.reduce((a, p) => a + (p.duration_min ?? 0), 0) })
+          })()}
+          patrols={ps.filter((p) => p.status === 'valid' && p.duration_min !== null && p.patroller_id === who)}
+          onClose={() => setWho(null)}
+        />
       )}
     </Card>
   )

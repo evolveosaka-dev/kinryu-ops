@@ -64,7 +64,7 @@ const avg = (xs: number[]) => (xs.length ? round1(xs.reduce((s, x) => s + x, 0) 
 export const slotKey = (date: string, storeId: string, shift: Shift) => `${date}|${storeId}|${shift}`
 
 /** Valid, finished patrols only. */
-export const scored = (ps: StatPatrol[]) => ps.filter((p) => p.status === 'valid' && p.total !== null && p.max_total)
+export const scored = <P extends StatPatrol>(ps: P[]) => ps.filter((p) => p.status === 'valid' && p.total !== null && p.max_total)
 export const score25 = (p: StatPatrol) => normalizedTo25(p.total!, p.max_total!)
 
 /** Dates from..to inclusive. */
@@ -180,13 +180,13 @@ export function itemAverages(ps: StatPatrol[]) {
 }
 
 /** Week-by-week trend (weeks start on Monday). */
-export function weeklyTrend(ps: StatPatrol[], records: StatChorei[], from: string, to: string, storeIds: string[], now: Date) {
+export function weeklyTrend(ps: StatPatrol[], records: StatChorei[], from: string, to: string, storeIds: string[], now: Date, misses: StatMiss[] = []) {
   const weeks: string[] = []
   for (let w = weekStart(from); w <= to; w = addDays(w, 7)) weeks.push(w)
   return weeks.map((w) => {
     const end = addDays(w, 6)
     const inWeek = (d: string) => d >= w && d <= end && d >= from && d <= to
-    const slots = choreiSlots(records, dateRange(w < from ? from : w, end > to ? to : end), storeIds, now)
+    const slots = choreiSlots(records, dateRange(w < from ? from : w, end > to ? to : end), storeIds, now, misses)
     return { week: w, ...patrolSummary(ps.filter((p) => inWeek(p.business_date))), chorei: completion(slots) }
   })
 }
