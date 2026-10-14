@@ -720,6 +720,25 @@ describe('在庫・仕入 (stock)', () => {
     expect(await t.as(staffS, `select kind from public.stock_events where kind like 'temp%'`)).toEqual([{ kind: 'temp_start' }])
   })
 
+  it('繰越 recount and 廃棄・破損 need a reason (その他 + memo); moved amounts must be > 0; both go to the 7:30 summary', async () => {
+    const one = JSON.stringify([line('kimchi', 1)])
+    const withReason = (kind: string, reason: string | null, note: string | null = null) =>
+      `select public.add_stock_event($1, ${TODAY}, 'middle', '${kind}', '${one}'::jsonb, null, ${note ? `'${note}'` : 'null'}, null, ${reason ? `'${reason}'` : 'null'}) as id`
+    await expect(t.as(staffM, withReason('loss', null), [sennichimae])).rejects.toThrow(/bad reason/)
+    await expect(t.as(staffM, withReason('loss', 'miscount'), [sennichimae])).rejects.toThrow(/bad reason/)
+    await expect(t.as(staffM, withReason('open', 'other'), [sennichimae])).rejects.toThrow(/note required/)
+    await expect(t.as(staffM, add('in', JSON.stringify([line('kimchi', 0)]), 'vendor'), [sennichimae])).rejects.toThrow(/bad lines/)
+    const [loss] = await t.as<{ id: string }>(staffM, withReason('loss', 'dropped'), [sennichimae])
+    const [open] = await t.as<{ id: string }>(staffM, withReason('open', 'other', '箱がぬれていた'), [sennichimae])
+    const [inRow] = await t.as<{ id: string }>(staffM, add('in', one, 'vendor'), [sennichimae])
+    const [r] = await t.admin<{ reason: string }>(`select reason from public.stock_events where id = $1`, [inRow!.id])
+    expect(r!.reason).toBeNull()
+    const ev = await t.admin<{ ref_id: string }>(`select ref_id from public.notify_events where kind = 'stock' order by id`)
+    expect(ev.map((e) => e.ref_id)).toEqual([loss!.id, open!.id])
+    // a photo can be attached to the 廃棄・破損 row
+    await t.admin(`insert into public.attachments (owner_id, stock_event_id, kind, file_name, mime_type, size_bytes) values ($1, $2, 'image', 'a.jpg', 'image/jpeg', 1)`, [staffM, loss!.id])
+  })
+
   it('the writer or a manager cancels a row; others cannot', async () => {
     const [r] = await t.as<{ id: string }>(staffM, add('out', JSON.stringify([line('moyashi', 4)]), 'ebisubashi', 'ジョ'), [sennichimae])
     await expect(t.as(staffS, `select public.void_stock_event($1)`, [r!.id])).rejects.toThrow(/not allowed/)

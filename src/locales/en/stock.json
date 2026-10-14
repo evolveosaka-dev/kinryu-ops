@@ -25,7 +25,8 @@
     "out": "Sent to another store",
     "close": "End count",
     "temp_start": "Fridge temperature (start)",
-    "temp_end": "Fridge temperature (end)"
+    "temp_end": "Fridge temperature (end)",
+    "loss": "Waste / damage"
   },
   "table": {
     "item": "Item",
@@ -40,13 +41,17 @@
     "previous": "Previous shift",
     "diff": "Diff.",
     "afterIn": "After",
-    "afterOut": "After"
+    "afterOut": "After",
+    "loss": "Waste",
+    "afterLoss": "After"
   },
   "action": {
     "in": "📥 Record a delivery (received)",
     "out": "📤 Record items sent to another store",
     "close": "🔢 Enter the end count",
-    "open": "Recount the carry-over"
+    "open": "Recount the carry-over",
+    "loss": "🗑️ Record waste / damage",
+    "openMismatch": "Carry-over does not match"
   },
   "form": {
     "in": "Received",
@@ -54,7 +59,7 @@
     "out": "Sent to another store",
     "outHelp": "Enter only the items you gave to another store.",
     "open": "Recount the carry-over",
-    "openHelp": "Count what is there now and fill in every item (0 if none).",
+    "openHelp": "Enter the real count only for the items that do not match. Other items keep the previous shift’s count.",
     "close": "End count",
     "closeHelp": "At the end of the shift, count what is left and fill in every item (0 if none). Usage is calculated automatically.",
     "from": "From",
@@ -81,7 +86,19 @@
     "usedFormula": "Used = carried + in − out − left",
     "negative": "Some items have negative usage. Please count again.",
     "unknownOpening": "Usage cannot be calculated for items without a carry-over.",
-    "dateRange": "You can record only yesterday’s, today’s or tomorrow’s shifts."
+    "dateRange": "You can record only yesterday’s, today’s or tomorrow’s shifts.",
+    "loss": "Waste / damage",
+    "lossHelp": "Enter only the items thrown away or damaged, and choose the reason. Add a photo if you have one.",
+    "reason": "Reason",
+    "required": "required",
+    "reasonNote": "Details (optional)",
+    "reasonNoteRequiredLabel": "Details (required for “Other”)",
+    "reasonNotePlaceholder": "e.g. the box was wet",
+    "reasonRequired": "Please choose a reason.",
+    "reasonNoteRequired": "For “Other”, please write the details.",
+    "photoHint": "Photos / videos are optional (never film customers’ faces).",
+    "photoCount": "Photos / videos: {{n}} (uploaded after saving)",
+    "carriedIs": "Carried: {{n}}"
   },
   "temp": {
     "title": "Fridge temperature",
@@ -141,5 +158,17 @@
     "gloves": "手袋（Gloves）",
     "wrap": "ラップ（Plastic wrap）",
     "tissue": "ティッシュ（Tissues）"
+  },
+  "photoUploading": "uploading",
+  "reason": {
+    "miscount": "Previous shift miscounted / wrote it wrong",
+    "unrecorded": "A transfer or delivery was not recorded",
+    "unknown": "Unknown",
+    "no_record": "No record from the previous shift",
+    "dropped": "Dropped / spilled",
+    "spoiled": "Spoiled / past the date",
+    "quality": "Foreign object / quality problem",
+    "mistake": "Made by mistake",
+    "other": "Other"
   }
 }

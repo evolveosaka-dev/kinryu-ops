@@ -7,8 +7,13 @@ export type StockUnit = (typeof STOCK_UNITS)[number]
 export const PACK_UNITS = ['tier', 'box', 'can'] as const
 export type PackUnit = (typeof PACK_UNITS)[number]
 
-export type StockKind = 'open' | 'in' | 'out' | 'close' | 'temp_start' | 'temp_end'
-export type LineKind = 'open' | 'in' | 'out' | 'close'
+export type StockKind = 'open' | 'in' | 'out' | 'loss' | 'close' | 'temp_start' | 'temp_end'
+export type LineKind = 'open' | 'in' | 'out' | 'loss' | 'close'
+
+/** Reason (required) of a 繰越 recount / a 廃棄・破損. Keep in sync with the SQL check and send-notifications. */
+export const OPEN_REASONS = ['miscount', 'unrecorded', 'unknown', 'no_record', 'other'] as const
+export const LOSS_REASONS = ['dropped', 'spoiled', 'quality', 'mistake', 'other'] as const
+export type StockReason = (typeof OPEN_REASONS)[number] | (typeof LOSS_REASONS)[number]
 
 /** Where 受入 comes from / where 払出 goes (own store is hidden). */
 export const IN_PLACES = ['honten', 'sennichimae', 'midosuji', 'ebisubashi', 'warehouse', 'vendor'] as const
@@ -42,6 +47,8 @@ export interface StockEvent {
   note: string | null
   lines: StockLine[]
   temps: number[] | null
+  reason: StockReason | null
+  note_original: string | null
   author_id: string
   author_name: string
   created_at: string
@@ -58,7 +65,9 @@ export interface ItemState {
   recounted: boolean
   received: number
   sent: number
-  /** opening + 受入 − 払出 (null while the opening is unknown) */
+  /** 廃棄・破損 */
+  lost: number
+  /** opening + 受入 − 払出 − 廃棄 (null while the opening is unknown) */
   now: number | null
   /** 終わりの在庫 counted in this shift */
   left: number | null
@@ -84,15 +93,15 @@ export function latestCounts(events: StockEvent[], kind: 'open' | 'close'): Map<
   return out
 }
 
-function sums(events: StockEvent[], kind: 'in' | 'out'): Map<string, number> {
+function sums(events: StockEvent[], kind: 'in' | 'out' | 'loss'): Map<string, number> {
   const out = new Map<string, number>()
   for (const e of valid(events)) if (e.kind === kind) for (const l of e.lines) out.set(l.item, (out.get(l.item) ?? 0) + l.qty)
   return out
 }
 
-/** Used = opening + 受入 − 払出 − 残り (null when the opening or the count is unknown). */
-export function usedOf(opening: number | null, received: number, sent: number, left: number | null): number | null {
-  return opening === null || left === null ? null : round1(opening + received - sent - left)
+/** Used = opening + 受入 − 払出 − 廃棄 − 残り (null when the opening or the count is unknown). */
+export function usedOf(s: Pick<ItemState, 'opening' | 'received' | 'sent' | 'lost'>, left: number | null): number | null {
+  return s.opening === null || left === null ? null : round1(s.opening + s.received - s.sent - s.lost - left)
 }
 
 export function stockState(items: StockItem[], current: StockEvent[], previous: StockEvent[]): ItemState[] {
@@ -100,12 +109,14 @@ export function stockState(items: StockItem[], current: StockEvent[], previous: 
   const recount = latestCounts(current, 'open')
   const received = sums(current, 'in')
   const sent = sums(current, 'out')
+  const lost = sums(current, 'loss')
   const left = latestCounts(current, 'close')
   return items.map((item) => {
     const opening = recount.get(item.id) ?? carried.get(item.id) ?? null
     const r = round1(received.get(item.id) ?? 0)
     const s = round1(sent.get(item.id) ?? 0)
-    const now = opening === null ? null : round1(opening + r - s)
+    const x = round1(lost.get(item.id) ?? 0)
+    const now = opening === null ? null : round1(opening + r - s - x)
     const l = left.get(item.id) ?? null
     const gap = item.standard !== null && now !== null ? round1(item.standard - now) : 0
     return {
@@ -115,9 +126,10 @@ export function stockState(items: StockItem[], current: StockEvent[], previous: 
       recounted: recount.has(item.id),
       received: r,
       sent: s,
+      lost: x,
       now,
       left: l,
-      used: usedOf(opening, r, s, l),
+      used: usedOf({ opening, received: r, sent: s, lost: x }, l),
       suggestion: gap > 0 ? gap : null,
     }
   })

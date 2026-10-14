@@ -242,7 +242,8 @@
       "shift_request": "Shift request",
       "signup": "New sign-up",
       "edit": "Edits / voids",
-      "staff_alert": "Coaching alerts"
+      "staff_alert": "Coaching alerts",
+      "stock": "Stock (carry-over mismatch, waste / damage; 7:30 summary only)"
     },
     "active": "On",
     "delete": "Delete",

@@ -26,6 +26,8 @@ const ev = (kind: StockEvent['kind'], lines: [string, number][], over: Partial<S
   note: null,
   lines: lines.map(([item, qty]) => ({ item, qty })),
   temps: null,
+  reason: null,
+  note_original: null,
   author_id: 'u',
   author_name: 'A',
   created_at: `2026-10-14T00:00:${String(n).padStart(2, '0')}Z`,
@@ -62,6 +64,11 @@ describe('stockState', () => {
     ]
     const [k] = stockState([kimchi], cur, prev)
     expect(k).toMatchObject({ carried: 3, opening: 2, recounted: true, received: 0, left: 1.5, used: 0.5 })
+  })
+
+  it('廃棄・破損 lowers the stock and is not counted as used', () => {
+    const [k] = stockState([kimchi], [ev('loss', [['kimchi', 1]], { reason: 'dropped' }), ev('close', [['kimchi', 1]])], [ev('close', [['kimchi', 3]])])
+    expect(k).toMatchObject({ opening: 3, lost: 1, now: 2, used: 1, suggestion: 2 })
   })
 
   it('without a previous count the opening and 使用 are unknown', () => {

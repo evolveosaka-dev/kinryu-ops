@@ -25,7 +25,8 @@
     "out": "Chuyển sang cửa hàng khác",
     "close": "Tồn cuối ca",
     "temp_start": "Nhiệt độ tủ lạnh (đầu ca)",
-    "temp_end": "Nhiệt độ tủ lạnh (cuối ca)"
+    "temp_end": "Nhiệt độ tủ lạnh (cuối ca)",
+    "loss": "Hủy bỏ・hư hỏng"
   },
   "table": {
     "item": "Mặt hàng",
@@ -40,13 +41,17 @@
     "previous": "Ca trước",
     "diff": "Chênh",
     "afterIn": "Sau nhận",
-    "afterOut": "Sau chuyển"
+    "afterOut": "Sau chuyển",
+    "loss": "Hủy",
+    "afterLoss": "Sau hủy"
   },
   "action": {
     "in": "📥 Ghi nhận hàng (bổ sung)",
     "out": "📤 Ghi chuyển hàng sang cửa hàng khác",
     "close": "🔢 Nhập tồn cuối ca",
-    "open": "Đếm lại tồn đầu ca"
+    "open": "Đếm lại tồn đầu ca",
+    "loss": "🗑️ Ghi hàng hủy bỏ・hư hỏng",
+    "openMismatch": "Số đầu ca không khớp"
   },
   "form": {
     "in": "Nhận hàng (bổ sung)",
@@ -54,7 +59,7 @@
     "out": "Chuyển sang cửa hàng khác",
     "outHelp": "Chỉ nhập số của mặt hàng đã đưa cho cửa hàng khác.",
     "open": "Đếm lại tồn đầu ca",
-    "openHelp": "Đếm số hiện có và nhập cho tất cả mặt hàng (không có thì nhập 0).",
+    "openHelp": "Chỉ nhập số thực tế của mặt hàng không khớp. Mặt hàng không nhập sẽ giữ số của ca trước.",
     "close": "Tồn cuối ca",
     "closeHelp": "Cuối ca, đếm số còn lại và nhập cho tất cả mặt hàng (không có thì nhập 0). Số đã dùng được tính tự động.",
     "from": "Từ đâu",
@@ -81,7 +86,19 @@
     "usedFormula": "Đã dùng = đầu ca + nhận − chuyển − còn lại",
     "negative": "Có mặt hàng số đã dùng bị âm. Hãy đếm lại.",
     "unknownOpening": "Mặt hàng không có số đầu ca thì không tính được số đã dùng.",
-    "dateRange": "Chỉ ghi được cho ca của hôm qua, hôm nay hoặc ngày mai."
+    "dateRange": "Chỉ ghi được cho ca của hôm qua, hôm nay hoặc ngày mai.",
+    "loss": "Hủy bỏ・hư hỏng",
+    "lossHelp": "Chỉ nhập số của mặt hàng đã bỏ đi hoặc bị hỏng, và chọn lý do. Có ảnh thì đính kèm.",
+    "reason": "Lý do",
+    "required": "bắt buộc",
+    "reasonNote": "Chi tiết (không bắt buộc)",
+    "reasonNoteRequiredLabel": "Chi tiết (bắt buộc khi chọn 「Khác」)",
+    "reasonNotePlaceholder": "VD: thùng bị ướt",
+    "reasonRequired": "Hãy chọn lý do.",
+    "reasonNoteRequired": "Nếu chọn 「Khác」, hãy ghi chi tiết.",
+    "photoHint": "Ảnh・video không bắt buộc (không quay mặt khách hàng).",
+    "photoCount": "Ảnh・video: {{n}} (tải lên sau khi lưu)",
+    "carriedIs": "Đầu ca: {{n}}"
   },
   "temp": {
     "title": "Nhiệt độ tủ lạnh",
@@ -141,5 +158,17 @@
     "gloves": "手袋（Găng tay）",
     "wrap": "ラップ（Màng bọc thực phẩm）",
     "tissue": "ティッシュ（Khăn giấy）"
+  },
+  "photoUploading": "đang tải lên",
+  "reason": {
+    "miscount": "Ca trước đếm sai・ghi sai",
+    "unrecorded": "Quên ghi chuyển hàng・nhận hàng",
+    "unknown": "Không rõ nguyên nhân",
+    "no_record": "Ca trước không có ghi chép",
+    "dropped": "Làm rơi・làm đổ",
+    "spoiled": "Bị hỏng・hết hạn",
+    "quality": "Có dị vật・vấn đề chất lượng",
+    "mistake": "Làm sai",
+    "other": "Khác"
   }
 }

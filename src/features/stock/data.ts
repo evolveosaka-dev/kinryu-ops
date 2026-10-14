@@ -48,8 +48,11 @@ export async function addStockEvent(args: {
   place?: string | null
   note?: string | null
   temps?: number[] | null
-}) {
-  return unwrap(
+  reason?: string | null
+  noteOriginal?: string | null
+  sourceLang?: string | null
+}): Promise<string> {
+  return unwrap<string>(
     await supabase.rpc('add_stock_event', {
       p_store: args.store,
       p_date: args.date,
@@ -59,8 +62,28 @@ export async function addStockEvent(args: {
       p_place: args.place ?? null,
       p_note: args.note ?? null,
       p_temps: args.temps ?? null,
+      p_reason: args.reason ?? null,
+      p_note_original: args.noteOriginal ?? null,
+      p_source_lang: args.sourceLang ?? null,
     }),
   )
+}
+
+/** Photos / videos per 廃棄・破損 row (RLS: own files, managers all). */
+export function useStockPhotos(ids: string[]) {
+  return useQuery({
+    queryKey: ['stock_photos', ids],
+    enabled: ids.length > 0,
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const rows = unwrap<{ stock_event_id: string; kind: string; drive_url: string | null; status: string }[]>(
+        await supabase.from('attachments').select('stock_event_id, kind, drive_url, status').in('stock_event_id', ids).neq('status', 'failed'),
+      )
+      const out = new Map<string, typeof rows>()
+      for (const r of rows) out.set(r.stock_event_id, [...(out.get(r.stock_event_id) ?? []), r])
+      return out
+    },
+  })
 }
 
 export async function voidStockEvent(id: string) {

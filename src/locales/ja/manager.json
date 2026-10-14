@@ -242,7 +242,8 @@
       "shift_request": "シフト希望",
       "signup": "新規登録",
       "edit": "修正・取消",
-      "staff_alert": "面談指導の通知"
+      "staff_alert": "面談指導の通知",
+      "stock": "在庫（繰越のずれ・廃棄・破損、毎朝7:30のまとめのみ）"
     },
     "active": "送る",
     "delete": "削除",

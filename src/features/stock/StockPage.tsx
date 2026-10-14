@@ -6,10 +6,16 @@ import { useAuth, useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
 import { Button, Card, ErrorBox, PageTitle, Segmented, Spinner, TextInput } from '../../components/ui'
 import { readSlotPreset } from '../../domain/duty'
+import type { PreparedMedia } from '../../lib/media'
+import { AttachmentPicker } from '../attachments/AttachmentPicker'
+import { useUploadQueue } from '../attachments/uploadQueue'
+import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 import {
   fmtQty,
   IN_PLACES,
   latestTemps,
+  LOSS_REASONS,
+  OPEN_REASONS,
   OUT_PLACES,
   packsOf,
   parseQty,
@@ -29,16 +35,16 @@ import { errorMessage, storeName } from '../../lib/format'
 import { getLastStore, setLastStore } from '../../lib/lastStore'
 import { useStores } from '../../lib/queries'
 import type { Store } from '../../lib/types'
-import { addStockEvent, itemName, useStockEvents, useStockItems, voidStockEvent } from './data'
+import { addStockEvent, itemName, useStockEvents, useStockItems, useStockPhotos, voidStockEvent } from './data'
 
-type Mode = LineKind | 'temp'
+type Mode = LineKind | 'temp' | 'recount'
 interface Slot {
   store: Store
   date: string
   shift: Shift
 }
 
-const signed = (kind: LineKind, n: number) => (kind === 'in' ? `+${fmtQty(n)}` : kind === 'out' ? `−${fmtQty(n)}` : fmtQty(n))
+const signed = (kind: LineKind, n: number) => (kind === 'in' ? `+${fmtQty(n)}` : kind === 'out' || kind === 'loss' ? `−${fmtQty(n)}` : fmtQty(n))
 
 function useErrorText() {
   const { t } = useTranslation('stock')
@@ -118,6 +124,7 @@ function History({ events, items }: { events: StockEvent[]; items: StockItem[] }
     },
   })
   const shown = all ? events : events.slice(0, 4)
+  const photos = useStockPhotos(events.filter((e) => e.kind === 'loss').map((e) => e.id))
   const canVoid = (e: StockEvent) =>
     !e.voided_at && (isManager || (e.author_id === me.id && openedAt - new Date(e.created_at).getTime() < 12 * 3600 * 1000))
 
@@ -131,8 +138,10 @@ function History({ events, items }: { events: StockEvent[]; items: StockItem[] }
             <span className="w-11 shrink-0 font-bold tabular-nums">{formatTokyoTime(new Date(e.created_at))}</span>
             <span className={cx('flex min-w-0 flex-1 flex-col gap-0.5', e.voided_at && 'text-slate-500 line-through')}>
               <span>
+                {(e.kind === 'open' || e.kind === 'loss') && '⚠️ '}
                 <b>{e.author_name}</b>・{t(`kind.${e.kind}`)}
                 {placeLabel(t, e)}
+                {e.reason && <b className="text-amber-900">（{t(`reason.${e.reason}`)}）</b>}
               </span>
               {e.temps ? (
                 <span>{e.temps.map((x) => `${fmtQty(x)}℃`).join(' / ')}</span>
@@ -147,6 +156,19 @@ function History({ events, items }: { events: StockEvent[]; items: StockItem[] }
                 </span>
               )}
               {e.note && <span className="text-slate-700">📝 {e.note}</span>}
+              {(photos.data?.get(e.id)?.length ?? 0) > 0 && (
+                <span className="flex flex-wrap gap-2 text-slate-700">
+                  {photos.data!.get(e.id)!.map((a, i) =>
+                    a.drive_url ? (
+                      <a key={i} href={a.drive_url} target="_blank" rel="noreferrer" className="font-bold text-brand underline">
+                        {a.kind === 'video' ? '🎥' : '📷'} {i + 1}
+                      </a>
+                    ) : (
+                      <span key={i}>{a.kind === 'video' ? '🎥' : '📷'} {t('photoUploading')}</span>
+                    ),
+                  )}
+                </span>
+              )}
             </span>
             {e.voided_at ? (
               <span className="shrink-0 text-xs font-bold text-slate-600">{t('history.voided', { name: e.voided_by_name })}</span>
@@ -179,7 +201,15 @@ function History({ events, items }: { events: StockEvent[]; items: StockItem[] }
 function StateTable({ states }: { states: ItemState[] }) {
   const { t } = useTranslation('stock')
   const closed = states.some((s) => s.left !== null)
-  const head = [t('table.item'), t('table.carried'), t('table.in'), t('table.out'), ...(closed ? [t('table.left'), t('table.used')] : [t('table.now'), t('table.suggest')])]
+  const anyLoss = states.some((s) => s.lost > 0)
+  const head = [
+    t('table.item'),
+    t('table.carried'),
+    t('table.in'),
+    t('table.out'),
+    ...(anyLoss ? [t('table.loss')] : []),
+    ...(closed ? [t('table.left'), t('table.used')] : [t('table.now'), t('table.suggest')]),
+  ]
   return (
     <Table
       head={head}
@@ -194,6 +224,7 @@ function StateTable({ states }: { states: ItemState[] }) {
           </>,
           s.received ? `+${fmtQty(s.received)}` : '',
           s.sent ? `−${fmtQty(s.sent)}` : '',
+          ...(anyLoss ? [s.lost ? <span className="font-bold text-red-700">−{fmtQty(s.lost)}</span> : ''] : []),
           ...(closed
             ? [fmtQty(s.left), <b className={cx(s.used !== null && s.used < 0 && 'text-red-700')}>{fmtQty(s.used)}</b>]
             : [
@@ -216,26 +247,47 @@ function StateTable({ states }: { states: ItemState[] }) {
 }
 
 /** 受入 / 払出 / 繰越を数え直す / 終わりの在庫: type the numbers → 確認 → 記録. */
-function EntryForm({ kind, slot, states, onDone }: { kind: LineKind; slot: Slot; states: ItemState[]; onDone: () => void }) {
+function EntryForm({
+  kind,
+  slot,
+  states,
+  initialReason = '',
+  onDone,
+}: {
+  kind: LineKind
+  slot: Slot
+  states: ItemState[]
+  initialReason?: string
+  onDone: () => void
+}) {
   const { t } = useTranslation('stock')
   const toast = useToast()
   const errorText = useErrorText()
   const queryClient = useQueryClient()
+  const uploads = useUploadQueue()
+  const translation = useTranslationGate()
   const [values, setValues] = useState<Record<string, string>>({})
+  const reasons: readonly string[] = kind === 'open' ? OPEN_REASONS : kind === 'loss' ? LOSS_REASONS : []
+  const [reason, setReason] = useState(initialReason)
+  const [media, setMedia] = useState<PreparedMedia[]>([])
   const places = (kind === 'in' ? IN_PLACES : kind === 'out' ? OUT_PLACES : []).filter((p) => p !== slot.store.code)
   const [place, setPlace] = useState<string>(places[0] ?? '')
   const [note, setNote] = useState('')
   const [step, setStep] = useState<'edit' | 'confirm'>('edit')
   const [error, setError] = useState<string | null>(null)
-  const everyItem = kind === 'open' || kind === 'close'
+  const everyItem = kind === 'close'
+  // 受入 / 払出 / 廃棄 move stock: an empty box or 0 = not this item
+  const moves = kind === 'in' || kind === 'out' || kind === 'loss'
 
   const parsed = states.map((s) => ({ s, qty: parseQty(values[s.item.id] ?? '') }))
-  const entered = parsed.filter((p): p is { s: ItemState; qty: number } => typeof p.qty === 'number')
+  const entered = parsed.filter((p): p is { s: ItemState; qty: number } => typeof p.qty === 'number' && (!moves || p.qty > 0))
 
   const toConfirm = () => {
     if (parsed.some((p) => p.qty === undefined)) return setError(t('form.badNumber'))
     if (everyItem && entered.length < states.length) return setError(t('form.enterAll'))
     if (!everyItem && entered.length === 0) return setError(t('form.enterOne'))
+    if (reasons.length && !reason) return setError(t('form.reasonRequired'))
+    if (reason === 'other' && !note.trim()) return setError(t('form.reasonNoteRequired'))
     if (kind === 'out' && place === 'other' && !note.trim()) return setError(t('form.noteRequired'))
     setError(null)
     setStep('confirm')
@@ -243,16 +295,26 @@ function EntryForm({ kind, slot, states, onDone }: { kind: LineKind; slot: Slot;
   }
 
   const save = useMutation({
-    mutationFn: () =>
-      addStockEvent({
+    mutationFn: async () => {
+      // a reason memo in another language is translated to Japanese (the writer confirms it)
+      const tr = reasons.length
+        ? await translation.prepare([{ key: 'note', label: t('form.reasonNote'), text: note.trim() || null }])
+        : { values: { note: note.trim() || null }, originals: null, sourceLang: null }
+      const id = await addStockEvent({
         store: slot.store.id,
         date: slot.date,
         shift: slot.shift,
         kind,
         lines: entered.map((p) => ({ item: p.s.item.id, qty: p.qty })),
         place: places.length ? place : null,
-        note: note.trim() || null,
-      }),
+        note: tr.values.note ?? null,
+        reason: reasons.length ? reason : null,
+        noteOriginal: tr.originals?.note ?? null,
+        sourceLang: tr.sourceLang,
+      })
+      // photos / videos go to Google Drive in the background (queued, retried)
+      if (kind === 'loss' && media.length) await uploads.enqueue('stock', id, media)
+    },
     onSuccess: () => {
       setLastStore(slot.store.id)
       toast(t('form.saved'))
@@ -263,10 +325,11 @@ function EntryForm({ kind, slot, states, onDone }: { kind: LineKind; slot: Slot;
 
   const confirmRows = () => {
     if (kind === 'close') {
+      const anyLoss = entered.some(({ s }) => s.lost > 0)
       return {
-        head: [t('table.item'), t('table.carried'), t('table.in'), t('table.out'), t('table.left'), t('table.used')],
+        head: [t('table.item'), t('table.carried'), t('table.in'), t('table.out'), ...(anyLoss ? [t('table.loss')] : []), t('table.left'), t('table.used')],
         rows: entered.map(({ s, qty }) => {
-          const used = usedOf(s.opening, s.received, s.sent, qty)
+          const used = usedOf(s, qty)
           return {
             key: s.item.id,
             tone: used !== null && used < 0 ? ('bad' as const) : undefined,
@@ -275,6 +338,7 @@ function EntryForm({ kind, slot, states, onDone }: { kind: LineKind; slot: Slot;
               fmtQty(s.opening),
               s.received ? `+${fmtQty(s.received)}` : '',
               s.sent ? `−${fmtQty(s.sent)}` : '',
+              ...(anyLoss ? [s.lost ? `−${fmtQty(s.lost)}` : ''] : []),
               <b>{fmtQty(qty)}</b>,
               <b className={cx('text-base', used !== null && used < 0 ? 'text-red-700' : 'text-brand-dark')}>{fmtQty(used)}</b>,
             ],
@@ -295,7 +359,7 @@ function EntryForm({ kind, slot, states, onDone }: { kind: LineKind; slot: Slot;
       }
     }
     return {
-      head: [t('table.item'), kind === 'in' ? t('table.in') : t('table.out'), t('table.now'), kind === 'in' ? t('table.afterIn') : t('table.afterOut')],
+      head: [t('table.item'), t(`table.${kind}`), t('table.now'), t(kind === 'in' ? 'table.afterIn' : kind === 'loss' ? 'table.afterLoss' : 'table.afterOut')],
       rows: entered.map(({ s, qty }) => ({
         key: s.item.id,
         cells: [
@@ -310,10 +374,11 @@ function EntryForm({ kind, slot, states, onDone }: { kind: LineKind; slot: Slot;
 
   if (step === 'confirm') {
     const table = confirmRows()
-    const negative = kind === 'close' && entered.some(({ s, qty }) => (usedOf(s.opening, s.received, s.sent, qty) ?? 0) < 0)
+    const negative = kind === 'close' && entered.some(({ s, qty }) => (usedOf(s, qty) ?? 0) < 0)
     const unknown = kind === 'close' && entered.some(({ s }) => s.opening === null)
     return (
       <div className="flex flex-col gap-3">
+        {translation.review}
         <PageTitle title={t(`form.${kind}`)} subtitle={slotText(t, slot)} />
         <Card className="flex flex-col gap-3 ring-2 ring-brand">
           <h2 className="text-[17px] font-bold">✅ {t('form.confirmTitle')}</h2>
@@ -323,11 +388,18 @@ function EntryForm({ kind, slot, states, onDone }: { kind: LineKind; slot: Slot;
               {note.trim() && <span className="ml-3 font-normal">📝 {note.trim()}</span>}
             </p>
           )}
+          {reasons.length > 0 && (
+            <p className="rounded-lg bg-amber-50 p-2 font-bold text-amber-900">
+              {t('form.reason')}：{t(`reason.${reason}`)}
+              {note.trim() && <span className="block font-normal">📝 {note.trim()}</span>}
+            </p>
+          )}
           <Table head={table.head} rows={table.rows} />
+          {kind === 'loss' && media.length > 0 && <p className="text-sm">{t('form.photoCount', { n: media.length })}</p>}
           {kind === 'close' && <p className="text-sm text-muted">{t('form.usedFormula')}</p>}
           {negative && <ErrorBox message={t('form.negative')} />}
           {unknown && <p className="rounded-lg bg-amber-50 p-2 text-sm font-bold text-amber-900">{t('form.unknownOpening')}</p>}
-          {save.error && <ErrorBox message={errorText(save.error)} />}
+          {save.error && !(save.error instanceof TranslationCancelled) && <ErrorBox message={errorText(save.error)} />}
           <Button onClick={() => save.mutate()} disabled={save.isPending}>
             {save.isPending ? t('common:action.loading') : t('form.save')}
           </Button>
@@ -343,6 +415,18 @@ function EntryForm({ kind, slot, states, onDone }: { kind: LineKind; slot: Slot;
     <div className="flex flex-col gap-3">
       <PageTitle title={t(`form.${kind}`)} subtitle={slotText(t, slot)} />
       <p className="rounded-xl bg-sky-50 p-3 text-sm font-bold text-sky-900">{t(`form.${kind}Help`)}</p>
+      {reasons.length > 0 && (
+        <Card className="flex flex-col gap-3">
+          <Segmented label={`${t('form.reason')}（${t('form.required')}）`} value={reason} onChange={setReason} columns={1} options={reasons.map((r) => ({ value: r, label: t(`reason.${r}`) }))} />
+          <TextInput
+            label={reason === 'other' ? t('form.reasonNoteRequiredLabel') : t('form.reasonNote')}
+            placeholder={t('form.reasonNotePlaceholder')}
+            value={note}
+            maxLength={200}
+            onChange={(e) => setNote(e.target.value)}
+          />
+        </Card>
+      )}
       {places.length > 0 && (
         <Card className="flex flex-col gap-3">
           <Segmented
@@ -375,7 +459,9 @@ function EntryForm({ kind, slot, states, onDone }: { kind: LineKind; slot: Slot;
                     {t('form.suggestion', { n: fmtQty(s.suggestion), unit: t(`unit.${s.item.unit}`) })}
                   </span>
                 )}
-                {kind === 'out' && s.now !== null && <span className="text-xs text-muted">{t('form.nowIs', { n: fmtQty(s.now) })}</span>}
+                {(kind === 'out' || kind === 'loss' || kind === 'open') && s.now !== null && (
+                  <span className="text-xs text-muted">{t(kind === 'open' ? 'form.carriedIs' : 'form.nowIs', { n: fmtQty(kind === 'open' ? s.opening : s.now) })}</span>
+                )}
               </span>
               <input
                 inputMode="decimal"
@@ -391,6 +477,7 @@ function EntryForm({ kind, slot, states, onDone }: { kind: LineKind; slot: Slot;
           ))}
         </ul>
       </Card>
+      {kind === 'loss' && <AttachmentPicker value={media} onChange={setMedia} hint={t('form.photoHint')} />}
       {error && <ErrorBox message={error} />}
       <Button onClick={toConfirm}>{t('form.toConfirm')}</Button>
       <Button variant="secondary" onClick={onDone}>
@@ -524,6 +611,7 @@ export function StockPage() {
   }
 
   if (mode === 'temp') return <TempForm slot={slot} events={events.data ?? []} onDone={done} />
+  if (mode === 'recount') return <EntryForm kind="open" slot={slot} states={states} initialReason="no_record" onDone={done} />
   if (mode) return <EntryForm kind={mode} slot={slot} states={states} onDone={done} />
 
   const unknownOpening = states.length > 0 && states.some((s) => s.opening === null)
@@ -549,7 +637,7 @@ export function StockPage() {
       {unknownOpening && (
         <div className="flex flex-col gap-2 rounded-xl bg-amber-50 p-3 ring-1 ring-amber-300">
           <p className="text-sm font-bold text-amber-900">⚠️ {t('noPrevious')}</p>
-          <Button onClick={() => setMode('open')}>{t('action.open')}</Button>
+          <Button onClick={() => setMode('recount')}>{t('action.open')}</Button>
         </div>
       )}
 
@@ -564,10 +652,13 @@ export function StockPage() {
         <Button variant="secondary" onClick={() => setMode('out')}>
           {t('action.out')}
         </Button>
+        <Button variant="danger" onClick={() => setMode('loss')}>
+          {t('action.loss')}
+        </Button>
         <Button onClick={() => setMode('close')}>{t('action.close')}</Button>
         {!unknownOpening && (
           <Button variant="ghost" className="self-center" onClick={() => setMode('open')}>
-            ✎ {t('action.open')}
+            ✎ {t('action.openMismatch')}
           </Button>
         )}
       </div>

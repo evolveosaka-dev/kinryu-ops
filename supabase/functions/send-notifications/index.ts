@@ -1,7 +1,8 @@
 // Manager e-mail notifications through Resend.
 //  - action "instant" (pg_cron every minute while events wait): one mail per event to the recipients in
 //    'instant' mode, and to everyone for urgent events (即日指導, sign-up).
-//  - action "digest" (pg_cron 7:30 JST): one summary mail per 'digest' recipient.
+//  - action "digest" (pg_cron 7:30 JST): one summary mail per 'digest' recipient. 在庫 (kind 'stock': 繰越のずれ,
+//    廃棄・破損) is sent only here, also to 'instant' recipients who have the kind.
 //  - action "test" (a manager, 設定 → 通知メール): a test mail to one recipient.
 // The cron caller sends x-cron-secret (checked against Vault); managers send their access token.
 import { adminClient, env, HttpError, requireUser, serve } from '../_shared/http.ts'
@@ -42,9 +43,16 @@ const PATROL_TYPE: Record<string, string> = { before_shift: '勤務前', in_shif
 const STEPS: Record<string, string> = { greeting: 'はじめの挨拶', philosophy: '経営理念', phrases: '接客用語', handover: '引継ぎ', grooming: '身だしなみ', closing: '締めの挨拶' }
 const ITEMS: [string, string][] = [['score_smile', '笑顔'], ['score_voice', '声出し'], ['score_grooming', '身だしなみ'], ['score_clean', '清潔'], ['score_quality', '提供品質']]
 const ACTION: Record<string, string> = { void: '取消', time: '時間の修正', follow_up: '面談済み', update: '修正' }
-const KIND: Record<string, string> = { chorei: '朝礼記録', chorei_note: '朝礼の追記', patrol: '巡回チェック', shift_request: 'シフト希望', signup: '新規登録', edit: '修正・取消', staff_alert: '面談指導の通知' }
+const KIND: Record<string, string> = { chorei: '朝礼記録', chorei_note: '朝礼の追記', patrol: '巡回チェック', shift_request: 'シフト希望', signup: '新規登録', edit: '修正・取消', staff_alert: '面談指導の通知', stock: '在庫（繰越のずれ・廃棄・破損）' }
 // keep in sync with src/domain/types.ts MISS_REASONS / chorei.json miss.reason
 const MISS_REASON: Record<string, string> = { busy: 'お客様が多かった', no_manager: '管理者がいなかった', alone: '1人だけの勤務だった', forgot: '忘れた', other: 'その他' }
+// keep in sync with src/domain/stock.ts OPEN_REASONS / LOSS_REASONS
+const STOCK_REASON: Record<string, string> = {
+  miscount: '前のシフトの数え間違い・記入ミス', unrecorded: '店間移動・受入の記入漏れ', unknown: '原因不明', no_record: '前のシフトの記録がない',
+  dropped: '落とした・こぼした', spoiled: '傷んでいた・期限切れ', quality: '異物・品質の問題', mistake: '作り間違い', other: 'その他',
+}
+const STOCK_UNIT: Record<string, string> = { piece: '個', bag: '袋', box: '箱', stick: '本', liter: 'L' }
+const PREV_SHIFT: Record<string, [number, string]> = { early: [-1, 'late'], middle: [0, 'early'], late: [0, 'middle'] }
 const TABLE: Record<string, string> = { chorei_records: '朝礼記録', patrol_checks: '巡回チェック', shift_requests: 'シフト希望' }
 const FIELD: Record<string, string> = {
   status: '状態', void_reason: '取消の理由', started_at: '開始', ended_at: '終了', needs_time_review: '時間確認',
@@ -248,6 +256,7 @@ async function renderEvent(admin: Admin, L: Lookup, e: NotifyEvent): Promise<{ s
       link,
     }
   }
+  if (e.kind === 'stock') return renderStock(admin, L, e)
   if (e.kind === 'edit') {
     const r = await fetchRow(admin, e.ref_table, e.ref_id)
     if (!r) return null
@@ -263,6 +272,51 @@ async function renderEvent(admin: Admin, L: Lookup, e: NotifyEvent): Promise<{ s
     }
   }
   return null
+}
+
+/** 繰越のずれ / 廃棄・破損 of 在庫・仕入; null when cancelled. */
+async function renderStock(admin: Admin, L: Lookup, e: NotifyEvent) {
+  const r = await fetchRow(admin, 'stock_events', e.ref_id)
+  if (!r || r.voided_at) return null
+  const { data: items } = await admin.from('stock_items').select('id, name_ja, unit').eq('store_id', r.store_id)
+  const item = new Map((items ?? []).map((i) => [i.id, i]))
+  const name = (id: string) => item.get(id)?.name_ja ?? '?'
+  const unit = (id: string) => STOCK_UNIT[item.get(id)?.unit ?? ''] ?? ''
+  const num = (n: number) => String(Math.round(n * 10) / 10)
+  let lines: string[]
+  if (r.kind === 'open') {
+    const [d, shift] = PREV_SHIFT[r.shift]
+    const { data: prev } = await admin
+      .from('stock_events')
+      .select('lines')
+      .eq('store_id', r.store_id).eq('business_date', addDays(r.business_date, d)).eq('shift', shift).eq('kind', 'close').is('voided_at', null)
+      .order('created_at')
+    const before = new Map<string, number>()
+    for (const p of prev ?? []) for (const l of p.lines as { item: string; qty: number }[]) before.set(l.item, l.qty)
+    lines = (r.lines as { item: string; qty: number }[]).map((l) => {
+      const b = before.get(l.item)
+      const diff = b === undefined ? '' : `（${l.qty - b >= 0 ? '+' : '−'}${num(Math.abs(l.qty - b))}）`
+      return `・${name(l.item)}: ${b === undefined ? '前のシフトの記録なし' : `${num(b)}${unit(l.item)}`} → ${num(l.qty)}${unit(l.item)}${diff}`
+    })
+  } else {
+    lines = (r.lines as { item: string; qty: number }[]).map((l) => `・${name(l.item)}: ${num(l.qty)}${unit(l.item)}`)
+  }
+  const { data: store } = await admin.from('stores').select('code').eq('id', r.store_id).maybeSingle()
+  const { count } = await admin.from('attachments').select('id', { count: 'exact', head: true }).eq('stock_event_id', r.id).neq('status', 'failed')
+  const what = r.kind === 'open' ? '繰越のずれ' : '廃棄・破損'
+  const reason = STOCK_REASON[r.reason] ?? r.reason ?? '—'
+  return {
+    subject: `${what} ${slot(L, r)}（${reason}） — ${r.author_name}`,
+    lines: [
+      `店舗・勤番: ${slot(L, r)}`,
+      `記録した人: ${r.author_name}（${jst(r.created_at)}）`,
+      `理由: ${reason}`,
+      ...(r.note ? [`メモ: ${r.note}`] : []),
+      ...lines,
+      ...(r.kind === 'loss' ? [`写真・動画: ${count ?? 0}件`] : []),
+    ],
+    link: appUrl(`/stock?store=${store?.code ?? ''}&date=${r.business_date}&shift=${r.shift}`),
+  }
 }
 
 async function sendBatch(mails: Mail[], idempotencyKey: string) {
@@ -313,7 +367,8 @@ async function sendInstant(admin: Admin) {
       }
       if (e.kind === 'shift_request' && now - Date.parse(e.created_at) < SHIFT_WAIT_MIN * 60_000) continue
     }
-    const to = people.filter((p) => p.kinds.includes(e.kind) && (p.mode === 'instant' || e.urgent))
+    // 在庫 goes only into the 7:30 summary
+    const to = e.kind === 'stock' ? [] : people.filter((p) => p.kinds.includes(e.kind) && (p.mode === 'instant' || e.urgent))
     if (!to.length) {
       await done()
       continue
@@ -364,7 +419,10 @@ async function sendDigest(admin: Admin) {
   const latest = new Map<string, NotifyEvent>()
   for (const e of data as NotifyEvent[]) latest.set(e.dedupe_key ?? `id:${e.id}`, e)
   const events = [...latest.values()]
-  const people = (await recipients(admin)).filter((p) => p.mode === 'digest')
+  // 'instant' recipients get the summary only for 在庫
+  const people = (await recipients(admin))
+    .map((p) => (p.mode === 'digest' ? p : { ...p, kinds: p.kinds.filter((k) => k === 'stock') }))
+    .filter((p) => p.kinds.length > 0)
   const L = await new Lookup(admin).load()
   const today = tokyoToday()
   const yesterday = addDays(today, -1)
@@ -377,13 +435,13 @@ async function sendDigest(admin: Admin) {
   for (const p of people) {
     const mine = events.filter((e) => p.kinds.includes(e.kind) && rendered.get(e.id))
     const sections: string[] = []
-    if (p.kinds.includes('chorei') && missing) sections.push(`■ 昨日（${day(yesterday)}）の朝礼: ${missing.length ? `未提出 ${missing.join('、')}` : 'すべて提出済み'}`)
+    if (p.mode === 'digest' && p.kinds.includes('chorei') && missing) sections.push(`■ 昨日（${day(yesterday)}）の朝礼: ${missing.length ? `未提出 ${missing.join('、')}` : 'すべて提出済み'}`)
     for (const kind of Object.keys(KIND)) {
       const list = mine.filter((e) => e.kind === kind)
       if (!list.length) continue
       sections.push(`■ ${KIND[kind]}（${list.length}件）\n${list.map((e) => `・${e.urgent ? '⚠ ' : ''}${rendered.get(e.id)!.subject}`).join('\n')}`)
     }
-    if (!mine.length && !(p.kinds.includes('chorei') && missing)) continue
+    if (!mine.length && !(p.mode === 'digest' && p.kinds.includes('chorei') && missing)) continue
     mails.push({
       to: p.email,
       subject: `まとめ ${day(today)} 7:30（${mine.length}件）`,
