@@ -91,6 +91,7 @@ export function ChoreiFormPage() {
     holidays.data && targets.data ? findTarget(targets.data, targetEvents.data ?? [], effectiveStore, businessDate, shift, holidays.data) : null
   const suggestedTarget = found?.bowls
   const targetValue = targetOverride ?? (suggestedTarget !== undefined ? String(suggestedTarget) : '')
+  const targetLocked = suggestedTarget !== undefined && targetOverride === null
 
 
   const submit = useMutation({
@@ -286,15 +287,32 @@ export function ChoreiFormPage() {
                 error={errorText('stock_text')}
               />
             )}
-            <TextInput
-              label={`${t('target.label')}（${t('target.unit')}）`}
-              type="number"
-              inputMode="numeric"
-              min={0}
-              value={targetValue}
-              onChange={(e) => setTargetOverride(e.target.value)}
-              hint={found ? targetHint(t, found) : undefined}
-            />
+            {/* the target comes locked from 目標杯数; 「修正」 unlocks it (unchecking goes back to the target) */}
+            <div className="relative">
+              <TextInput
+                label={`${t('target.label')}（${t('target.unit')}）`}
+                type="number"
+                inputMode="numeric"
+                min={0}
+                value={targetValue}
+                readOnly={targetLocked}
+                onChange={(e) => setTargetOverride(e.target.value)}
+                hint={found ? targetHint(t, found) : undefined}
+                className={targetLocked ? 'bg-slate-100! font-bold text-slate-700! cursor-not-allowed' : undefined}
+              />
+              {suggestedTarget !== undefined && (
+                <label className="absolute top-0 right-0 flex min-h-8 cursor-pointer items-center gap-1.5 text-sm font-bold text-brand-dark">
+                  <input
+                    type="checkbox"
+                    className="size-5 accent-brand"
+                    checked={!targetLocked}
+                    onChange={(e) => setTargetOverride(e.target.checked ? String(suggestedTarget) : null)}
+                  />
+                  {targetLocked ? '🔒 ' : ''}
+                  {t('target.edit')}
+                </label>
+              )}
+            </div>
             <TextArea label={t('caution.label')} placeholder={t('caution.placeholder')} value={caution} onChange={(e) => setCaution(e.target.value)} />
             <details>
               <summary className="min-h-11 cursor-pointer py-2 text-sm font-bold text-brand">{t('caution.picks')}</summary>

@@ -36,7 +36,8 @@
     "saturday": "Thứ Bảy",
     "sunday_holiday": "Chủ nhật・ngày lễ",
     "long_holiday": "Kỳ nghỉ dài",
-    "peak": "Cao điểm (Tết, Obon)"
+    "peak": "Cao điểm (Tết, Obon)",
+    "edit": "Sửa"
   },
   "caution": {
     "label": "Điểm cần chú ý",

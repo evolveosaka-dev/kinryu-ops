@@ -36,7 +36,8 @@
     "saturday": "土曜",
     "sunday_holiday": "日曜・祝日",
     "long_holiday": "連休中",
-    "peak": "繁忙期（年末年始・お盆）"
+    "peak": "繁忙期（年末年始・お盆）",
+    "edit": "修正"
   },
   "caution": {
     "label": "注意点",

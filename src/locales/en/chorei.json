@@ -36,7 +36,8 @@
     "saturday": "Saturday",
     "sunday_holiday": "Sunday / holiday",
     "long_holiday": "Long weekend",
-    "peak": "Peak (New Year, Obon)"
+    "peak": "Peak (New Year, Obon)",
+    "edit": "Change"
   },
   "caution": {
     "label": "Point to be careful about",
