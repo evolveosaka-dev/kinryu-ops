@@ -214,6 +214,8 @@
   },
   "picker": {
     "select": "Choose person {{n}}",
+    "scheduled": "Scheduled ({{shift}})",
+    "all": "All staff",
     "person": "Person {{n}}",
     "add": "Add a person",
     "remove": "Remove",

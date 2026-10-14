@@ -1,11 +1,14 @@
 import { useTranslation } from 'react-i18next'
 import { currentLocale } from '../i18n'
 import { storeName } from '../lib/format'
-import { useRoster, useStores } from '../lib/queries'
+import { useRoster, useSlotStaff, useStores } from '../lib/queries'
+import type { Shift } from '../domain/types'
 
 /**
  * One dropdown per person, filled from the staff roster (real names from the shift table).
- * Staff of `storeId` are listed first. A name can be chosen only once.
+ * With `slot` (朝礼): the people scheduled for that shift at `storeId` (出勤予定), then all staff.
+ * Otherwise staff of `storeId` are listed first.
+ * A name can be chosen only once.
  */
 export function StaffPicker({
   label,
@@ -14,6 +17,7 @@ export function StaffPicker({
   onChange,
   storeId,
   exclude = [],
+  slot,
 }: {
   label: string
   hint?: string
@@ -21,6 +25,7 @@ export function StaffPicker({
   onChange: (names: string[]) => void
   storeId: string
   exclude?: string[]
+  slot?: { date: string; shift: Shift }
 }) {
   const { t } = useTranslation()
   const roster = useRoster()
@@ -28,14 +33,24 @@ export function StaffPicker({
   const locale = currentLocale()
   // always show at least one (empty) row
   const rows = value.length ? value : ['']
+  const scheduled = useSlotStaff(storeId, slot?.date, slot?.shift).data ?? []
+  const everyone = roster.data ?? []
 
-  const groups = [
-    ...(stores.data ?? [])
-      .slice()
-      .sort((a, b) => (a.id === storeId ? -1 : b.id === storeId ? 1 : a.sort_order - b.sort_order))
-      .map((s) => ({ key: s.id, label: storeName(s, locale), names: (roster.data ?? []).filter((r) => r.home_store_id === s.id) })),
-    { key: 'none', label: t('picker.noStore'), names: (roster.data ?? []).filter((r) => !r.home_store_id) },
-  ].filter((g) => g.names.length > 0)
+  const groups = (
+    slot
+      ? // 朝礼: the people scheduled for that shift at that store, then everyone
+        [
+          { key: 'scheduled', label: t('picker.scheduled', { shift: t(`shift.${slot.shift}`) }), names: scheduled.map((name) => ({ id: `s:${name}`, name })) },
+          { key: 'all', label: t('picker.all'), names: everyone },
+        ]
+      : [
+          ...(stores.data ?? [])
+            .slice()
+            .sort((a, b) => (a.id === storeId ? -1 : b.id === storeId ? 1 : a.sort_order - b.sort_order))
+            .map((s) => ({ key: s.id, label: storeName(s, locale), names: everyone.filter((r) => r.home_store_id === s.id) })),
+          { key: 'none', label: t('picker.noStore'), names: everyone.filter((r) => !r.home_store_id) },
+        ]
+  ).filter((g) => g.names.length > 0)
 
   // empty rows are kept while editing; callers drop them on submit
   const set = (i: number, name: string) => onChange(rows.map((x, j) => (j === i ? name : x)))

@@ -97,7 +97,7 @@ export function ChoreiEdit({ record: r, onDone }: { record: AdminChorei; onDone:
     <Card className="flex flex-col gap-3 ring-2 ring-blue-300">
       {translation.review}
       <h3 className="font-bold">{t('choreiEdit.title')}</h3>
-      <StaffPicker label={t('chorei:participants.label')} value={participants} onChange={setParticipants} storeId={r.store_id} />
+      <StaffPicker label={t('chorei:participants.label')} value={participants} onChange={setParticipants} storeId={r.store_id} slot={{ date: r.business_date, shift: r.shift }} />
       <Checkbox checked={stockNone} onChange={setStockNone}>
         {t('chorei:stock.label')}：<b>{t('chorei:stock.none')}</b>
       </Checkbox>

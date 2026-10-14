@@ -394,6 +394,17 @@ describe('shift schedule', () => {
     expect(co.map((c) => c.roster_name)).toEqual(['キタ']) // same store ⑤ only
     expect(await t.as(staffS, `select * from public.shift_coworkers('2026-10-12', 'middle')`)).toHaveLength(0)
   })
+  it('朝礼 参加者: the scheduled names of a slot — managers any day, staff only around today', async () => {
+    const slot = (store: string, date: string) => `select roster_name from public.slot_staff('${store}', ${date}, 'middle')`
+    expect(await t.as(manager, slot(sennichimae, `'2026-10-12'`))).toEqual([{ roster_name: 'ミナミ' }, { roster_name: 'キタ' }])
+    expect(await t.as(staffS, slot(sennichimae, `'2026-10-12'::date - 365`))).toEqual([])
+    await t.admin(`insert into public.shift_assignments (month, business_date, shift, roster_name, store_mark, store_id, start_min, end_min, raw)
+                   values (date_trunc('month', ${TODAY})::date, ${TODAY}, 'middle', 'ニシ', '①', $1, 1020, 1380, '①17-23')`, [midosuji])
+    expect(await t.as(staffS, slot(midosuji, TODAY))).toEqual([{ roster_name: 'ニシ' }])
+    const waiting = await t.createUser('slot-pending@example.com')
+    expect(await t.as(waiting, slot(midosuji, TODAY))).toEqual([])
+    await t.admin(`delete from public.shift_assignments where roster_name = 'ニシ'`)
+  })
   it('staff cannot link themselves to another shift-table name', async () => {
     await expect(t.as(staffS, "update public.profiles set roster_name = 'ミナミ' where id = auth.uid()")).rejects.toThrow(/only managers/)
   })

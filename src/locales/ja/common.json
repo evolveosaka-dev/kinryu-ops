@@ -214,6 +214,8 @@
   },
   "picker": {
     "select": "{{n}}人目を選ぶ",
+    "scheduled": "出勤予定（{{shift}}）",
+    "all": "全スタッフ",
     "person": "{{n}}人目",
     "add": "1人追加",
     "remove": "削除",

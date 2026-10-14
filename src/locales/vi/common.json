@@ -214,6 +214,8 @@
   },
   "picker": {
     "select": "Chọn người thứ {{n}}",
+    "scheduled": "Lịch làm ({{shift}})",
+    "all": "Tất cả nhân viên",
     "person": "Người thứ {{n}}",
     "add": "Thêm 1 người",
     "remove": "Xóa",

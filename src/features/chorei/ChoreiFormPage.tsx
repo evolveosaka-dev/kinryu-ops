@@ -249,6 +249,7 @@ export function ChoreiFormPage() {
               onChange={setParticipantNames}
               storeId={effectiveStore}
               exclude={[me.display_name]}
+              slot={{ date: businessDate, shift }}
             />
           </Card>
 

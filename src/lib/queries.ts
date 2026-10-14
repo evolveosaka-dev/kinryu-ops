@@ -36,6 +36,17 @@ export function useTargets() {
   })
 }
 
+/** Names scheduled for one 朝礼 slot (store, date, shift), from the imported shift table. */
+export function useSlotStaff(storeId: string, date: string | undefined, shift: string | undefined) {
+  return useQuery({
+    queryKey: ['slot_staff', storeId, date, shift],
+    enabled: Boolean(storeId && date && shift),
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () =>
+      unwrap<{ roster_name: string }[]>(await supabase.rpc('slot_staff', { p_store: storeId, p_date: date, p_shift: shift })).map((r) => r.roster_name),
+  })
+}
+
 /** Active staff names from the shift table (for the per-person pickers). */
 export function useRoster() {
   return useQuery({
