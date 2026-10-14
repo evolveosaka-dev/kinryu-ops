@@ -111,7 +111,7 @@
   "notes": {
     "label": "Notes",
     "placeholder": "e.g. a repair person came",
-    "none": "None (no notes, no meter reading)"
+    "none": "None"
   },
   "confirm": {
     "title": "Please check and send",

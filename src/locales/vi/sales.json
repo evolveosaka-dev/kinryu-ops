@@ -111,7 +111,7 @@
   "notes": {
     "label": "Ghi chú (連絡事項)",
     "placeholder": "VD: thợ sửa chữa đã đến",
-    "none": "Không có (không ghi chú, không đọc đồng hồ)"
+    "none": "Không có"
   },
   "confirm": {
     "title": "Hãy kiểm tra rồi gửi",

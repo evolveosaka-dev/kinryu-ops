@@ -43,7 +43,7 @@ export interface CashRow {
   reason?: string
 }
 
-/** 連絡事項 「なし」: nothing to report and no meter reading. */
+/** 連絡事項 「なし」: nothing to report (the meter is still read). */
 export const NOTES_NONE = 'なし'
 export interface MealRow {
   name: string

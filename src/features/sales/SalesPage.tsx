@@ -250,7 +250,7 @@ function SalesForm({
   const [cashReason, setCashReason] = useState(report?.cash_diff_reason ?? '')
   const [noodleReason, setNoodleReason] = useState(report?.noodle_reason ?? '')
   const [water, setWater] = useState<Record<string, string>>(() => ({ ...Object.fromEntries(WATER_TIMES[slot.shift].map((h) => [h, ''])), ...(report?.water ?? {}) }))
-  const [notesNone, setNotesNone] = useState(report?.notes === NOTES_NONE && Object.values(report.water ?? {}).every((v) => !v))
+  const [notesNone, setNotesNone] = useState(report?.notes === NOTES_NONE)
   const [notes, setNotes] = useState(report?.notes === NOTES_NONE ? '' : (report?.notes ?? ''))
   const [step, setStep] = useState<'edit' | 'confirm'>('edit')
   const [error, setError] = useState<string | null>(null)
@@ -283,7 +283,7 @@ function SalesForm({
     noodle_lost: noodleUsed === null ? null : lost,
     noodle_meals: MEALS_ENABLED ? mealCount : null,
     noodle_reason: noodleReason,
-    water: notesNone ? {} : water,
+    water,
     notes: notesNone ? NOTES_NONE : notes,
   })
 
@@ -292,7 +292,7 @@ function SalesForm({
       return t('error.badNumber')
     if (book.some((r) => !(parseInteger(r.amount)! > 0))) return t('error.amount')
     if (book.some((r) => r.type === 'refund' && !r.reason?.trim())) return t('error.refundReason')
-    if (!notesNone && Object.values(water).some((v) => v !== '' && !/^\d{1,5}$/.test(v.normalize('NFKC')))) return t('error.water')
+    if (Object.values(water).some((v) => v !== '' && !/^\d{1,5}$/.test(v.normalize('NFKC')))) return t('error.water')
     if (staff.some((s) => !s.name.trim())) return t('error.staffName')
     if (!forSubmit) return null
     if (TICKETS.every((k) => ticketNums[k] === undefined)) return t('error.tickets')
@@ -606,22 +606,31 @@ function SalesForm({
       </Section>
 
       <Section title={`📝 ${t('section.notes')}`}>
-        <button
-          type="button"
-          aria-pressed={notesNone}
-          onClick={() => setNotesNone((v) => !v)}
-          className={cx('min-h-12 rounded-xl border-[1.5px] font-bold', notesNone ? 'border-brand bg-brand text-white' : 'border-brand bg-white text-brand-dark')}
-        >
-          {notesNone ? `✓ ${t('notes.none')}` : t('notes.none')}
-        </button>
-        <fieldset disabled={notesNone} className={cx('flex min-w-0 flex-col gap-3', notesNone && 'opacity-50')}>
         <div className="grid grid-cols-2 gap-2">
           {WATER_TIMES[slot.shift].map((h) => (
             <TextInput key={h} label={t('water.label', { time: h.slice(0, 2) })} inputMode="numeric" maxLength={5} value={water[h] ?? ''} onChange={(e) => setWater((w) => ({ ...w, [h]: e.target.value }))} className="text-right font-bold" />
           ))}
         </div>
-        <TextArea label={t('notes.label')} placeholder={t('notes.placeholder')} value={notes} rows={3} onChange={(e) => setNotes(e.target.value)} />
-        </fieldset>
+        <div className="flex items-end justify-between gap-2">
+          <span className="text-[15px] font-bold">{t('notes.label')}</span>
+          <button
+            type="button"
+            aria-pressed={notesNone}
+            onClick={() => setNotesNone((v) => !v)}
+            className={cx('min-h-11 rounded-xl border-[1.5px] px-4 font-bold', notesNone ? 'border-brand bg-brand text-white' : 'border-brand bg-white text-brand-dark')}
+          >
+            {notesNone ? `✓ ${t('notes.none')}` : t('notes.none')}
+          </button>
+        </div>
+        <textarea
+          aria-label={t('notes.label')}
+          disabled={notesNone}
+          placeholder={notesNone ? '' : t('notes.placeholder')}
+          value={notesNone ? '' : notes}
+          rows={3}
+          onChange={(e) => setNotes(e.target.value)}
+          className="min-h-12 w-full rounded-xl border border-slate-400 bg-white px-3.5 py-2.5 text-base placeholder:text-slate-600 focus:border-brand focus:ring-4 focus:ring-brand/15 focus:outline-none disabled:bg-slate-100 disabled:opacity-60"
+        />
       </Section>
 
       {error && <ErrorBox message={error} />}

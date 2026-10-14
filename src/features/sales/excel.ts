@@ -81,10 +81,7 @@ function reportSheet(r: SalesReport, store: string, losses: { e: StockEvent; qty
     ['現金過不足', `${diffText(r.cash_diff)}円`],
     ['過不足の理由', r.cash_diff_reason ?? ''],
   ]
-  const notesNone = r.notes === 'なし' && Object.values(r.water).every((v) => !v)
-  const notes = notesNone
-    ? ['なし']
-    : [...WATER_TIMES[r.shift].map((h) => `水道メーター検針：${Number(h.slice(0, 2))}時 ${r.water[h] || ''}`), ...(r.notes ?? '').split('\n').filter(Boolean)]
+  const notes = [...WATER_TIMES[r.shift].map((h) => `水道メーター検針：${Number(h.slice(0, 2))}時 ${r.water[h] || ''}`), ...(r.notes ?? '').split('\n').filter(Boolean)]
   rows.push([head('現金実際有高'), head('枚'), ...span(head('現金集計'), 2), head(''), ...span(head('連絡事項'), 3)])
   DENOMS.forEach(([k, label], i) => {
     const s = summary[i]
