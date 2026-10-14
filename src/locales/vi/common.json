@@ -121,7 +121,9 @@
     "videos": "Video mẫu",
     "videosSub": "Video làm mẫu",
     "skills": "Nâng cao kỹ năng",
-    "skillsSub": "Đang chuẩn bị"
+    "skillsSub": "Đang chuẩn bị",
+    "absence": "Báo nghỉ / đi muộn",
+    "absenceSub": "Nghỉ, đi muộn, về sớm / nhận ca thay / điểm đi làm"
   },
   "phrase": {
     "philosophy1": "Khách hàng là trên hết",

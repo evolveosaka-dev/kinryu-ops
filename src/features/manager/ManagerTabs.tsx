@@ -13,6 +13,7 @@ export function ManagerTabs() {
     { to: '/manager/chorei', label: `${t('tabs.chorei')}` },
     { to: '/manager/patrol', label: `${t('tabs.patrol')}` },
     ...(STAFF_ISSUES_ENABLED ? [{ to: '/manager/staff', label: `${t('tabs.staff')}` }] : []),
+    { to: '/manager/attendance', label: `${t('tabs.attendance')}` },
     { to: '/manager/stats', label: `${t('tabs.stats')}` },
     { to: '/manager/sales', label: `${t('tabs.sales')}` },
     { to: '/manager/analysis', label: `${t('tabs.analysis')}` },

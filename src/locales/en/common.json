@@ -121,7 +121,9 @@
     "videos": "Model videos",
     "videosSub": "Videos showing how to do it",
     "skills": "Skill up",
-    "skillsSub": "Coming soon"
+    "skillsSub": "Coming soon",
+    "absence": "Day off / late notice",
+    "absenceSub": "Absent, late, leaving early / cover requests / attendance score"
   },
   "phrase": {
     "philosophy1": "Customers come first",

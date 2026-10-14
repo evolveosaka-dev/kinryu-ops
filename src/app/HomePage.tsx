@@ -6,6 +6,7 @@ import { Card, SectionTitle } from '../components/ui'
 import { useUnreadComments } from '../features/comments/Comments'
 import { DutyCard } from '../features/schedule/DutyCard'
 import { NextShiftCard } from '../features/schedule/NextShiftCard'
+import { RecruitHomeCard } from '../features/shift/RecruitHomeCard'
 import { PHILOSOPHY, SERVICE_PHRASES } from '../domain/phrases'
 import { currentSlot, formatShortDate, MEETING_TIME } from '../domain/time'
 import { useAuth, useMe } from './auth'
@@ -70,6 +71,8 @@ export function HomePage() {
         </Link>
       )}
 
+      <RecruitHomeCard />
+
       <DutyCard />
 
       <NextShiftCard />
@@ -105,6 +108,7 @@ export function HomePage() {
             <MenuItem to="/stock" icon="📦" tint="bg-orange-100" title={t('home.stock')} sub={t('home.stockSub')} />
             <MenuItem to="/sales" icon="🧾" tint="bg-emerald-100" title={t('home.sales')} sub={t('home.salesSub')} />
             <MenuItem to="/schedule" icon="📅" tint="bg-sky-100" title={t('home.schedule')} sub={t('home.scheduleSub')} />
+            <MenuItem to="/absence" icon="🙋" tint="bg-rose-100" title={t('home.absence')} sub={t('home.absenceSub')} />
             {isManager && <MenuItem to="/all-shifts" icon="🗓️" tint="bg-teal-100" title={t('home.allShifts')} sub={t('home.allShiftsSub')} />}
             <MenuItem to="/shift-request" icon="📝" tint="bg-violet-100" title={t('home.shiftRequest')} sub={t('home.shiftRequestSub')} />
           </ul>

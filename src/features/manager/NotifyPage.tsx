@@ -11,7 +11,7 @@ import { supabase } from '../../lib/supabase'
 import { jstDateTime } from './data'
 import { ManagerTabs } from './ManagerTabs'
 
-const NOTIFY_KINDS = ['chorei', 'chorei_note', 'patrol', 'shift_request', 'signup', 'edit', 'staff_alert', 'stock', 'sales'] as const
+const NOTIFY_KINDS = ['chorei', 'chorei_note', 'patrol', 'shift_request', 'signup', 'edit', 'staff_alert', 'stock', 'sales', 'shift_change', 'visa_hours'] as const
 const SHOWN_KINDS = NOTIFY_KINDS.filter((k) => STAFF_ISSUES_ENABLED || k !== 'staff_alert')
 type Kind = (typeof NOTIFY_KINDS)[number]
 type Mode = 'instant' | 'digest'

@@ -47,6 +47,8 @@ const AnalysisPage = page(() => import('../features/manager/analysis/AnalysisPag
 const StockPage = page(() => import('../features/stock/StockPage'), 'StockPage')
 const StockItemsPage = page(() => import('../features/manager/StockItemsPage'), 'StockItemsPage')
 const ShiftRequestPage = page(() => import('../features/shift/ShiftRequestPage'), 'ShiftRequestPage')
+const AbsencePage = page(() => import('../features/shift/AbsencePage'), 'AbsencePage')
+const AttendanceAdminPage = page(() => import('../features/manager/AttendanceAdminPage'), 'AttendanceAdminPage')
 
 /** Decides which screen a visitor may see: login → approval → privacy notice → app. */
 function Gate() {
@@ -88,6 +90,7 @@ function Gate() {
         {canPatrol && <Route path="patrol" element={<PatrolFormPage />} />}
         <Route path="history" element={<HistoryPage />} />
         <Route path="shift-request" element={<ShiftRequestPage />} />
+        <Route path="absence" element={<AbsencePage />} />
         <Route path="schedule" element={<SchedulePage />} />
         <Route path="stock" element={<StockPage />} />
         <Route path="sales" element={<SalesPage />} />
@@ -109,6 +112,7 @@ function Gate() {
             {/* 巡回時間 is a section of 巡回 now */}
             <Route path="hours" element={<Navigate to="/manager/patrol" replace />} />
             <Route path="sales" element={<SalesAdminPage />} />
+            <Route path="attendance" element={<AttendanceAdminPage />} />
             <Route path="analysis" element={<AnalysisPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="targets" element={<TargetsPage />} />

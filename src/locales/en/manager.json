@@ -24,7 +24,15 @@
     "fullName": "Full name (for reports)",
     "noFullName": "Not registered",
     "rosterName": "Shift-table name (for the schedule)",
-    "noRoster": "Not linked"
+    "noRoster": "Not linked",
+    "visa": {
+      "label": "Student / dependent visa (28 h a week check)",
+      "student": "Student visa",
+      "dependent": "Dependent visa",
+      "needRoster": "First choose and save the shift-table name.",
+      "ok": "Within {{h}} h in any 7 days (shift table from 6 days ago to 6 weeks ahead).",
+      "over": "{{from}}–{{to}}: over 28 h in 7 days in a row (up to {{h}} h)"
+    }
   },
   "sync": {
     "tab": "Spreadsheet",
@@ -56,7 +64,8 @@
     "settings": "Settings",
     "staff": "By staff",
     "sales": "Sales",
-    "analysis": "Analysis"
+    "analysis": "Analysis",
+    "attendance": "Attendance"
   },
   "period": {
     "weekMode": "Week",
@@ -91,7 +100,10 @@
     "patrols": "Patrols",
     "mask": "Masks (smile = 1)",
     "staffInterview": "Coaching interview needed (by staff)",
-    "staffEscalate": "Recurring after interview (measures)"
+    "staffEscalate": "Recurring after interview (measures)",
+    "visaOver": "Over 28 h a week (student / dependent visa)",
+    "visaHow": "At most 28 h in any 7 days in a row. The shift table (after approved absences / covers) from 6 days ago to 6 weeks ahead is checked every hour; going over also sends a mail.\nReduce the shifts or have someone cover.",
+    "visaShifts": "Check in 全店舗シフト"
   },
   "filter": {
     "store": "Store",
@@ -299,7 +311,9 @@
       "edit": "Edits / voids",
       "staff_alert": "Coaching alerts",
       "stock": "Stock (carry-over mismatch, waste / damage; 7:30 summary only)",
-      "sales": "Daily sales report (differences at once, others in the 7:30 summary)"
+      "sales": "Daily sales report (differences at once, others in the 7:30 summary)",
+      "shift_change": "Absence / late / early-leave reports (within 24 h: at once to everyone)",
+      "visa_hours": "Student / dependent visa over 28 h a week (at once to everyone)"
     },
     "active": "On",
     "delete": "Delete",
@@ -665,5 +679,60 @@
     "patrolExtra": "Patrols done in shifts without a patrol duty.",
     "skipped": "朝礼 sent with this step unchecked (reason in the detail).",
     "hours": "{{n}} valid patrols, {{min}} min in total (actual start → end)."
+  },
+  "attendance": {
+    "title": "Attendance",
+    "tabReports": "Absence / late reports",
+    "tabScore": "Attendance score",
+    "recordCall": "Record a phone call",
+    "person": "Staff",
+    "shift": "Shift",
+    "recorded": "Recorded.",
+    "openTitle": "Waiting ({{n}})",
+    "noOpen": "Nothing waiting.",
+    "doneTitle": "Done (last 2 weeks on)",
+    "offers": "{{n}} can cover",
+    "noOffers": "No offers yet. Pick from the candidates below.",
+    "notRecruiting": "Not asking for a replacement. Pick from the candidates below.",
+    "candidates": "Candidates (not working then)",
+    "candidatesHelp": "Check the weekly hours (with this shift), the weekly limit and 12 h in a row. Someone you asked by phone can be chosen here too.",
+    "week": "{{h}} h in 7 days",
+    "limit": "limit {{h}} h",
+    "overLimit": "over the limit",
+    "chain": "{{h}} h in a row",
+    "conflict": "already working",
+    "showAll": "Show all",
+    "managerNote": "Note to the staff member (optional)",
+    "approveWith": "Approve with {{name}} (swap the shift)",
+    "approveWithout": "Approve without a replacement",
+    "confirm": "Confirmed (approve)",
+    "reject": "Reject (must come to work)",
+    "decideHelp": "Approving changes the shift table at once and shows in the replacement's schedule. It stays after a re-import.",
+    "approved": "Approved.",
+    "rejected": "Rejected.",
+    "byManager": "recorded by a manager",
+    "how": "Score = 100 + the points of the last {{n}} days (max 100)\nA 95+ / B 85–94 / C 70–84 → talk / D below 70 or 2 no-shows → ⚠\nTap a name for the records, adjustments and the weekly limit.",
+    "score": "Score",
+    "col": {
+      "noShow": "No-show",
+      "sameDay": "Same day",
+      "late": "Late",
+      "early": "Early",
+      "cover": "Cover"
+    },
+    "legalNote": "Paid leave and store reasons are 0 (paid leave must not be held against anyone). We judge how early people tell us, not being sick. 遅刻・早退・欠勤 in a 販売日報 without a report count as not told.",
+    "scoreTitle": "Attendance score",
+    "adjust": "Adjust points",
+    "adjustHelp": "For an input mistake or a special case, exclude the record or change its points (the note is visible to the person).",
+    "base": "rule",
+    "exclude": "Exclude",
+    "points": "Points",
+    "note": "Note",
+    "save": "Save",
+    "reset": "Back to the rule",
+    "limitTitle": "Weekly limit",
+    "limitHelp": "Student / dependent visas: check them on 管理 → 設定 → ユーザー (28 h in 7 days in a row). For other limits enter the hours here. Empty = no limit.",
+    "limitHours": "hours / week",
+    "visaLimit": "at most 28 h in 7 days in a row (set on the user screen)"
   }
 }

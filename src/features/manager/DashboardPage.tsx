@@ -15,6 +15,9 @@ import { supabase } from '../../lib/supabase'
 import { Dot } from './common'
 import { ChoreiSlotSheets, DrillSheet, TapStat } from './drill'
 import { avgHow, score25Line, useDrill } from './drillState'
+import { visaRuns } from '../../domain/shiftChange'
+import { useVisaWindows } from '../shift/changeData'
+import { Sheet } from '../../components/Sheet'
 import { today, useIssueStatus, usePeople, useRecords, weekOf, type AdminPatrol } from './data'
 import { STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { PatrolDetail } from './details'
@@ -83,6 +86,8 @@ export function DashboardPage() {
   // today's slot opened from the grid (date|store|shift)
   const [slotKey, setSlotKey] = useState<string | null>(null)
   const drill = useDrill()
+  const visa = useVisaWindows()
+  const [visaOpen, setVisaOpen] = useState(false)
 
   if (records.isLoading || stores.isLoading) return <Spinner />
   if (records.error) return <ErrorBox message={errorMessage(records.error)} />
@@ -192,6 +197,16 @@ export function DashboardPage() {
               <span>{missingSlots.length} ›</span>
             </button>
           </li>
+          {visaRuns(visa.data ?? []).length > 0 && (
+            <li>
+              <button type="button" onClick={() => setVisaOpen(true)} className="flex min-h-11 w-full items-center justify-between gap-2 rounded-xl bg-red-50 px-3 text-left font-semibold text-red-900">
+                <span className="flex items-center gap-2">
+                  <Dot tone="red" /> {t('dashboard.visaOver')}
+                </span>
+                <span>{new Set(visaRuns(visa.data ?? []).map((r) => r.name)).size} ›</span>
+              </button>
+            </li>
+          )}
           <li>
             <Link to="/manager/users" className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-blue-50 px-3 font-semibold text-blue-900">
               {t('dashboard.pendingUsers')} <span>{pending}</span>
@@ -239,6 +254,26 @@ export function DashboardPage() {
         />
       </div>
 
+      {visaOpen && (
+        <Sheet title={t('dashboard.visaOver')} onClose={() => setVisaOpen(false)}>
+          <p className="rounded-xl bg-sky-50 p-3 text-sm font-bold whitespace-pre-line text-sky-900">{t('dashboard.visaHow')}</p>
+          <ul className="flex flex-col gap-1.5">
+            {visaRuns(visa.data ?? []).map((r) => (
+              <li key={`${r.name}${r.from}`} className="rounded-xl border border-red-200 bg-white p-3">
+                <b>
+                  {r.name}（{t(`users.visa.${r.visa}`)}）
+                </b>
+                <span className="block text-sm text-red-800">
+                  {t('users.visa.over', { from: formatShortDate(r.from), to: formatShortDate(r.to), h: Math.round((r.maxMin / 60) * 10) / 10 })}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <Link to="/all-shifts" className="text-center font-bold text-brand underline">
+            🗓️ {t('dashboard.visaShifts')}
+          </Link>
+        </Sheet>
+      )}
       <DrillSheet drill={drill} slots={choreiSlots(chorei, dateRange(addDays(day, -13), day), storeIds, now, misses)} patrols={patrols} />
       {openSlot && <ChoreiSlotSheets key={slotKey} slot={openSlot} onClose={() => setSlotKey(null)} />}
       {selected && <PatrolDetail patrol={selected} patrollerName={people.name(selected.patroller_id)} onClose={() => setSelected(null)} />}

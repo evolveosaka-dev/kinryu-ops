@@ -9,6 +9,10 @@ import { errorMessage } from '../../lib/format'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import type { Profile } from '../../lib/types'
+import { formatShortDate } from '../../domain/time'
+import { VISA_LIMIT_MIN, visaRuns, type Visa } from '../../domain/shiftChange'
+import { cx } from '../../lib/cx'
+import { useStaffLimits, useVisaWindows } from '../shift/changeData'
 import { ManagerTabs } from './ManagerTabs'
 
 type Patch = Partial<Pick<Profile, 'role' | 'can_patrol' | 'status' | 'full_name' | 'roster_name'>>
@@ -17,7 +21,74 @@ const ROLES: Role[] = ['staff', 'manager', 'admin']
 const STATUSES: ProfileStatus[] = ['pending', 'active', 'inactive', 'rejected']
 const selectClass = 'min-h-11 w-full rounded-lg border border-slate-300 bg-white px-2 text-sm'
 
-function UserRow({ user, onSave, isSelf, rosterNames, takenNames }: { user: Profile; onSave: (p: Patch) => void; isSelf: boolean; rosterNames: string[]; takenNames: Set<string> }) {
+type Run = ReturnType<typeof visaRuns>[number]
+
+/** 留学 / 家族滞在: 28 hours in any 7 days in a row; checked → automatic alerts (mail + ダッシュボード). */
+function VisaBox({ rosterName, visa, runs }: { rosterName: string | null; visa: Visa | null; runs: Run[] }) {
+  const { t } = useTranslation('manager')
+  const queryClient = useQueryClient()
+  const save = useMutation({
+    mutationFn: async (v: Visa | null) =>
+      unwrap(await supabase.from('staff_limits').upsert({ roster_name: rosterName!, visa: v }, { onConflict: 'roster_name' })),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'staff_limits'] })
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'visa_windows'] })
+    },
+  })
+  const h = (m: number) => Math.round((m / 60) * 10) / 10
+  return (
+    <div className={cx('flex flex-col gap-1 rounded-lg p-2', visa ? 'bg-violet-50' : 'bg-slate-50')}>
+      <label className="flex min-h-10 items-center gap-2 text-sm font-bold">
+        <input
+          type="checkbox"
+          className="size-5 accent-brand"
+          disabled={!rosterName || save.isPending}
+          checked={Boolean(visa)}
+          onChange={(e) => save.mutate(e.target.checked ? 'student' : null)}
+        />
+        🎓 {t('users.visa.label')}
+      </label>
+      {!rosterName && <p className="text-xs text-slate-600">{t('users.visa.needRoster')}</p>}
+      {visa && (
+        <>
+          <div className="grid grid-cols-2 gap-2">
+            {(['student', 'dependent'] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                aria-pressed={visa === v}
+                onClick={() => save.mutate(v)}
+                className={cx('min-h-10 rounded-lg border-[1.5px] text-sm font-bold', visa === v ? 'border-brand bg-brand text-white' : 'border-line bg-white')}
+              >
+                {t(`users.visa.${v}`)}
+              </button>
+            ))}
+          </div>
+          {runs.length === 0 ? (
+            <p className="text-xs font-bold text-green-800">✓ {t('users.visa.ok', { h: VISA_LIMIT_MIN / 60 })}</p>
+          ) : (
+            runs.map((r) => (
+              <p key={r.from} className="text-xs font-bold text-red-700">
+                ⚠ {t('users.visa.over', { from: formatShortDate(r.from), to: formatShortDate(r.to), h: h(r.maxMin) })}
+              </p>
+            ))
+          )}
+        </>
+      )}
+      {save.error && <ErrorBox message={errorMessage(save.error)} />}
+    </div>
+  )
+}
+
+function UserRow({ user, onSave, isSelf, rosterNames, takenNames, visa, runs }: {
+  user: Profile
+  onSave: (p: Patch) => void
+  isSelf: boolean
+  rosterNames: string[]
+  takenNames: Set<string>
+  visa: Visa | null
+  runs: Run[]
+}) {
   const { t } = useTranslation('manager')
   const [draft, setDraft] = useState<Patch>({})
   const [rejecting, setRejecting] = useState(false)
@@ -77,6 +148,7 @@ function UserRow({ user, onSave, isSelf, rosterNames, takenNames }: { user: Prof
           {t('users.canPatrol')}
         </Checkbox>
       </div>
+      <VisaBox rosterName={user.roster_name} visa={visa} runs={runs} />
       {rejecting && (
         <div className="flex flex-col gap-2 rounded-lg bg-red-50 p-2">
           <p className="text-sm">{t('users.rejectConfirm')}</p>
@@ -131,6 +203,8 @@ export function UsersPage() {
     queryKey: ['staff_roster', 'all-names-sorted'],
     queryFn: async () => unwrap<{ name: string }[]>(await supabase.from('staff_roster').select('name').order('name')).map((r) => r.name),
   })
+  const limits = useStaffLimits()
+  const windows = useVisaWindows()
   const save = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Patch }) => unwrap(await supabase.from('profiles').update(patch).eq('id', id)),
     onSuccess: () => {
@@ -147,6 +221,8 @@ export function UsersPage() {
   if (users.error) return <ErrorBox message={errorMessage(users.error)} />
 
   const takenNames = new Set((users.data ?? []).flatMap((u) => (u.roster_name ? [u.roster_name] : [])))
+  const visaOf = new Map((limits.data ?? []).map((l) => [l.roster_name, l.visa]))
+  const runs = visaRuns(windows.data ?? [])
   const groups = STATUSES.map((s) => ({ status: s, list: (users.data ?? []).filter((u) => u.status === s) }))
 
   return (
@@ -162,7 +238,16 @@ export function UsersPage() {
                 {t(`users.${g.status}`)}（{g.list.length}）
               </h2>
               {g.list.map((u) => (
-                <UserRow key={u.id} user={u} isSelf={u.id === me.id} rosterNames={roster.data ?? []} takenNames={takenNames} onSave={(patch) => save.mutate({ id: u.id, patch })} />
+                <UserRow
+                  key={u.id}
+                  user={u}
+                  isSelf={u.id === me.id}
+                  rosterNames={roster.data ?? []}
+                  takenNames={takenNames}
+                  visa={(u.roster_name && visaOf.get(u.roster_name)) || null}
+                  runs={runs.filter((r) => r.name === u.roster_name)}
+                  onSave={(patch) => save.mutate({ id: u.id, patch })}
+                />
               ))}
             </section>
           ),

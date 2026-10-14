@@ -44,7 +44,7 @@ const PATROL_TYPE: Record<string, string> = { before_shift: '勤務前', in_shif
 const STEPS: Record<string, string> = { greeting: 'はじめの挨拶', philosophy: '経営理念', phrases: '接客用語', handover: '引継ぎ', grooming: '身だしなみ', closing: '締めの挨拶' }
 const ITEMS: [string, string][] = [['score_smile', '笑顔'], ['score_voice', '声出し'], ['score_grooming', '身だしなみ'], ['score_clean', '清潔'], ['score_quality', '提供品質']]
 const ACTION: Record<string, string> = { void: '取消', time: '時間の修正', follow_up: '面談済み', update: '修正' }
-const KIND: Record<string, string> = { chorei: '朝礼記録', chorei_note: '朝礼の追記', patrol: '巡回チェック', shift_request: 'シフト希望', signup: '新規登録', edit: '修正・取消', staff_alert: '面談指導の通知', stock: '在庫（繰越のずれ・廃棄・破損）', sales: '販売日報' }
+const KIND: Record<string, string> = { chorei: '朝礼記録', chorei_note: '朝礼の追記', patrol: '巡回チェック', shift_request: 'シフト希望', signup: '新規登録', edit: '修正・取消', staff_alert: '面談指導の通知', stock: '在庫（繰越のずれ・廃棄・破損）', sales: '販売日報', shift_change: '休み・遅刻・早退の連絡', visa_hours: '留学・家族滞在の週28時間超え' }
 // keep in sync with src/domain/types.ts MISS_REASONS / chorei.json miss.reason
 const MISS_REASON: Record<string, string> = { busy: 'お客様が多かった', no_manager: '管理者がいなかった', alone: '1人だけの勤務だった', forgot: '忘れた', other: 'その他' }
 // keep in sync with src/domain/stock.ts OPEN_REASONS / LOSS_REASONS
@@ -52,6 +52,9 @@ const STOCK_REASON: Record<string, string> = {
   miscount: '前のシフトの数え間違い・記入ミス', unrecorded: '店間移動・受入の記入漏れ', unknown: '原因不明', no_record: '前のシフトの記録がない',
   dropped: '落とした・こぼした', spoiled: '傷んでいた・期限切れ', quality: '異物・品質の問題', mistake: '作り間違い', other: 'その他',
 }
+// keep in sync with src/domain/shiftChange.ts CHANGE_REASONS
+const CHANGE_KIND: Record<string, string> = { absence: '休み', late: '遅刻', early_leave: '早退' }
+const CHANGE_REASON: Record<string, string> = { sick: '体調不良', family: '家族の用事', transport: '交通機関の遅れ', personal: '私用', paid_leave: '有給休暇', store: '店の都合', other: 'その他' }
 const STOCK_UNIT: Record<string, string> = { piece: '個', bag: '袋', box: '箱', stick: '本', liter: 'L' }
 const PREV_SHIFT: Record<string, [number, string]> = { early: [-1, 'late'], middle: [0, 'early'], late: [0, 'middle'] }
 const TABLE: Record<string, string> = { chorei_records: '朝礼記録', patrol_checks: '巡回チェック', shift_requests: 'シフト希望' }
@@ -259,6 +262,31 @@ async function renderEvent(admin: Admin, L: Lookup, e: NotifyEvent): Promise<{ s
   }
   if (e.kind === 'stock') return renderStock(admin, L, e)
   if (e.kind === 'sales') return renderSales(admin, L, e)
+  if (e.kind === 'shift_change') return renderShiftChange(admin, L, e)
+  if (e.kind === 'visa_hours') {
+    const d = e.data
+    const visa = d.visa === 'dependent' ? '家族滞在ビザ' : '留学ビザ'
+    const { data: rows } = await admin
+      .from('shift_assignments')
+      .select('business_date, shift, store_mark, start_min, end_min')
+      .eq('roster_name', d.roster_name)
+      .gte('business_date', d.from)
+      .lte('business_date', d.to)
+      .order('business_date')
+    return {
+      subject: `⚠ 週28時間超え: ${d.roster_name}（${visa}） ${day(d.from)}〜${day(d.to)}`,
+      lines: [
+        `${d.roster_name}さん（${visa}）のシフトが、連続7日間で28時間を超えています（最大 ${Math.round((d.minutes / 60) * 10) / 10}時間）。`,
+        `期間: ${day(d.from)}〜${day(d.to)}`,
+        '',
+        'この期間のシフト:',
+        ...(rows ?? []).map((r) => `・${day(r.business_date)} ${SHIFT[r.shift] ?? r.shift} ${minText(r.start_min)}–${minText(r.end_min)} ${r.store_mark}（${Math.round(((r.end_min - r.start_min) / 60) * 10) / 10}時間）`),
+        '',
+        'シフトを減らすか、代わりの人に入ってもらってください（資格外活動は どの7日間でも28時間まで）。',
+      ],
+      link: appUrl('/manager'),
+    }
+  }
   if (e.kind === 'edit') {
     const r = await fetchRow(admin, e.ref_table, e.ref_id)
     if (!r) return null
@@ -357,6 +385,51 @@ async function renderSales(admin: Admin, L: Lookup, e: NotifyEvent) {
       ...(r.notes ? [`連絡事項: ${r.notes}`] : []),
     ],
     link: appUrl(`/sales?store=${store?.code ?? ''}&date=${r.business_date}&shift=${r.shift}`),
+  }
+}
+
+const minText = (m: number) => `${Math.floor(m / 60) % 24}:${String(m % 60).padStart(2, '0')}`
+const noticeText = (min: number) =>
+  min < 0 ? `勤務開始の${Math.ceil(-min / 60 * 10) / 10}時間後に連絡` : min < 120 ? `開始の${min}分前に連絡` : `開始の${Math.floor(min / 60)}時間前に連絡`
+
+/** 休み・遅刻・早退の連絡 (event report) or a 代わりに入れます offer (event offer). */
+async function renderShiftChange(admin: Admin, L: Lookup, e: NotifyEvent) {
+  const r = await fetchRow(admin, 'shift_changes', e.ref_id)
+  if (!r || r.status === 'cancelled') return null
+  const store = r.store_id ? L.store(r.store_id) : r.store_mark
+  const where = `${store} ${day(r.business_date)} ${SHIFT[r.shift] ?? r.shift} ${minText(r.start_min)}–${minText(r.end_min)}`
+  const what =
+    r.kind === 'late' ? `遅刻（約${r.late_min}分）` : r.kind === 'early_leave' ? `早退（${minText(r.leave_min)}に退勤）` : CHANGE_KIND[r.kind] ?? r.kind
+  const link = appUrl('/manager/attendance')
+  if (e.data.event === 'offer') {
+    const o = await fetchRow(admin, 'shift_offers', e.data.offer)
+    if (!o || o.status !== 'offered' || r.status !== 'open') return null
+    return {
+      subject: `代わりに入れます: ${o.roster_name} → ${r.roster_name}の${what} ${day(r.business_date)} ${SHIFT[r.shift] ?? ''}`,
+      lines: [
+        `${o.roster_name}さんが代わりに入れます。`,
+        `対象: ${r.roster_name}さんの${what}（${where}）`,
+        ...(o.give_date ? [`交換: ${o.roster_name}さんの ${day(o.give_date)} ${SHIFT[o.give_shift] ?? ''} を ${r.roster_name}さんへ`] : []),
+        ...(o.note ? [`メモ: ${o.note}`] : []),
+        '',
+        'アプリの 管理 → 出勤 で承認すると、シフトが入れ替わります。',
+      ],
+      link,
+    }
+  }
+  return {
+    subject: `${e.urgent ? '⚠ ' : ''}${what}: ${r.roster_name} ${day(r.business_date)} ${SHIFT[r.shift] ?? ''}（${CHANGE_REASON[r.reason] ?? r.reason}）`,
+    lines: [
+      `スタッフ: ${r.roster_name}${r.by_manager ? `（${L.person(r.requester_id)}が記録）` : ''}`,
+      `勤務: ${where}`,
+      `内容: ${what}`,
+      `理由: ${CHANGE_REASON[r.reason] ?? r.reason}${r.note ? `（${r.note}）` : ''}`,
+      `連絡: ${jst(r.reported_at)}（${noticeText(r.notice_min)}）`,
+      `代わり: ${r.kind === 'late' ? '—' : r.recruit ? `募集中${r.swap_ok ? '（交換も可）' : ''}` : '募集しない（管理者が手配）'}`,
+      '',
+      'アプリの 管理 → 出勤 で、代わりの人を選んで承認してください。',
+    ],
+    link,
   }
 }
 
