@@ -20,8 +20,12 @@ export interface Ctx {
   shifts: Shift[]
 }
 
+/** Figures before this day are not used in any analysis (owner, 2026-10-14). */
+export const DATA_FROM = '2025-01-01'
+
 export const slotKey = (date: string, store: string, shift: string) => `${date}|${store}|${shift}`
-export const indexSales = (rows: Sale[]) => new Map(rows.map((r) => [slotKey(r.business_date, r.store_id, r.shift), r.bowls]))
+export const indexSales = (rows: Sale[]) =>
+  new Map(rows.filter((r) => r.business_date >= DATA_FROM).map((r) => [slotKey(r.business_date, r.store_id, r.shift), r.bowls]))
 /** Same weekday one year before (52 weeks). */
 export const lastYear = (date: string) => addDays(date, -364)
 

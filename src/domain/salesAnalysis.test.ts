@@ -22,6 +22,9 @@ const ev: TargetEvent = { id: 'e', event_date: '2026-10-07', name: '阪神', sto
 const ctx: Ctx = { sales: indexSales(sales), targets, events: [ev], holidays: H, storeIds: ['s'], shifts: SH }
 
 describe('salesAnalysis', () => {
+  it('figures before 2025 are never used', () => {
+    expect(indexSales([{ store_id: 's', business_date: '2024-12-31', shift: 'early', bowls: 9 }, { store_id: 's', business_date: '2025-01-01', shift: 'early', bowls: 7 }]).size).toBe(1)
+  })
   it('a day: actual, target with events, same weekday last year', () => {
     const v = dayView(ctx, '2026-10-07') // Wed, 阪神 中番 −20%
     expect(v).toMatchObject({ actual: 300, target: 280, lastYear: 240, complete: true, events: ['阪神'], dayType: 'weekday' })

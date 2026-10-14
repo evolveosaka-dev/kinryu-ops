@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Sheet } from '../../../components/Sheet'
 import { Button, Card, ErrorBox, PageTitle, Segmented, Spinner } from '../../../components/ui'
 import {
+  DATA_FROM,
   dayView,
   eventEffects,
   indexSales,
@@ -134,7 +135,7 @@ export function AnalysisPage() {
     mutationFn: async () => {
       if (!ctx) return
       const days = monthDays(month).map((d) => dayView(ctx, d))
-      const trend = monthlyTrend(ctx, '2024-07-01', `${today().slice(0, 7)}-01`)
+      const trend = monthlyTrend(ctx, DATA_FROM, `${today().slice(0, 7)}-01`)
       const weeks = weekly(ctx, '2026-08-03', today(), patrols.data ?? [])
       await exportXlsx(`分析_${month.slice(0, 7)}.xlsx`, [
         { name: '日別', rows: [['日付', '日の種類', '実績（杯）', '目標', '達成率%', '前年同曜日', 'イベント'], ...days.map((d) => [d.date, t(`chorei:target.${d.dayType}`, { lng: 'ja' }), d.actual, d.target ?? d.targetAll, rateOf(d.actual, d.target), d.lastYear, d.events.join('・')])] },
@@ -161,7 +162,7 @@ export function AnalysisPage() {
   const days = monthDays(month).map((d) => dayView(ctx, d))
   const summary = monthSummary(ctx, month, now)
   const types = typeTable(ctx, month)
-  const trend = monthlyTrend(ctx, '2024-07-01', `${now.slice(0, 7)}-01`)
+  const trend = monthlyTrend(ctx, DATA_FROM, `${now.slice(0, 7)}-01`)
   const years = [...new Set(trend.map((m) => m.month.slice(0, 4)))]
   // newest year blue, the year before orange, older years grey
   const yearColor = (i: number) => ['#1d4ed8', '#f59e0b', '#94a3b8', '#cbd5e1'][years.length - 1 - i] ?? '#cbd5e1'
