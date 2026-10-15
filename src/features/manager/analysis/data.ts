@@ -74,12 +74,22 @@ export function useWeather() {
     queryKey: ['analysis', 'weather', today()],
     staleTime: 60 * 60 * 1000,
     queryFn: async () => {
-      const rows: { business_date: string; shift: string; temp_avg: number | null; precip_mm: number; rain_hours: number; source: 'archive' | 'forecast' }[] = []
+      const rows: {
+        business_date: string
+        shift: string
+        temp_avg: number | null
+        temp_min: number | null
+        temp_max: number | null
+        weather_code: number | null
+        precip_mm: number
+        rain_hours: number
+        source: 'archive' | 'forecast'
+      }[] = []
       for (let from = 0; ; from += 1000) {
         const page = unwrap<typeof rows>(
           await supabase
             .from('weather_shifts')
-            .select('business_date, shift, temp_avg, precip_mm, rain_hours, source')
+            .select('business_date, shift, temp_avg, temp_min, temp_max, weather_code, precip_mm, rain_hours, source')
             .gte('business_date', DATA_FROM)
             .order('business_date')
             .order('shift')
@@ -90,7 +100,17 @@ export function useWeather() {
       }
       if (!rows.length) throw new Error('no weather yet')
       const map: WeatherMap = new Map()
-      for (const r of rows) map.set(`${r.business_date}|${r.shift}`, { temp: r.temp_avg === null ? null : Number(r.temp_avg), mm: Number(r.precip_mm), hours: r.rain_hours, source: r.source })
+      const num = (v: number | null) => (v === null ? null : Number(v))
+      for (const r of rows)
+        map.set(`${r.business_date}|${r.shift}`, {
+          temp: num(r.temp_avg),
+          min: num(r.temp_min),
+          max: num(r.temp_max),
+          code: r.weather_code,
+          mm: Number(r.precip_mm),
+          hours: r.rain_hours,
+          source: r.source,
+        })
       return map
     },
   })

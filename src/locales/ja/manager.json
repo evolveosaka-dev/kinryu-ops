@@ -1003,6 +1003,17 @@
       "1": "1〜3mm",
       "2": "3〜6mm",
       "3": "6mm以上"
+    },
+    "wx": {
+      "clear": "晴れ",
+      "partly": "晴れ時々くもり",
+      "cloudy": "くもり",
+      "fog": "霧",
+      "drizzle": "小雨",
+      "rain": "雨",
+      "snow": "雪",
+      "showers": "にわか雨",
+      "thunder": "雷雨"
     }
   },
   "emergency": {

@@ -154,7 +154,7 @@ async function runBackup(admin: ReturnType<typeof adminClient>) {
 const WX_LAT = 34.67
 const WX_LON = 135.5
 const WX_FROM = '2025-01-01'
-type Hourly = { time: string[]; temperature_2m: (number | null)[]; precipitation: (number | null)[] }
+type Hourly = { time: string[]; temperature_2m: (number | null)[]; precipitation: (number | null)[]; weather_code?: (number | null)[] }
 
 function addDay(date: string, n: number) {
   const d = new Date(`${date}T00:00:00Z`)
@@ -162,16 +162,26 @@ function addDay(date: string, n: number) {
   return d.toISOString().slice(0, 10)
 }
 
+/** The most frequent WMO code of the hours (ties → the higher = more severe code). */
+function modeCode(codes: number[]): number | null {
+  if (!codes.length) return null
+  const n = new Map<number, number>()
+  for (const c of codes) n.set(c, (n.get(c) ?? 0) + 1)
+  return [...n].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0]![0]
+}
+
 function weatherRows(h: Hourly, source: 'archive' | 'forecast') {
-  const m = new Map<string, { t: number[]; p: number[]; n: number }>()
+  const m = new Map<string, { t: number[]; p: number[]; c: number[]; n: number }>()
   h.time.forEach((t, i) => {
     const date = t.slice(0, 10)
     const hr = Number(t.slice(11, 13))
     const [d, shift] = hr >= 7 && hr < 17 ? [date, 'early'] : hr >= 17 && hr < 23 ? [date, 'middle'] : hr >= 23 ? [date, 'late'] : [addDay(date, -1), 'late']
     const k = `${d}|${shift}`
-    const v = m.get(k) ?? { t: [], p: [], n: 0 }
+    const v = m.get(k) ?? { t: [], p: [], c: [], n: 0 }
     if (h.temperature_2m[i] !== null) v.t.push(h.temperature_2m[i]!)
     if (h.precipitation[i] !== null) v.p.push(h.precipitation[i]!)
+    const code = h.weather_code?.[i]
+    if (code !== null && code !== undefined) v.c.push(code)
     if (h.temperature_2m[i] !== null || h.precipitation[i] !== null) v.n++
     m.set(k, v)
   })
@@ -189,6 +199,7 @@ function weatherRows(h: Hourly, source: 'archive' | 'forecast') {
         temp_max: v.t.length ? r1(Math.max(...v.t)) : null,
         precip_mm: r1(v.p.reduce((a, x) => a + x, 0)),
         rain_hours: v.p.filter((x) => x >= 0.5).length,
+        weather_code: modeCode(v.c),
         hours: v.n,
         source,
         fetched_at: new Date().toISOString(),
@@ -197,11 +208,11 @@ function weatherRows(h: Hourly, source: 'archive' | 'forecast') {
 }
 
 /** Archive from the last archived day (or 2025-01-01) to yesterday, then the forecast (7 days back … 16 ahead) for the rest. */
-async function runWeather(admin: ReturnType<typeof adminClient>) {
+async function runWeather(admin: ReturnType<typeof adminClient>, refetchFrom?: string) {
   const today = new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10)
   const { data: last } = await admin.from('weather_shifts').select('business_date').eq('source', 'archive').order('business_date', { ascending: false }).limit(1)
-  const from = last?.[0] ? addDay(last[0].business_date as string, -3) : WX_FROM
-  const q = `latitude=${WX_LAT}&longitude=${WX_LON}&hourly=temperature_2m,precipitation&timezone=Asia%2FTokyo`
+  const from = refetchFrom && /^\d{4}-\d{2}-\d{2}$/.test(refetchFrom) ? refetchFrom : last?.[0] ? addDay(last[0].business_date as string, -3) : WX_FROM
+  const q = `latitude=${WX_LAT}&longitude=${WX_LON}&hourly=temperature_2m,precipitation,weather_code&timezone=Asia%2FTokyo`
   const [a, f] = await Promise.all([
     fetch(`https://archive-api.open-meteo.com/v1/archive?${q}&start_date=${from}&end_date=${addDay(today, -1)}`),
     fetch(`https://api.open-meteo.com/v1/forecast?${q}&past_days=7&forecast_days=16`),
@@ -228,9 +239,9 @@ serve(async (req) => {
     if (!caller.isManager) throw new HttpError(403, 'managers only')
     if (caller.isTestAccount) throw new HttpError(403, 'test account: read only')
   }
-  const body = (await req.clone().json().catch(() => ({}))) as { action?: string }
+  const body = (await req.clone().json().catch(() => ({}))) as { action?: string; from?: string }
   if (body.action === 'backup') return runBackup(admin)
-  if (body.action === 'weather') return runWeather(admin)
+  if (body.action === 'weather') return runWeather(admin, body.from)
 
   const [stores, profiles, chorei, patrols, attachments, misses, stockLosses] = await Promise.all([
     admin.from('stores').select('id, name_ja'),

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card, Spinner } from '../../../components/ui'
-import { backtest, dayTypeCache, forecastSlot, rainFactors, rainOf, RAINY_MM, weatherFactors } from '../../../domain/forecast'
+import { backtest, dayTypeCache, forecastSlot, rainFactors, rainOf, RAINY_MM, weatherFactors, WX_ICON, wxKind, type WeatherMap } from '../../../domain/forecast'
 import { dayView, DATA_FROM, indexSales, type Ctx } from '../../../domain/salesAnalysis'
 import { addDays, formatShortDate, weekdayOf } from '../../../domain/time'
 import { SHIFTS } from '../../../domain/types'
@@ -12,6 +12,40 @@ import { today } from '../data'
 import { TapNum } from '../drill'
 import { useDailySales, useWeather } from './data'
 import { ForecastExplain, type ForecastOpen } from './ForecastExplain'
+
+/** 天気 of one day per shift (one place, both stores): icon, high / low, rain. */
+function WeatherStrip({ wx, date }: { wx: WeatherMap; date: string }) {
+  const { t } = useTranslation('manager')
+  const cells = SHIFTS.map((sh) => ({ sh, w: wx.get(`${date}|${sh}`) }))
+  if (cells.every((c) => !c.w)) return null
+  return (
+    <div className="grid grid-cols-3 gap-1 border-t border-line bg-sky-50/60 px-2 py-1.5 text-xs">
+      {cells.map(({ sh, w }) => {
+        const kind = w ? wxKind(w.code, w.mm) : null
+        return (
+          <div key={sh} className="flex flex-col items-center leading-tight">
+            <span className="text-muted">{t(`common:shift.${sh}`)}</span>
+            {w ? (
+              <>
+                <span className="text-sm font-bold">
+                  {kind ? `${WX_ICON[kind]} ${t(`forecast.wx.${kind}`)}` : '—'}
+                </span>
+                <span className="tabular-nums">
+                  {w.max != null && w.min != null ? `${Math.round(w.max)}° / ${Math.round(w.min)}°` : w.temp != null ? `${Math.round(w.temp)}°` : ''}
+                </span>
+                <span className={cx('tabular-nums', w.mm >= RAINY_MM ? 'font-bold text-sky-700' : 'text-muted')}>
+                  ☔ {w.mm}mm{w.hours > 0 && `・${w.hours}h`}
+                </span>
+              </>
+            ) : (
+              <span className="text-muted">—</span>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 /**
  * 杯数の予測 for the next `days` days (today included), store × shift, with the target and the rain.
@@ -58,7 +92,7 @@ export function ForecastCard({ days, compact = false }: { days: number; compact?
       const target = slots.every((s) => s.target !== null) ? slots.reduce((a, s) => a + s.target!, 0) : null
       return { date, dayType: view.dayType, slots, value, target }
     })
-    return { rows, factors, wf, check }
+    return { rows, factors, wf, check, wx }
   }, [stores.data, holidays.data, targets.data, events.data, sales.data, weather.data, days, now])
 
   if (weather.error) return <Card className="text-sm text-muted">🔮 {t('forecast.weatherError')}</Card>
@@ -100,6 +134,7 @@ export function ForecastCard({ days, compact = false }: { days: number; compact?
                   </span>
                 </TapNum>
               </div>
+              <WeatherStrip wx={result.wx} date={r.date} />
               {isOpen && (
                 <table className="mb-2 w-full text-sm">
                   <tbody>
@@ -109,8 +144,6 @@ export function ForecastCard({ days, compact = false }: { days: number; compact?
                         <tr key={`${s.store}${s.shift}`} className="border-t border-line">
                           <td className="px-3 py-1">
                             {short(s.store)} {t(`common:shift.${s.shift}`)}
-                            {s.detail.weather.temp && <span className="ml-1 text-xs text-slate-500">{Math.round(s.detail.weather.temp.temp)}°</span>}
-                            {(s.rainMm ?? 0) >= RAINY_MM && <span className="ml-1 text-xs text-sky-700">🌧{s.rainMm}mm</span>}
                             {s.events.length > 0 && <span className="block text-[11px] text-violet-700">{s.events.join('・')}</span>}
                           </td>
                           <td className="text-right font-bold tabular-nums">
