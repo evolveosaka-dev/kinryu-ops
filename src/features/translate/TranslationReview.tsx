@@ -16,10 +16,13 @@ export function TranslationReview({
   items,
   onConfirm,
   onCancel,
+  confirmLabel,
 }: {
   items: ReviewItem[]
   onConfirm: (ja: Record<string, string>) => void
   onCancel: () => void
+  /** default 「この内容で送信」 */
+  confirmLabel?: string
 }) {
   const { t } = useTranslation()
   const [ja, setJa] = useState<Record<string, string>>(() => Object.fromEntries(items.map((i) => [i.key, i.ja])))
@@ -73,7 +76,7 @@ export function TranslationReview({
             {t('translate.rewrite')}
           </Button>
           <Button onClick={() => onConfirm(ja)} disabled={items.some((i) => !(ja[i.key] ?? '').trim())}>
-            {t('translate.confirm')}
+            {confirmLabel ?? t('translate.confirm')}
           </Button>
         </footer>
       </div>

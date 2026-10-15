@@ -22,3 +22,6 @@ verify_jwt = false
 
 [functions.learn-translate]
 verify_jwt = false
+
+[functions.incident-ai]
+verify_jwt = false

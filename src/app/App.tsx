@@ -46,6 +46,7 @@ const SalesAdminPage = page(() => import('../features/manager/SalesAdminPage'), 
 const AnalysisPage = page(() => import('../features/manager/analysis/AnalysisPage'), 'AnalysisPage')
 const StockPage = page(() => import('../features/stock/StockPage'), 'StockPage')
 const StockItemsPage = page(() => import('../features/manager/StockItemsPage'), 'StockItemsPage')
+const EmergencyContactsPage = page(() => import('../features/manager/EmergencyContactsPage'), 'EmergencyContactsPage')
 const ShiftRequestPage = page(() => import('../features/shift/ShiftRequestPage'), 'ShiftRequestPage')
 const AbsencePage = page(() => import('../features/shift/AbsencePage'), 'AbsencePage')
 const AttendanceAdminPage = page(() => import('../features/manager/AttendanceAdminPage'), 'AttendanceAdminPage')
@@ -124,6 +125,7 @@ function Gate() {
             <Route path="settings" element={<SettingsPage />} />
             <Route path="targets" element={<TargetsPage />} />
             <Route path="stock-items" element={<StockItemsPage />} />
+            <Route path="emergency-contacts" element={<EmergencyContactsPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="roster" element={<RosterPage />} />
             <Route path="sync" element={<SyncPage />} />

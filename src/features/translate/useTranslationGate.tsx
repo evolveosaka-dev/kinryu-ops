@@ -29,6 +29,7 @@ export class TranslationCancelled extends Error {
 
 interface Pending {
   items: ReviewItem[]
+  confirmLabel?: string
   sourceLang: string
   resolve: (r: Record<string, string> | null) => void
 }
@@ -43,7 +44,7 @@ export function useTranslationGate() {
   const pendingRef = useRef<Pending | null>(null)
 
   const prepare = useCallback(
-    async (fields: GateField[]): Promise<GateResult> => {
+    async (fields: GateField[], opts?: { confirmLabel?: string }): Promise<GateResult> => {
       const values: Record<string, string | null> = Object.fromEntries(fields.map((f) => [f.key, f.text]))
       const foreign = fields.filter((f) => needsTranslation(f.text))
       if (foreign.length === 0) return { values, originals: null, sourceLang: null }
@@ -65,7 +66,7 @@ export function useTranslationGate() {
         return { key: f.key, label: field.label, original: field.text ?? '', ja: f.ja, back: f.back }
       })
       const confirmed = await new Promise<Record<string, string> | null>((resolve) => {
-        const p = { items, sourceLang: data.sourceLang, resolve }
+        const p = { items, sourceLang: data.sourceLang, resolve, confirmLabel: opts?.confirmLabel }
         pendingRef.current = p
         setPending(p)
       })
@@ -88,7 +89,7 @@ export function useTranslationGate() {
   }
 
   const review = pending ? (
-    <TranslationReview items={pending.items} onConfirm={(ja) => close(ja)} onCancel={() => close(null)} />
+    <TranslationReview items={pending.items} confirmLabel={pending.confirmLabel} onConfirm={(ja) => close(ja)} onCancel={() => close(null)} />
   ) : null
 
   return { prepare, review }

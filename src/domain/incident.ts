@@ -45,4 +45,51 @@ export interface Incident {
   prevention: string | null
   resolved_at: string | null
   created_at: string
+  customer_name: string | null
+  customer_phone: string | null
+  contact_method: ContactMethod | null
+  ai_suggestion: AiSuggestion | null
+  action_source: 'ai' | 'own' | null
+}
+
+/** 管理者への連絡 (migration 20261016000002). */
+export const CONTACT_METHODS = ['phone', 'line', 'none'] as const
+export type ContactMethod = (typeof CONTACT_METHODS)[number]
+export const CONTACT_ICON: Record<ContactMethod, string> = { phone: '📞', line: '💬', none: '🙅' }
+
+export interface EmergencyContact {
+  id: string
+  name: string
+  phone: string | null
+  line_ok: boolean
+  note: string | null
+  sort_order: number
+  active: boolean
+}
+
+export type ContactResult = 'reached' | 'no_answer' | 'sent' | 'not_sent'
+export interface ContactLog {
+  id: string
+  contact_name: string
+  method: 'phone' | 'line'
+  user_name: string
+  at: string
+  result: ContactResult | null
+  incident_id: string | null
+}
+
+/** その場でしたこと proposed by incident-ai from managers' earlier handling. */
+export interface AiSuggestion {
+  ja: string
+  local: string
+  lang: string
+  basedOn: { id: string; kind: IncidentKind; date: string }[]
+  cases: number
+}
+
+/** The text sent with LINE: kind, store, time, what happened (Japanese labels, the manager reads it). */
+export function lineMessage(p: { kind: string; store: string; when: string; description: string; customer?: string }): string {
+  return [`【クレーム・事故】${p.kind}`, `${p.store} ${p.when}`, p.description.trim(), p.customer ? `お客様: ${p.customer}` : '']
+    .filter(Boolean)
+    .join('\n')
 }

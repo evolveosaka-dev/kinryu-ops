@@ -14,7 +14,7 @@ export function WheelPicker<T extends string | number>({
   value,
   onChange,
 }: {
-  label: ReactNode
+  label?: ReactNode
   options: { value: T; label: ReactNode }[]
   value: T | null
   onChange: (v: T) => void
@@ -50,7 +50,7 @@ export function WheelPicker<T extends string | number>({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-[15px] font-bold text-ink">{label}</span>
+      {label && <span className="text-[15px] font-bold text-ink">{label}</span>}
       <div className="relative overflow-hidden rounded-xl border border-line bg-white" style={{ height: ITEM * VISIBLE }}>
         <div aria-hidden className="pointer-events-none absolute inset-x-2 rounded-lg bg-brand/10 ring-2 ring-brand" style={{ top: ITEM * 2, height: ITEM }} />
         <div

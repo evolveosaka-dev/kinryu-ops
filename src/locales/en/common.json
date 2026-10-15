@@ -295,7 +295,7 @@
     "store": "Store",
     "when": "When it happened",
     "description": "What happened",
-    "descriptionHint": "When, where, what. No customer names or face photos.",
+    "descriptionHint": "Write freely in the language you know best. \"Translate to Japanese with AI\" below turns it into Japanese.",
     "action": "What you did on the spot",
     "actionHint": "e.g. made it again, refunded, first aid",
     "photoHint": "Photos / videos of the situation (no customer faces)",
@@ -307,6 +307,51 @@
       "open": "Open",
       "in_progress": "In progress",
       "done": "Done"
+    },
+    "today": "Today",
+    "now": "Now (fix this time)",
+    "translate": "Translate to Japanese with AI",
+    "translateUse": "Use this Japanese",
+    "translated": "Translated into Japanese",
+    "alreadyJapanese": "It is already Japanese. No translation needed.",
+    "customerHint": "If you can, ask for the customer's name and phone number (so we can contact them later).",
+    "customerName": "Customer's name",
+    "customerPhone": "Customer's phone",
+    "actionFromAi": "What you did (AI proposal, you can edit it)",
+    "actionOwn": "What you did (write it yourself)",
+    "contact": {
+      "title": "Contact a manager",
+      "hint": "If it is urgent, call or send a LINE right away. Contacting through these buttons is recorded.",
+      "method": {
+        "phone": "Call",
+        "line": "LINE",
+        "none": "No contact (not urgent)"
+      },
+      "noContact": "No contact has been set yet (Manager → Settings → Emergency contacts).",
+      "call": "📞 Call {{name}}",
+      "line": "💬 Send to {{name}} on LINE",
+      "lineHint": "LINE opens. Choose {{name}} and send (the text is filled in).",
+      "askPhone": "Did you reach {{name}} by phone?",
+      "askLine": "Did you send the LINE to {{name}}?",
+      "result": {
+        "reached": "Reached",
+        "no_answer": "No answer",
+        "sent": "Sent",
+        "not_sent": "Not sent"
+      }
+    },
+    "ai": {
+      "title": "AI proposal",
+      "hint": "AI proposes what to do now, based on how managers handled earlier cases.",
+      "ask": "Ask AI for a proposal",
+      "again": "Ask again",
+      "thinking": "AI is thinking…",
+      "needDescription": "First choose the type and write what happened.",
+      "failed": "AI could not make a proposal",
+      "basedOn": "Based on {{n}} earlier cases",
+      "noCases": "No similar case yet, so these are general steps",
+      "followed": "I did what AI proposed",
+      "own": "I did something else (write it yourself)"
     }
   }
 }

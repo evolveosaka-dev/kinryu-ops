@@ -357,7 +357,8 @@ describe('クレーム・事故', () => {
     await t.as(manager, `update public.incidents set status = 'done', owner_name = '管理者', resolution = '温度確認', prevention = '提供前に確認' where id = $1`, [a!.id])
     const [row] = await t.admin<{ resolved: boolean }>(`select resolved_at is not null as resolved from public.incidents where id = $1`, [a!.id])
     expect(row!.resolved).toBe(true)
-    await expect(t.as(manager, `update public.incidents set description = 'x' where id = $1`, [a!.id])).rejects.toThrow(/only the handling/)
+    // managers may correct the report since 20261016000002; who reported stays
+    await expect(t.as(manager, `update public.incidents set reporter_name = 'x' where id = $1`, [a!.id])).rejects.toThrow(/reporter/)
     await expect(t.as(minami, `select public.report_incident($1, ${TODAY}, 'middle', now() - interval '20 days', 'other', 'x')`, [st!.id])).rejects.toThrow(/time out of range/)
   })
 })

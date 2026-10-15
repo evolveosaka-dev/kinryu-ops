@@ -1,11 +1,21 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMe } from '../../app/auth'
 import { Sheet } from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
 import { Button, Card, ErrorBox, PageTitle, Segmented, Spinner, TextArea, TextInput } from '../../components/ui'
-import { INCIDENT_ICON, INCIDENT_KINDS, INCIDENT_STATUSES, INCIDENT_STATUS_STYLE, URGENT_INCIDENTS, type IncidentKind, type IncidentStatus } from '../../domain/incident'
+import {
+  CONTACT_ICON,
+  INCIDENT_ICON,
+  INCIDENT_KINDS,
+  INCIDENT_STATUSES,
+  INCIDENT_STATUS_STYLE,
+  URGENT_INCIDENTS,
+  type ContactLog,
+  type IncidentKind,
+  type IncidentStatus,
+} from '../../domain/incident'
 import { SHIFTS, type Shift } from '../../domain/types'
 import { currentLocale } from '../../i18n'
 import { formatShortDate } from '../../domain/time'
@@ -70,9 +80,37 @@ function IncidentSheet({ r, onClose }: { r: IncidentRow; onClose: () => void }) 
         </p>
         <p className="mt-1 whitespace-pre-wrap">{r.description}</p>
         {r.original_texts?.description && <p className="text-xs text-muted">{t('detail.original')}: {r.original_texts.description}</p>}
+        {(r.customer_name || r.customer_phone) && (
+          <p>
+            <b>{t('incidents.customer')}:</b> {r.customer_name ?? '—'}
+            {r.customer_phone && (
+              <>
+                {' '}
+                ・{' '}
+                <a className="text-brand underline" href={`tel:${r.customer_phone.replace(/[^0-9+]/g, '')}`}>
+                  {r.customer_phone}
+                </a>
+              </>
+            )}
+          </p>
+        )}
+        <ContactHistory r={r} />
         <p className="mt-1">
           <b>{t('incidents.action')}:</b> {r.action_taken ?? '—'}
+          {r.action_source && <span className="ml-1 rounded-full bg-violet-100 px-2 text-xs font-bold text-violet-900">{t(`incidents.source.${r.action_source}`)}</span>}
         </p>
+        {r.ai_suggestion && (
+          <details className="rounded-lg bg-violet-50 p-2 text-xs">
+            <summary className="cursor-pointer font-bold text-violet-900">🤖 {t('incidents.aiProposal', { n: r.ai_suggestion.basedOn.length, cases: r.ai_suggestion.cases })}</summary>
+            <p className="mt-1 whitespace-pre-wrap text-sm">{r.ai_suggestion.ja}</p>
+            <p className="mt-1 text-muted">
+              {t('incidents.aiBasis')}:{' '}
+              {r.ai_suggestion.basedOn.length
+                ? r.ai_suggestion.basedOn.map((b) => `${formatShortDate(b.date)} ${tc(`incident.kinds.${b.kind}`)}`).join('、')
+                : t('incidents.aiNoBasis')}
+            </p>
+          </details>
+        )}
         {r.original_texts?.action_taken && <p className="text-xs text-muted">{t('detail.original')}: {r.original_texts.action_taken}</p>}
         <AttachmentList list={r.attachments} parentId={r.id} />
         {!editing && (
@@ -101,6 +139,29 @@ function IncidentSheet({ r, onClose }: { r: IncidentRow; onClose: () => void }) 
         {r.resolved_at && <p className="text-xs text-muted">{t('incidents.resolvedAt', { at: jstDateTime(r.resolved_at) })}</p>}
       </Card>
     </Sheet>
+  )
+}
+
+/** 管理者への連絡: the reporter's taps on 電話する / LINEで送る and their answers. */
+function ContactHistory({ r }: { r: IncidentRow }) {
+  const { t } = useTranslation('manager')
+  const { t: tc } = useTranslation()
+  const log = useQuery({
+    queryKey: ['emergency_contact_log', r.id],
+    enabled: r.contact_method === 'phone' || r.contact_method === 'line',
+    queryFn: async () => unwrap<ContactLog[]>(await supabase.from('emergency_contact_log').select('*').eq('incident_id', r.id).order('at')),
+  })
+  if (!r.contact_method) return null
+  return (
+    <div>
+      <b>{t('incidents.contact')}:</b> {CONTACT_ICON[r.contact_method]} {tc(`incident.contact.method.${r.contact_method}`)}
+      {(log.data ?? []).map((l) => (
+        <p key={l.id} className="text-xs">
+          {CONTACT_ICON[l.method]} {jstDateTime(l.at)} → {l.contact_name}: {l.result ? tc(`incident.contact.result.${l.result}`) : t('emergency.noAnswer')}
+        </p>
+      ))}
+      {log.isSuccess && log.data.length === 0 && <p className="text-xs text-amber-800">{t('incidents.contactNoTap')}</p>}
+    </div>
   )
 }
 

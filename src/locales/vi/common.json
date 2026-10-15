@@ -295,7 +295,7 @@
     "store": "Cửa hàng",
     "when": "Thời điểm xảy ra",
     "description": "Chuyện gì đã xảy ra",
-    "descriptionHint": "Khi nào, ở đâu, chuyện gì. Không cần tên khách hay ảnh mặt khách.",
+    "descriptionHint": "Viết tự do bằng ngôn ngữ bạn hiểu rõ nhất. Bấm \"Dịch sang tiếng Nhật bằng AI\" bên dưới để chuyển sang tiếng Nhật.",
     "action": "Đã xử lý tại chỗ thế nào",
     "actionHint": "VD: làm lại, hoàn tiền, sơ cứu",
     "photoHint": "Ảnh / video tình huống (không chụp mặt khách)",
@@ -307,6 +307,51 @@
       "open": "Chưa xử lý",
       "in_progress": "Đang xử lý",
       "done": "Xong"
+    },
+    "today": "Hôm nay",
+    "now": "Bây giờ (cố định thời điểm này)",
+    "translate": "Dịch sang tiếng Nhật bằng AI",
+    "translateUse": "Dùng bản tiếng Nhật này",
+    "translated": "Đã dịch sang tiếng Nhật",
+    "alreadyJapanese": "Đã là tiếng Nhật, không cần dịch.",
+    "customerHint": "Nếu được, hãy hỏi tên và số điện thoại của khách (để liên lạc sau).",
+    "customerName": "Tên khách",
+    "customerPhone": "Số điện thoại của khách",
+    "actionFromAi": "Việc đã làm tại chỗ (đề xuất của AI, có thể sửa)",
+    "actionOwn": "Việc đã làm tại chỗ (tự viết)",
+    "contact": {
+      "title": "Liên lạc với quản lý",
+      "hint": "Nếu gấp, hãy gọi điện hoặc nhắn LINE ngay. Liên lạc bằng các nút này sẽ được ghi lại.",
+      "method": {
+        "phone": "Gọi điện",
+        "line": "Nhắn LINE",
+        "none": "Không liên lạc (không gấp)"
+      },
+      "noContact": "Chưa có người liên lạc (Quản lý → Cài đặt → Liên lạc khẩn cấp).",
+      "call": "📞 Gọi cho {{name}}",
+      "line": "💬 Gửi LINE cho {{name}}",
+      "lineHint": "LINE sẽ mở ra. Chọn {{name}} rồi gửi (nội dung đã được điền sẵn).",
+      "askPhone": "Bạn đã gọi được cho {{name}} chưa?",
+      "askLine": "Bạn đã gửi LINE cho {{name}} chưa?",
+      "result": {
+        "reached": "Đã gọi được",
+        "no_answer": "Không bắt máy",
+        "sent": "Đã gửi",
+        "not_sent": "Chưa gửi được"
+      }
+    },
+    "ai": {
+      "title": "Đề xuất của AI",
+      "hint": "AI đề xuất việc cần làm ngay, dựa trên cách quản lý đã xử lý trước đây.",
+      "ask": "Nhờ AI đề xuất",
+      "again": "Đề xuất lại",
+      "thinking": "AI đang suy nghĩ…",
+      "needDescription": "Hãy chọn loại và viết chuyện gì đã xảy ra trước.",
+      "failed": "AI không tạo được đề xuất",
+      "basedOn": "Dựa trên {{n}} lần xử lý trước đây",
+      "noCases": "Chưa có trường hợp tương tự, đây là cách xử lý chung",
+      "followed": "Đã làm theo đề xuất của AI",
+      "own": "Đã xử lý theo cách khác (tự viết)"
     }
   }
 }

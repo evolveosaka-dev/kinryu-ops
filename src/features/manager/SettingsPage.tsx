@@ -37,6 +37,7 @@ export function SettingsPage() {
     { to: '/manager/shift-requests', icon: 'calendar', label: t('shiftRequests.title'), sub: t('settings.shiftRequestsSub') },
     { to: '/manager/targets', icon: 'chart', label: t('targets.title'), sub: t('settings.targetsSub') },
     { to: '/manager/stock-items', icon: 'clipboard', label: t('stockItems.title'), sub: t('stockItems.sub') },
+    { to: '/manager/emergency-contacts', icon: 'megaphone', label: t('emergency.title'), sub: t('emergency.sub') },
     { to: '/manager/notify', icon: 'megaphone', label: t('notify.title'), sub: t('settings.notifySub') },
     { to: '/manager/sync', icon: 'calendar', label: t('sync.title'), sub: t('settings.syncSub') },
     { to: '/manager/system', icon: 'chart', label: t('system.title'), sub: t('system.subtitle') },

@@ -834,7 +834,17 @@
     "save": "Save",
     "saved": "Saved.",
     "resolvedAt": "Closed: {{at}}",
-    "editReport": "Correct the report"
+    "editReport": "Correct the report",
+    "customer": "Customer",
+    "contact": "Contact with a manager",
+    "contactNoTap": "No contact was made with the app's buttons.",
+    "source": {
+      "ai": "As AI proposed",
+      "own": "Own way"
+    },
+    "aiProposal": "AI proposal (used {{n}} earlier records / looked at {{cases}})",
+    "aiBasis": "Based on",
+    "aiNoBasis": "none (general steps)"
   },
   "reports": {
     "title": "AI reports",
@@ -933,5 +943,27 @@
       "errorFormula": "Error = mean of “|forecast − actual| ÷ actual”\n= mean of {{n}} rows\n= ±{{err}}%",
       "errorNote": "For the 28 days from {{from}} to yesterday, every day and shift was forecast the same way (only data before that day, and the rain that fell) and compared with the real bowls. All rows are below."
     }
+  },
+  "emergency": {
+    "title": "Emergency contacts",
+    "sub": "Who staff call / LINE about a complaint or accident",
+    "subtitle": "People shown under \"Call\" / \"LINE\" in the complaint & accident form. Lower order comes first.",
+    "name": "Name",
+    "order": "Order",
+    "phone": "Phone",
+    "note": "Note (not shown to staff)",
+    "lineOk": "Can be contacted by LINE",
+    "active": "In use (off = not shown to staff)",
+    "save": "Save",
+    "saved": "Saved",
+    "delete": "Delete",
+    "deleteConfirm": "Remove {{name}} from the contacts? (The history stays.)",
+    "add": "Add a contact",
+    "none": "No contacts yet.",
+    "history": "Contact history (last 100)",
+    "historyHint": "Calls / LINE made with the app's buttons and the staff member's answer (reached, sent…). Calls made outside the app are not recorded.",
+    "historyNone": "No contacts yet.",
+    "noAnswer": "no answer given",
+    "noReport": "report not sent"
   }
 }
