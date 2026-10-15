@@ -270,8 +270,13 @@ describe('未対応の連絡 reminders + test account', () => {
     await t.admin(`select public.check_pending_changes()`)
     expect((await reminders()).map((x) => x.data.hours)).toEqual([12])
     // 2 h before the start → the 3-hour reminder
-    await t.admin(`update public.shift_assignments set start_min = start_min - 480, end_min = end_min - 480 where raw = 'x'`)
-    await t.admin(`update public.shift_changes set start_min = start_min - 480, end_min = end_min - 480 where id = $1`, [soon])
+    // (computed afresh: moving the start back 8 h could cross midnight)
+    const [r2] = await t.admin<{ d: string; m: number }>(
+      `select (now() at time zone 'Asia/Tokyo' + interval '2 hours')::date::text as d,
+              extract(hour from (now() at time zone 'Asia/Tokyo' + interval '2 hours'))::int * 60 as m`,
+    )
+    await t.admin(`update public.shift_assignments set business_date = $1, start_min = $2, end_min = $2 + 60 where raw = 'x'`, [r2!.d, r2!.m])
+    await t.admin(`update public.shift_changes set business_date = $2, start_min = $3, end_min = $3 + 60 where id = $1`, [soon, r2!.d, r2!.m])
     await t.admin(`select public.check_pending_changes()`)
     expect((await reminders()).map((x) => x.data.hours)).toEqual([12, 3])
   })
