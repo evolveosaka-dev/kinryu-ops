@@ -80,9 +80,19 @@ function IncidentSheet({ r, onClose }: { r: IncidentRow; onClose: () => void }) 
         </p>
         <p className="mt-1 whitespace-pre-wrap">{r.description}</p>
         {r.original_texts?.description && <p className="text-xs text-muted">{t('detail.original')}: {r.original_texts.description}</p>}
+        {r.injured_who && (
+          <p>
+            <b>{t('incidents.injured')}:</b> {r.injured_who.map((w) => (w === 'staff' && r.injured_staff ? `${tc('incident.injured.staff')}（${r.injured_staff}）` : tc(`incident.injured.${w}`))).join('・')}
+          </p>
+        )}
+        {r.caller_type && (
+          <p>
+            <b>{t('incidents.caller')}:</b> {tc(`incident.caller.${r.caller_type}`)}
+          </p>
+        )}
         {(r.customer_name || r.customer_phone) && (
           <p>
-            <b>{t('incidents.customer')}:</b> {r.customer_name ?? '—'}
+            <b>{r.caller_type ? tc(`incident.party.${r.caller_type}.name`) : t('incidents.customer')}:</b> {r.customer_name ?? '—'}
             {r.customer_phone && (
               <>
                 {' '}

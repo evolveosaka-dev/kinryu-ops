@@ -3,14 +3,17 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
-import { Button, Card, ErrorBox, PageTitle, Segmented, SectionTitle, Spinner, TextArea, TextInput } from '../../components/ui'
+import { Button, Card, Checkbox, ErrorBox, PageTitle, Segmented, SectionTitle, Spinner, TextArea, TextInput } from '../../components/ui'
 import {
+  CALLER_TYPES,
+  CUSTOMER_KINDS,
   INCIDENT_ICON,
   INCIDENT_KINDS,
   INCIDENT_STATUS_STYLE,
   lineMessage,
   URGENT_INCIDENTS,
   type AiSuggestion,
+  type CallerType,
   type ContactLog,
   type ContactMethod,
   type Incident,
@@ -30,7 +33,42 @@ import { TranslationCancelled, useTranslationGate } from '../translate/useTransl
 import { AiProposal } from './AiProposal'
 import { ContactManager } from './ContactManager'
 import { formatWhen } from './data'
+import { InjuredStaffPicker } from './InjuredStaffPicker'
 import { OccurredAt } from './OccurredAt'
+
+/** Name + phone of the customer / the caller of a 電話の伝言 (optional). */
+function PartyFields({
+  party,
+  name,
+  phone,
+  onName,
+  onPhone,
+}: {
+  party: 'customer' | CallerType
+  name: string
+  phone: string
+  onName: (v: string) => void
+  onPhone: (v: string) => void
+}) {
+  const { t } = useTranslation()
+  return (
+    <div className="flex flex-col gap-2">
+      {party === 'customer' && <p className="rounded-lg bg-amber-50 p-2 text-sm text-amber-900">👤 {t('incident.customerHint')}</p>}
+      <div className="grid grid-cols-2 gap-2 [&>div]:justify-between">
+        <TextInput label={t(`incident.party.${party}.name`)} value={name} maxLength={100} autoComplete="off" onChange={(e) => onName(e.target.value)} />
+        <TextInput
+          label={t(`incident.party.${party}.phone`)}
+          type="tel"
+          inputMode="tel"
+          value={phone}
+          maxLength={40}
+          autoComplete="off"
+          onChange={(e) => onPhone(e.target.value)}
+        />
+      </div>
+    </div>
+  )
+}
 
 /** My own records (RLS: the reporter sees their own). */
 function useMyIncidents(userId: string) {
@@ -59,6 +97,9 @@ export function IncidentPage() {
   const [description, setDescription] = useState('')
   // the writer's own words when 「AIで翻訳」 turned the description into Japanese
   const [descOriginal, setDescOriginal] = useState<{ text: string; lang: string } | null>(null)
+  const [injured, setInjured] = useState<{ staff: boolean; customer: boolean }>({ staff: false, customer: false })
+  const [injuredStaff, setInjuredStaff] = useState<string | null>(null)
+  const [caller, setCaller] = useState<CallerType | null>(null)
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [contact, setContact] = useState<ContactMethod | null>(null)
@@ -71,6 +112,10 @@ export function IncidentPage() {
   const needAction = actionSource === 'own' && !action.trim()
   const ready = Boolean(kind && storeId && description.trim() && contact && !needAction)
   const storeLabel = storeName(stores.data?.find((s) => s.id === storeId), 'ja')
+  // name + phone of the other side: customers for most kinds, the caller for 電話の伝言
+  const party: 'customer' | CallerType | null =
+    kind === 'phone_message' ? caller : kind === 'injury' ? (injured.customer ? 'customer' : null) : kind && CUSTOMER_KINDS.includes(kind) ? 'customer' : null
+  const injuredWho = kind === 'injury' ? (['staff', 'customer'] as const).filter((w) => injured[w]) : []
 
   const translate = useMutation({
     mutationFn: async () => {
@@ -104,12 +149,15 @@ export function IncidentPage() {
           p_action: g.values.action_taken,
           p_original_texts: Object.keys(originals).length ? originals : null,
           p_source_lang: g.sourceLang ?? descOriginal?.lang ?? null,
-          p_customer_name: customerName.trim() || null,
-          p_customer_phone: customerPhone.trim() || null,
+          p_customer_name: party ? customerName.trim() || null : null,
+          p_customer_phone: party ? customerPhone.trim() || null : null,
           p_contact_method: contact,
           p_contact_logs: contactLogs.map((l) => l.id),
           p_ai_suggestion: ai,
           p_action_source: ai ? actionSource : null,
+          p_injured_who: injuredWho.length ? injuredWho : null,
+          p_injured_staff: injured.staff ? injuredStaff : null,
+          p_caller_type: kind === 'phone_message' ? caller : null,
         }),
       )
       if (media.length) await uploads.enqueue('incident', id, media)
@@ -120,6 +168,9 @@ export function IncidentPage() {
       setKind(null)
       setDescription('')
       setDescOriginal(null)
+      setInjured({ staff: false, customer: false })
+      setInjuredStaff(null)
+      setCaller(null)
       setCustomerName('')
       setCustomerPhone('')
       setContact(null)
@@ -141,7 +192,7 @@ export function IncidentPage() {
       <Card className="flex flex-col gap-4">
         <fieldset className="flex flex-col gap-1.5">
           <legend className="mb-1.5 text-[15px] font-bold">{t('incident.kind')}</legend>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {INCIDENT_KINDS.map((k) => (
               <button
                 key={k}
@@ -150,7 +201,8 @@ export function IncidentPage() {
                 aria-checked={kind === k}
                 onClick={() => setKind(k)}
                 className={cx(
-                  'flex min-h-12 items-center gap-1.5 whitespace-nowrap rounded-xl border-[1.5px] px-3 font-bold',
+                  'flex min-h-12 items-center gap-1.5 rounded-xl border-[1.5px] px-2.5 text-left font-bold',
+                  currentLocale() === 'ja' && 'whitespace-nowrap text-[15px] tracking-tight',
                   kind === k ? 'border-brand bg-brand text-white' : 'border-line bg-white text-ink',
                 )}
               >
@@ -175,9 +227,44 @@ export function IncidentPage() {
             setAtNow(now)
           }}
         />
+        {kind === 'injury' && (
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[15px] font-bold">{t('incident.injured.title')}</span>
+            <div className="grid grid-cols-2 gap-2">
+              {(['staff', 'customer'] as const).map((w) => (
+                <Checkbox key={w} checked={injured[w]} onChange={(v) => setInjured((x) => ({ ...x, [w]: v }))}>
+                  {w === 'staff' ? '🧑‍🍳' : '👤'} {t(`incident.injured.${w}`)}
+                </Checkbox>
+              ))}
+            </div>
+            {injured.staff && <InjuredStaffPicker storeId={storeId} value={injuredStaff} onChange={setInjuredStaff} />}
+          </div>
+        )}
+        {kind === 'phone_message' && (
+          <fieldset className="flex flex-col gap-1.5">
+            <legend className="mb-1.5 text-[15px] font-bold">{t('incident.caller.title')}</legend>
+            <div className="grid grid-cols-3 gap-2">
+              {CALLER_TYPES.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  role="radio"
+                  aria-checked={caller === c}
+                  onClick={() => setCaller(caller === c ? null : c)}
+                  className={cx('min-h-12 rounded-xl border-[1.5px] px-2 font-bold', caller === c ? 'border-brand bg-brand text-white' : 'border-line bg-white text-ink')}
+                >
+                  {t(`incident.caller.${c}`)}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        )}
+        {party && kind === 'phone_message' && (
+          <PartyFields party={party} name={customerName} phone={customerPhone} onName={setCustomerName} onPhone={setCustomerPhone} />
+        )}
         <div className="flex flex-col gap-2">
           <TextArea
-            label={`${t('incident.description')} *`}
+            label={`${kind === 'phone_message' ? t('incident.content') : t('incident.description')} *`}
             hint={t('incident.descriptionHint')}
             rows={4}
             value={description}
@@ -192,19 +279,9 @@ export function IncidentPage() {
             </p>
           )}
           {translate.error && !(translate.error instanceof TranslationCancelled) && <ErrorBox message={errorMessage(translate.error)} />}
-          <p className="rounded-lg bg-amber-50 p-2 text-sm text-amber-900">👤 {t('incident.customerHint')}</p>
-          <div className="grid grid-cols-2 gap-2 [&>div]:justify-between">
-            <TextInput label={t('incident.customerName')} value={customerName} maxLength={100} autoComplete="off" onChange={(e) => setCustomerName(e.target.value)} />
-            <TextInput
-              label={t('incident.customerPhone')}
-              type="tel"
-              inputMode="tel"
-              value={customerPhone}
-              maxLength={40}
-              autoComplete="off"
-              onChange={(e) => setCustomerPhone(e.target.value)}
-            />
-          </div>
+          {party && kind !== 'phone_message' && (
+            <PartyFields party={party} name={customerName} phone={customerPhone} onName={setCustomerName} onPhone={setCustomerPhone} />
+          )}
         </div>
         <ContactManager
           method={contact}

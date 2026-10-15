@@ -289,6 +289,7 @@
       "equipment": "Broken equipment",
       "food_poisoning": "Suspected food poisoning",
       "lost_item": "Lost item",
+      "phone_message": "Phone message",
       "other": "Other"
     },
     "urgentHint": "The managers get a mail at once. If it is urgent, also call.",
@@ -315,8 +316,6 @@
     "translated": "Translated into Japanese",
     "alreadyJapanese": "It is already Japanese. No translation needed.",
     "customerHint": "If you can, ask for the customer's name and phone number (so we can contact them later).",
-    "customerName": "Customer's name",
-    "customerPhone": "Customer's phone",
     "actionFromAi": "What you did (AI proposal, you can edit it)",
     "actionOwn": "What you did (write it yourself)",
     "contact": {
@@ -325,13 +324,13 @@
       "method": {
         "phone": "Call",
         "line": "LINE",
-        "none": "No contact (not urgent)"
+        "none": "No (not urgent)"
       },
       "noContact": "No contact has been set yet (Manager → Settings → Emergency contacts).",
       "call": "📞 Call {{name}}",
       "line": "💬 Send to {{name}} on LINE",
       "lineHint": "LINE opens. Choose {{name}} and send (the text is filled in).",
-      "askPhone": "Did you reach {{name}} by phone?",
+      "askPhone": "Did you reach a manager by phone?",
       "askLine": "Did you send the LINE to {{name}}?",
       "result": {
         "reached": "Reached",
@@ -352,6 +351,34 @@
       "noCases": "No similar case yet, so these are general steps",
       "followed": "I did what AI proposed",
       "own": "I did something else (write it yourself)"
+    },
+    "content": "Message",
+    "injured": {
+      "title": "Who was hurt",
+      "staff": "Staff",
+      "customer": "Customer",
+      "who": "Staff member who was hurt",
+      "onShiftHint": "🟢 = working the {{shift}} at this store now. Other staff below."
+    },
+    "caller": {
+      "title": "Who called",
+      "vendor": "Supplier",
+      "kinryu": "Kinryu",
+      "customer": "Customer"
+    },
+    "party": {
+      "customer": {
+        "name": "Customer's name",
+        "phone": "Customer's phone"
+      },
+      "vendor": {
+        "name": "Supplier name",
+        "phone": "Phone"
+      },
+      "kinryu": {
+        "name": "Person in charge",
+        "phone": "Phone"
+      }
     }
   }
 }

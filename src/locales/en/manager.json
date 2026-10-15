@@ -844,7 +844,9 @@
     },
     "aiProposal": "AI proposal (used {{n}} earlier records / looked at {{cases}})",
     "aiBasis": "Based on",
-    "aiNoBasis": "none (general steps)"
+    "aiNoBasis": "none (general steps)",
+    "injured": "Who was hurt",
+    "caller": "Who called"
   },
   "reports": {
     "title": "AI reports",

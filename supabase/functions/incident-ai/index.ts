@@ -21,6 +21,7 @@ const KINDS: Record<string, string> = {
   equipment: '設備の故障',
   food_poisoning: '食中毒の疑い',
   lost_item: '忘れ物・落とし物',
+  phone_message: '電話の伝言',
   other: 'その他',
 }
 const LANG_NAMES: Record<string, string> = { vi: 'Vietnamese', si: 'Sinhala', ne: 'Nepali', en: 'English', ja: 'Japanese' }

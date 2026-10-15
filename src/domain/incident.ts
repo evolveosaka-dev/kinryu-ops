@@ -1,7 +1,7 @@
 // クレーム・事故の記録 (migration 20261015000007). Keep the kinds in sync with the SQL check and
 // send-notifications INCIDENT_KIND.
 
-export const INCIDENT_KINDS = ['complaint', 'injury', 'foreign_object', 'equipment', 'food_poisoning', 'lost_item', 'other'] as const
+export const INCIDENT_KINDS = ['complaint', 'injury', 'foreign_object', 'equipment', 'food_poisoning', 'lost_item', 'phone_message', 'other'] as const
 export type IncidentKind = (typeof INCIDENT_KINDS)[number]
 
 export const INCIDENT_ICON: Record<IncidentKind, string> = {
@@ -11,8 +11,16 @@ export const INCIDENT_ICON: Record<IncidentKind, string> = {
   equipment: '🔧',
   food_poisoning: '🤢',
   lost_item: '👜',
+  phone_message: '☎️',
   other: '✏️',
 }
+
+/** Kinds that ask for the customer's name and phone (ケガ・事故 only when a customer was hurt). */
+export const CUSTOMER_KINDS: readonly IncidentKind[] = ['complaint', 'foreign_object', 'food_poisoning', 'other']
+
+/** 電話の伝言: who called. */
+export const CALLER_TYPES = ['vendor', 'kinryu', 'customer'] as const
+export type CallerType = (typeof CALLER_TYPES)[number]
 
 /** Mailed to every manager at once. */
 export const URGENT_INCIDENTS: readonly IncidentKind[] = ['injury', 'foreign_object', 'food_poisoning']
@@ -50,6 +58,9 @@ export interface Incident {
   contact_method: ContactMethod | null
   ai_suggestion: AiSuggestion | null
   action_source: 'ai' | 'own' | null
+  injured_who: ('staff' | 'customer')[] | null
+  injured_staff: string | null
+  caller_type: CallerType | null
 }
 
 /** 管理者への連絡 (migration 20261016000002). */

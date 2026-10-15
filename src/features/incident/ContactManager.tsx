@@ -10,6 +10,9 @@ import { errorMessage } from '../../lib/format'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 
+/** 電話 answered without a tap on the call button. */
+type ContactLogDraft = { contact: EmergencyContact }
+
 const RESULTS: Record<'phone' | 'line', ContactResult[]> = { phone: ['reached', 'no_answer'], line: ['sent', 'not_sent'] }
 
 /**
@@ -35,8 +38,6 @@ export function ContactManager({
   const queryClient = useQueryClient()
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  // the newest attempt without an answer: asked when the writer is back in the app
-  const open = logs.find((l) => !l.result)
 
   const go = async (c: EmergencyContact, how: 'phone' | 'line') => {
     setError(null)
@@ -51,11 +52,17 @@ export function ContactManager({
       setBusy(false)
     }
   }
-  const answer = async (l: ContactLog, result: ContactResult) => {
+  const answer = async (l: ContactLog | ContactLogDraft, result: ContactResult) => {
     setError(null)
     try {
-      unwrap(await supabase.rpc('set_emergency_contact_result', { p_id: l.id, p_result: result }))
-      onLogs(logs.map((x) => (x.id === l.id ? { ...x, result } : x)))
+      // a call made outside the app (no tap logged): the answer is logged against the first contact
+      const id = 'id' in l ? l.id : unwrap<string>(await supabase.rpc('log_emergency_contact', { p_contact: l.contact.id, p_method: 'phone' }))
+      unwrap(await supabase.rpc('set_emergency_contact_result', { p_id: id, p_result: result }))
+      onLogs(
+        'id' in l
+          ? logs.map((x) => (x.id === l.id ? { ...x, result } : x))
+          : [{ id, contact_name: l.contact.name, method: 'phone', user_name: '', at: new Date().toISOString(), result, incident_id: null }, ...logs],
+      )
       void queryClient.invalidateQueries({ queryKey: ['emergency_contact_log'] })
     } catch (e) {
       setError(errorMessage(e))
@@ -63,11 +70,17 @@ export function ContactManager({
   }
 
   const list = (contacts.data ?? []).filter((c) => (method === 'phone' ? c.phone : c.line_ok))
+  // 電話: 「管理者と電話がつながりましたか？」 is asked as soon as 電話 is chosen, until it is answered
+  const phoneOpen = logs.find((l) => l.method === 'phone' && !l.result)
+  const phoneAnswered = logs.some((l) => l.method === 'phone' && l.result === 'reached')
+  const phoneAsk: ContactLog | ContactLogDraft | null =
+    method === 'phone' && !phoneAnswered ? (phoneOpen ?? (list[0] ? { contact: list[0] } : null)) : null
+  const lineOpen = method === 'line' ? logs.find((l) => l.method === 'line' && !l.result) : undefined
   return (
     <fieldset className="flex flex-col gap-2 rounded-xl border border-red-200 bg-red-50/60 p-3">
       <legend className="px-1 text-[15px] font-bold">📣 {t('incident.contact.title')} *</legend>
       <p className="text-sm text-slate-700">{t('incident.contact.hint')}</p>
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-[1fr_1fr_1.5fr] gap-2">
         {CONTACT_METHODS.map((m) => (
           <button
             key={m}
@@ -76,11 +89,12 @@ export function ContactManager({
             aria-checked={method === m}
             onClick={() => onMethod(m)}
             className={cx(
-              'min-h-11 whitespace-nowrap rounded-xl border-[1.5px] px-3 font-bold',
+              'flex min-h-12 items-center justify-center gap-1 rounded-xl border-[1.5px] px-1.5 text-sm leading-tight font-bold',
               method === m ? 'border-brand bg-brand text-white' : 'border-line bg-white text-ink',
             )}
           >
-            {CONTACT_ICON[m]} {t(`incident.contact.method.${m}`)}
+            <span aria-hidden>{CONTACT_ICON[m]}</span>
+            <span>{t(`incident.contact.method.${m}`)}</span>
           </button>
         ))}
       </div>
@@ -95,14 +109,12 @@ export function ContactManager({
           {method === 'line' && list.length > 0 && <p className="text-xs text-muted">{t('incident.contact.lineHint', { name: list.map((c) => c.name).join('・') })}</p>}
         </div>
       )}
-      {open && (
+      {(phoneAsk ?? lineOpen) && (
         <div role="alert" className="flex flex-col gap-2 rounded-xl border border-brand bg-white p-3">
-          <p className="font-bold">
-            {open.method === 'phone' ? t('incident.contact.askPhone', { name: open.contact_name }) : t('incident.contact.askLine', { name: open.contact_name })}
-          </p>
+          <p className="font-bold">{phoneAsk ? t('incident.contact.askPhone') : t('incident.contact.askLine', { name: lineOpen!.contact_name })}</p>
           <div className="grid grid-cols-2 gap-2">
-            {RESULTS[open.method].map((r) => (
-              <Button key={r} variant={r === 'reached' || r === 'sent' ? 'primary' : 'secondary'} onClick={() => void answer(open, r)}>
+            {RESULTS[phoneAsk ? 'phone' : 'line'].map((r) => (
+              <Button key={r} variant={r === 'reached' || r === 'sent' ? 'primary' : 'secondary'} onClick={() => void answer((phoneAsk ?? lineOpen)!, r)}>
                 {t(`incident.contact.result.${r}`)}
               </Button>
             ))}

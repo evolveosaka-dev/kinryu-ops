@@ -289,6 +289,7 @@
       "equipment": "設備の故障",
       "food_poisoning": "食中毒の疑い",
       "lost_item": "忘れ物・落とし物",
+      "phone_message": "電話の伝言",
       "other": "その他"
     },
     "urgentHint": "管理者にすぐメールが届きます。急ぐときは電話もしてください。",
@@ -315,23 +316,21 @@
     "translated": "日本語に翻訳しました",
     "alreadyJapanese": "もう日本語です。翻訳は要りません。",
     "customerHint": "お客様の名前と電話番号を、できるだけ聞いてください（あとで連絡するため）。",
-    "customerName": "お客様の名前",
-    "customerPhone": "お客様の電話番号",
     "actionFromAi": "その場でしたこと（AIの提案・直せます）",
     "actionOwn": "その場でしたこと（自分で書く）",
     "contact": {
       "title": "管理者への連絡",
       "hint": "急ぐときは、すぐ電話かLINEをしてください。ボタンから連絡すると、記録に残ります。",
       "method": {
-        "phone": "電話する",
-        "line": "LINEする",
-        "none": "連絡しない（急ぎではない）"
+        "phone": "電話",
+        "line": "LINE",
+        "none": "しない（急ぎではない）"
       },
       "noContact": "連絡先がまだ登録されていません（管理 → 設定 → 緊急連絡先）。",
       "call": "📞 {{name}}さんに電話する",
       "line": "💬 {{name}}さんにLINEで送る",
       "lineHint": "LINEが開きます。{{name}}さんを選んで送ってください（内容は自動で入ります）。",
-      "askPhone": "{{name}}さんと電話がつながりましたか？",
+      "askPhone": "管理者と電話がつながりましたか？",
       "askLine": "{{name}}さんにLINEを送りましたか？",
       "result": {
         "reached": "つながった",
@@ -352,6 +351,34 @@
       "noCases": "似た記録がまだないため、一般的な対応の提案です",
       "followed": "AIの提案どおりにした",
       "own": "別の方法で対応した（自分で書く）"
+    },
+    "content": "内容",
+    "injured": {
+      "title": "ケガをした人",
+      "staff": "スタッフ",
+      "customer": "お客様",
+      "who": "ケガをしたスタッフ",
+      "onShiftHint": "🟢 = 今この店の{{shift}}に入っている人。その下にほかのスタッフ。"
+    },
+    "caller": {
+      "title": "電話をかけてきた人",
+      "vendor": "業者",
+      "kinryu": "金龍",
+      "customer": "お客様"
+    },
+    "party": {
+      "customer": {
+        "name": "お客様の名前",
+        "phone": "お客様の電話番号"
+      },
+      "vendor": {
+        "name": "業者名",
+        "phone": "電話番号"
+      },
+      "kinryu": {
+        "name": "担当者名",
+        "phone": "電話番号"
+      }
     }
   }
 }

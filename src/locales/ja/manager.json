@@ -844,7 +844,9 @@
     },
     "aiProposal": "AIの提案（使った過去の記録 {{n}}件 / 参照 {{cases}}件）",
     "aiBasis": "もとにした記録",
-    "aiNoBasis": "なし（一般的な対応）"
+    "aiNoBasis": "なし（一般的な対応）",
+    "injured": "ケガをした人",
+    "caller": "電話をかけてきた人"
   },
   "reports": {
     "title": "AIレポート",

@@ -59,7 +59,7 @@ const STOCK_REASON: Record<string, string> = {
 const CHANGE_KIND: Record<string, string> = { absence: '休み', late: '遅刻', early_leave: '早退' }
 const CHANGE_REASON: Record<string, string> = { sick: '体調不良', family: '家族の用事', transport: '交通の原因', personal: '私用', paid_leave: '有給休暇', store: '店の都合', other: 'その他' }
 // keep in sync with src/domain/incident.ts
-const INCIDENT_KIND: Record<string, string> = { complaint: 'お客様のクレーム', injury: 'ケガ・事故', foreign_object: '異物混入', equipment: '設備の故障', food_poisoning: '食中毒の疑い', lost_item: '忘れ物・落とし物', other: 'その他' }
+const INCIDENT_KIND: Record<string, string> = { complaint: 'お客様のクレーム', injury: 'ケガ・事故', foreign_object: '異物混入', equipment: '設備の故障', food_poisoning: '食中毒の疑い', lost_item: '忘れ物・落とし物', phone_message: '電話の伝言', other: 'その他' }
 const STOCK_UNIT: Record<string, string> = { piece: '個', bag: '袋', box: '箱', stick: '本', liter: 'L' }
 const PREV_SHIFT: Record<string, [number, string]> = { early: [-1, 'late'], middle: [0, 'early'], late: [0, 'middle'] }
 const TABLE: Record<string, string> = { chorei_records: '朝礼記録', patrol_checks: '巡回チェック', shift_requests: 'シフト希望' }
@@ -280,7 +280,9 @@ async function renderEvent(admin: Admin, L: Lookup, e: NotifyEvent): Promise<{ s
         `店舗・勤番: ${slot(L, r)}（発生 ${jst(r.occurred_at)}）`,
         `記録した人: ${r.reporter_name}`,
         `内容: ${r.description}`,
-        ...(r.customer_name || r.customer_phone ? [`お客様: ${[r.customer_name, r.customer_phone].filter(Boolean).join(' ')}`] : []),
+        ...(r.injured_who ? [`ケガをした人: ${(r.injured_who as string[]).map((w) => (w === 'staff' ? `スタッフ${r.injured_staff ? `（${r.injured_staff}）` : ''}` : 'お客様')).join('・')}`] : []),
+        ...(r.caller_type ? [`電話をかけてきた人: ${{ vendor: '業者', kinryu: '金龍', customer: 'お客様' }[r.caller_type as string]}`] : []),
+        ...(r.customer_name || r.customer_phone ? [`${r.caller_type && r.caller_type !== 'customer' ? '相手' : 'お客様'}: ${[r.customer_name, r.customer_phone].filter(Boolean).join(' ')}`] : []),
         `管理者への連絡: ${{ phone: '電話', line: 'LINE', none: '連絡しない（急ぎではない）' }[r.contact_method as string] ?? '—'}`,
         `その場の対応: ${r.action_taken ?? '—'}${r.action_source === 'ai' ? '（AIの提案どおり）' : ''}`,
         `写真・動画: ${count ?? 0}件`,

@@ -60,3 +60,26 @@ describe('contact log + report_incident', () => {
     await expect(t.as(manager, `update public.incidents set reporter_name = '別人' where id = $1`, [r!.id])).rejects.toThrow(/reporter/)
   })
 })
+
+describe('ケガ・事故の人 / 電話の伝言 (20261016000003)', () => {
+  it('keeps who was hurt for injuries and who called for phone messages only', async () => {
+    const report = (kind: string) =>
+      t.as<{ id: string }>(
+        staff,
+        `select public.report_incident($1, current_date, 'early', now(), $2, '内容', null, null, null, '業者A', '06-0000-0000', 'none',
+                                       null, null, null, array['staff', 'customer'], 'グエン', 'vendor') as id`,
+        [store, kind],
+      )
+    const [injury] = await report('injury')
+    const [message] = await report('phone_message')
+    const [other] = await report('equipment')
+    const rows = await t.admin<{ id: string; injured_who: string[] | null; injured_staff: string | null; caller_type: string | null }>(
+      'select id, injured_who, injured_staff, caller_type from public.incidents where id = any($1)',
+      [[injury!.id, message!.id, other!.id]],
+    )
+    const by = (id: string) => rows.find((x) => x.id === id)
+    expect(by(injury!.id)).toMatchObject({ injured_who: ['staff', 'customer'], injured_staff: 'グエン', caller_type: null })
+    expect(by(message!.id)).toMatchObject({ injured_who: null, injured_staff: null, caller_type: 'vendor' })
+    expect(by(other!.id)).toMatchObject({ injured_who: null, injured_staff: null, caller_type: null })
+  })
+})

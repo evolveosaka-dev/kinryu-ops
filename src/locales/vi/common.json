@@ -289,6 +289,7 @@
       "equipment": "Hỏng thiết bị",
       "food_poisoning": "Nghi ngộ độc thực phẩm",
       "lost_item": "Đồ để quên / rơi",
+      "phone_message": "Lời nhắn qua điện thoại",
       "other": "Khác"
     },
     "urgentHint": "Quản lý nhận mail ngay. Nếu gấp hãy gọi điện nữa.",
@@ -315,8 +316,6 @@
     "translated": "Đã dịch sang tiếng Nhật",
     "alreadyJapanese": "Đã là tiếng Nhật, không cần dịch.",
     "customerHint": "Nếu được, hãy hỏi tên và số điện thoại của khách (để liên lạc sau).",
-    "customerName": "Tên khách",
-    "customerPhone": "Số điện thoại của khách",
     "actionFromAi": "Việc đã làm tại chỗ (đề xuất của AI, có thể sửa)",
     "actionOwn": "Việc đã làm tại chỗ (tự viết)",
     "contact": {
@@ -324,14 +323,14 @@
       "hint": "Nếu gấp, hãy gọi điện hoặc nhắn LINE ngay. Liên lạc bằng các nút này sẽ được ghi lại.",
       "method": {
         "phone": "Gọi điện",
-        "line": "Nhắn LINE",
-        "none": "Không liên lạc (không gấp)"
+        "line": "LINE",
+        "none": "Không (không gấp)"
       },
       "noContact": "Chưa có người liên lạc (Quản lý → Cài đặt → Liên lạc khẩn cấp).",
       "call": "📞 Gọi cho {{name}}",
       "line": "💬 Gửi LINE cho {{name}}",
       "lineHint": "LINE sẽ mở ra. Chọn {{name}} rồi gửi (nội dung đã được điền sẵn).",
-      "askPhone": "Bạn đã gọi được cho {{name}} chưa?",
+      "askPhone": "Bạn đã gọi điện được cho quản lý chưa?",
       "askLine": "Bạn đã gửi LINE cho {{name}} chưa?",
       "result": {
         "reached": "Đã gọi được",
@@ -352,6 +351,34 @@
       "noCases": "Chưa có trường hợp tương tự, đây là cách xử lý chung",
       "followed": "Đã làm theo đề xuất của AI",
       "own": "Đã xử lý theo cách khác (tự viết)"
+    },
+    "content": "Nội dung",
+    "injured": {
+      "title": "Người bị thương",
+      "staff": "Nhân viên",
+      "customer": "Khách",
+      "who": "Nhân viên bị thương",
+      "onShiftHint": "🟢 = người đang làm {{shift}} ở cửa hàng này. Bên dưới là nhân viên khác."
+    },
+    "caller": {
+      "title": "Người gọi đến",
+      "vendor": "Nhà cung cấp",
+      "kinryu": "Kinryu",
+      "customer": "Khách"
+    },
+    "party": {
+      "customer": {
+        "name": "Tên khách",
+        "phone": "Số điện thoại của khách"
+      },
+      "vendor": {
+        "name": "Tên nhà cung cấp",
+        "phone": "Số điện thoại"
+      },
+      "kinryu": {
+        "name": "Tên người phụ trách",
+        "phone": "Số điện thoại"
+      }
     }
   }
 }
