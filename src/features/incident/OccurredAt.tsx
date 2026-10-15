@@ -16,7 +16,7 @@ const isoOf = (date: string, hour: number, minute: number) => new Date(`${date}T
  * 起きた日時: 「今」 locks the time of the tap; otherwise three wheels (day of the last two weeks, hour, minute,
  * Tokyo time). The chosen value is shown in the user's language above the wheels.
  */
-export function OccurredAt({ value, now, onChange }: { value: string; now: boolean; onChange: (iso: string, now: boolean) => void }) {
+export function OccurredAt({ value, now, onChange, label }: { value: string; now: boolean; onChange: (iso: string, now: boolean) => void; label?: string }) {
   const { t } = useTranslation()
   const locale = currentLocale()
   const p = tokyoParts(new Date(value))
@@ -32,7 +32,7 @@ export function OccurredAt({ value, now, onChange }: { value: string; now: boole
   const minutes = useMemo(() => Array.from({ length: 60 }, (_, m) => ({ value: m, label: pad(m) })), [])
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-[15px] font-bold text-ink">{t('incident.when')}</span>
+      <span className="text-[15px] font-bold text-ink">{label ?? t('incident.when')}</span>
       <Checkbox checked={now} onChange={(on) => onChange(new Date().toISOString(), on)}>
         🕒 {t('incident.now')}
       </Checkbox>

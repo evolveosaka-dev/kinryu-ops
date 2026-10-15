@@ -67,7 +67,8 @@
     "analysis": "Analysis",
     "attendance": "Attendance",
     "incidents": "Incidents",
-    "reports": "Reports"
+    "reports": "Reports",
+    "lost": "Lost & found"
   },
   "period": {
     "weekMode": "Week",
@@ -108,7 +109,8 @@
     "visaShifts": "Check in 全店舗シフト",
     "pendingChanges": "Absence / late reports waiting",
     "pendingSoon": "{{n}} within 12 h",
-    "openIncidents": "Complaints / accidents (open)"
+    "openIncidents": "Complaints / accidents (open)",
+    "lostItems": "Lost & found: waiting for approval ({{long}} kept {{days}}+ days)"
   },
   "filter": {
     "store": "Store",
@@ -325,7 +327,8 @@
       "shift_change": "Absence / late / early-leave reports (within 24 h: at once to everyone)",
       "visa_hours": "Student / dependent visa over 28 h a week (at once to everyone)",
       "incident": "Complaints / accidents (injury, foreign object, food poisoning: at once to everyone)",
-      "report": "AI reports (weekly: Monday 8:00 / monthly: 1st 8:00)"
+      "report": "AI reports (weekly: Monday 8:00 / monthly: 1st 8:00)",
+      "lost_item": "Lost & found (returns / police wait for approval)"
     },
     "active": "On",
     "delete": "Delete",

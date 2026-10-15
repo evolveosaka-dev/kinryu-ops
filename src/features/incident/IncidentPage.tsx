@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 import { useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
 import { Button, Card, Checkbox, ErrorBox, PageTitle, Segmented, SectionTitle, Spinner, TextArea, TextInput } from '../../components/ui'
@@ -110,7 +111,7 @@ export function IncidentPage() {
   const [media, setMedia] = useState<PreparedMedia[]>([])
   const storeId = store || initialStore(storeIds)
   const needAction = actionSource === 'own' && !action.trim()
-  const ready = Boolean(kind && storeId && description.trim() && contact && !needAction)
+  const ready = Boolean(kind && kind !== 'lost_item' && storeId && description.trim() && contact && !needAction)
   const storeLabel = storeName(stores.data?.find((s) => s.id === storeId), 'ja')
   // name + phone of the other side: customers for most kinds, the caller for 電話の伝言
   const party: 'customer' | CallerType | null =
@@ -212,6 +213,11 @@ export function IncidentPage() {
             ))}
           </div>
           {kind && URGENT_INCIDENTS.includes(kind) && <p className="rounded-lg bg-red-50 p-2 text-sm font-bold text-red-900">📞 {t('incident.urgentHint')}</p>}
+          {kind === 'lost_item' && (
+            <Link to="/lost-items" className="flex min-h-12 items-center justify-center rounded-xl border-[1.5px] border-brand bg-brand-soft px-3 font-bold text-brand">
+              👜 {t('incident.lostMoved')}
+            </Link>
+          )}
         </fieldset>
         <Segmented
           label={t('incident.store')}

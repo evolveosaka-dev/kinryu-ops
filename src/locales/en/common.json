@@ -125,7 +125,9 @@
     "absence": "Day off / late notice",
     "absenceSub": "Absent, late, leaving early / cover requests / attendance score",
     "incident": "Complaints / accidents",
-    "incidentSub": "Record complaints, injuries, foreign objects, breakdowns at once"
+    "incidentSub": "Record complaints, injuries, foreign objects, breakdowns at once",
+    "lost": "Lost & found",
+    "lostSub": "Record, keep and return found items"
   },
   "phrase": {
     "philosophy1": "Customers come first",
@@ -379,11 +381,100 @@
         "name": "Person in charge",
         "phone": "Phone"
       }
-    }
+    },
+    "lostMoved": "Lost items have their own record"
   },
   "date": {
     "today": "Today",
     "yesterday": "Yesterday",
     "tomorrow": "Tomorrow"
+  },
+  "lost": {
+    "title": "Lost & found",
+    "subtitle": "Record a found item at once, and record it again when it is returned (a manager checks).",
+    "adminSubtitle": "Check and approve returns / police hand-overs. Comments are seen by all staff.",
+    "new": "Record a found item",
+    "foundAt": "Found at",
+    "description": "Item",
+    "descriptionHint": "e.g. black folding umbrella, blue wallet (do not look inside)",
+    "foundPlace": "Where found",
+    "foundPlaceEx": "e.g. counter seat 3",
+    "storage": "Kept at",
+    "storageEx": "e.g. box under the register",
+    "owner": "Owner",
+    "owners": {
+      "customer": "Customer",
+      "staff": "Staff",
+      "unknown": "Unknown"
+    },
+    "ownerStaff": "Staff member who owns it",
+    "photoHint": "Photo of the item (optional)",
+    "cancel": "Cancel",
+    "save": "Save",
+    "doReturn": "Returned",
+    "doPolice": "Taken to the police",
+    "returnedAt": "Returned at",
+    "policeAt": "Taken at",
+    "toName": "Received by",
+    "toPhone": "Phone",
+    "station": "Police station / koban",
+    "stationEx": "e.g. Minami police station",
+    "number": "Receipt number",
+    "returnPhotoRule": "When returning to a customer, a photo of the handover is required.",
+    "askCustomer": "Ask the customer (in Japanese)",
+    "askCustomerJa": "お渡しするところを写真に撮ってもよろしいですか？お顔が写ってもよろしければ、お店の紹介（SNS・ホームページ）に使わせていただけますか？",
+    "consentFace": "The customer's face may be in the photo (customer agreed)",
+    "consentMarketing": "The photo may be used for the store's promotion (SNS, website) (customer agreed)",
+    "faceOk": "The face may be in the photo.",
+    "faceNo": "Without consent, do not show the customer's face (hands and item only).",
+    "returnPhotoHint": "Photo of the handover (required)",
+    "note": "Note",
+    "approvalHint": "After saving, it waits for a manager’s approval.",
+    "stage": {
+      "stored": "Kept",
+      "pending": "Waiting for approval",
+      "rejected": "Sent back"
+    },
+    "status": {
+      "stored": "Kept",
+      "returned": "Returned",
+      "police": "Taken to the police",
+      "disposed": "Disposed"
+    },
+    "managerTitle": "Manager",
+    "comment": "Comment",
+    "commentHint": "All staff see it. Write the reason when sending back.",
+    "approve": "Approve",
+    "reject": "Send back",
+    "sendComment": "Send comment",
+    "dispose": "Dispose",
+    "disposeConfirm": "Mark this item as disposed?",
+    "rejectHint": "Sent back = staff record it again.",
+    "reporter": "Recorded by",
+    "keptLong": "Kept for {{n}} days. Check whether to take it to the police.",
+    "photos": "{{n}} photo(s)",
+    "faceYes": "Face: agreed",
+    "faceNone": "Face: no",
+    "marketingYes": "Promotion: agreed",
+    "marketingNone": "Promotion: no",
+    "recordedBy": "Recorded by",
+    "decided": {
+      "approved": "Approved",
+      "rejected": "Sent back",
+      "disposed": "Disposed",
+      "pending": "Waiting"
+    },
+    "comments": "Comments & approvals",
+    "rejectedHint": "A manager sent this back. Read the comment and record it again.",
+    "filter": {
+      "stored": "Kept",
+      "pending": "Waiting",
+      "done": "Done",
+      "marketing": "Photos for promotion",
+      "all": "All"
+    },
+    "marketingHint": "Returns where the customer agreed to promotional use. Open a record for the photos.",
+    "none": "Nothing here.",
+    "faceRuleOk": "The customer agreed: their face may be in the photo (do not show other customers)."
   }
 }

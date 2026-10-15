@@ -53,6 +53,8 @@ const AttendanceAdminPage = page(() => import('../features/manager/AttendanceAdm
 const SystemPage = page(() => import('../features/manager/SystemPage'), 'SystemPage')
 const IncidentsAdminPage = page(() => import('../features/manager/IncidentsAdminPage'), 'IncidentsAdminPage')
 const IncidentPage = page(() => import('../features/incident/IncidentPage'), 'IncidentPage')
+const LostItemsPage = page(() => import('../features/lost/LostItemsPage'), 'LostItemsPage')
+const LostItemsAdminPage = page(() => import('../features/lost/LostItemsPage'), 'LostItemsAdminPage')
 const ReportsPage = page(() => import('../features/manager/ReportsPage'), 'ReportsPage')
 
 /** Decides which screen a visitor may see: login → approval → privacy notice → app. */
@@ -97,6 +99,7 @@ function Gate() {
         <Route path="shift-request" element={<ShiftRequestPage />} />
         <Route path="absence" element={<AbsencePage />} />
         <Route path="incident" element={<IncidentPage />} />
+        <Route path="lost-items" element={<LostItemsPage />} />
         <Route path="schedule" element={<SchedulePage />} />
         <Route path="stock" element={<StockPage />} />
         <Route path="sales" element={<SalesPage />} />
@@ -120,6 +123,7 @@ function Gate() {
             <Route path="sales" element={<SalesAdminPage />} />
             <Route path="attendance" element={<AttendanceAdminPage />} />
             <Route path="incidents" element={<IncidentsAdminPage />} />
+            <Route path="lost-items" element={<LostItemsAdminPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="analysis" element={<AnalysisPage />} />
             <Route path="settings" element={<SettingsPage />} />

@@ -125,7 +125,9 @@
     "absence": "Báo nghỉ / đi muộn",
     "absenceSub": "Nghỉ, đi muộn, về sớm / nhận ca thay / điểm đi làm",
     "incident": "Ghi khiếu nại / sự cố",
-    "incidentSub": "Ghi ngay khiếu nại, chấn thương, dị vật, hỏng thiết bị"
+    "incidentSub": "Ghi ngay khiếu nại, chấn thương, dị vật, hỏng thiết bị",
+    "lost": "Đồ để quên / đánh rơi",
+    "lostSub": "Ghi, cất giữ và trả lại đồ nhặt được"
   },
   "phrase": {
     "philosophy1": "Khách hàng là trên hết",
@@ -379,11 +381,100 @@
         "name": "Tên người phụ trách",
         "phone": "Số điện thoại"
       }
-    }
+    },
+    "lostMoved": "Đồ để quên được ghi ở trang riêng"
   },
   "date": {
     "today": "Hôm nay",
     "yesterday": "Hôm qua",
     "tomorrow": "Ngày mai"
+  },
+  "lost": {
+    "title": "Đồ để quên / đánh rơi",
+    "subtitle": "Nhặt được thì ghi ngay. Khi trả lại cũng ghi lại (quản lý sẽ kiểm tra).",
+    "adminSubtitle": "Kiểm tra và duyệt việc trả lại / nộp cho cảnh sát. Nhân viên đều xem được bình luận.",
+    "new": "Ghi đồ nhặt được",
+    "foundAt": "Thời điểm nhặt được",
+    "description": "Món đồ",
+    "descriptionHint": "VD: ô gấp màu đen, ví màu xanh (không mở xem bên trong)",
+    "foundPlace": "Nơi nhặt được",
+    "foundPlaceEx": "VD: quầy ghế số 3",
+    "storage": "Nơi cất giữ",
+    "storageEx": "VD: hộp dưới quầy tính tiền",
+    "owner": "Chủ đồ",
+    "owners": {
+      "customer": "Khách",
+      "staff": "Nhân viên",
+      "unknown": "Không rõ"
+    },
+    "ownerStaff": "Nhân viên là chủ đồ",
+    "photoHint": "Ảnh món đồ (không bắt buộc)",
+    "cancel": "Thôi",
+    "save": "Ghi lại",
+    "doReturn": "Đã trả lại",
+    "doPolice": "Đã nộp cho cảnh sát",
+    "returnedAt": "Thời điểm trả",
+    "policeAt": "Thời điểm nộp",
+    "toName": "Người nhận",
+    "toPhone": "Số điện thoại",
+    "station": "Đồn / trạm cảnh sát",
+    "stationEx": "VD: Đồn cảnh sát Minami",
+    "number": "Số biên nhận",
+    "returnPhotoRule": "Khi trả đồ cho khách, cần chụp ảnh lúc trao đồ.",
+    "askCustomer": "Hỏi khách (đọc câu tiếng Nhật này)",
+    "askCustomerJa": "お渡しするところを写真に撮ってもよろしいですか？お顔が写ってもよろしければ、お店の紹介（SNS・ホームページ）に使わせていただけますか？",
+    "consentFace": "Được chụp cả mặt khách (khách muốn / đồng ý)",
+    "consentMarketing": "Được dùng ảnh để quảng bá cửa hàng (SNS, trang web) (khách đồng ý)",
+    "faceOk": "Được chụp mặt.",
+    "faceNo": "Nếu khách chưa đồng ý, không chụp mặt khách (chỉ tay và món đồ).",
+    "returnPhotoHint": "Ảnh lúc trao đồ (bắt buộc)",
+    "note": "Ghi chú",
+    "approvalHint": "Sau khi ghi sẽ chờ quản lý duyệt.",
+    "stage": {
+      "stored": "Đang giữ",
+      "pending": "Chờ duyệt",
+      "rejected": "Bị trả lại"
+    },
+    "status": {
+      "stored": "Đang giữ",
+      "returned": "Đã trả",
+      "police": "Đã nộp cảnh sát",
+      "disposed": "Đã xử lý bỏ"
+    },
+    "managerTitle": "Quản lý",
+    "comment": "Bình luận",
+    "commentHint": "Mọi nhân viên đều xem. Khi trả lại hãy ghi lý do.",
+    "approve": "Duyệt",
+    "reject": "Trả lại",
+    "sendComment": "Gửi bình luận",
+    "dispose": "Xử lý bỏ",
+    "disposeConfirm": "Đánh dấu món đồ này là đã xử lý bỏ?",
+    "rejectHint": "Trả lại = nhân viên ghi lại lần nữa.",
+    "reporter": "Người ghi",
+    "keptLong": "Đã giữ {{n}} ngày. Hãy xem có cần nộp cho cảnh sát không.",
+    "photos": "{{n}} ảnh",
+    "faceYes": "Chụp mặt: có đồng ý",
+    "faceNone": "Chụp mặt: không",
+    "marketingYes": "Dùng quảng bá: có đồng ý",
+    "marketingNone": "Dùng quảng bá: không",
+    "recordedBy": "Người ghi",
+    "decided": {
+      "approved": "Đã duyệt",
+      "rejected": "Trả lại",
+      "disposed": "Xử lý bỏ",
+      "pending": "Chờ duyệt"
+    },
+    "comments": "Bình luận và duyệt",
+    "rejectedHint": "Quản lý đã trả lại. Hãy đọc bình luận rồi ghi lại.",
+    "filter": {
+      "stored": "Đang giữ",
+      "pending": "Chờ duyệt",
+      "done": "Xong",
+      "marketing": "Ảnh dùng quảng bá",
+      "all": "Tất cả"
+    },
+    "marketingHint": "Các lần trả đồ khách đã đồng ý cho dùng quảng bá. Mở từng mục để xem ảnh.",
+    "none": "Không có.",
+    "faceRuleOk": "Khách đã đồng ý: được chụp mặt khách (không chụp khách khác)."
   }
 }

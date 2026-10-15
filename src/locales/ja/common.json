@@ -125,7 +125,9 @@
     "absence": "休み・遅刻の連絡",
     "absenceSub": "休む・遅れる・早退する／代わり募集／出勤の評価",
     "incident": "クレーム・事故の記録",
-    "incidentSub": "お客様のクレーム・ケガ・異物・故障などをすぐ記録"
+    "incidentSub": "お客様のクレーム・ケガ・異物・故障などをすぐ記録",
+    "lost": "忘れ物・落とし物",
+    "lostSub": "見つけた物の記録・保管・返却"
   },
   "phrase": {
     "philosophy1": "お客様第一",
@@ -379,11 +381,100 @@
         "name": "担当者名",
         "phone": "電話番号"
       }
-    }
+    },
+    "lostMoved": "忘れ物・落とし物は専用の記録へ"
   },
   "date": {
     "today": "今日",
     "yesterday": "昨日",
     "tomorrow": "明日"
+  },
+  "lost": {
+    "title": "忘れ物・落とし物",
+    "subtitle": "見つけたらすぐ記録。返したときも記録してください（管理者が確認します）。",
+    "adminSubtitle": "返却・警察への届出を確認して承認します。コメントはスタッフ全員が見られます。",
+    "new": "忘れ物を記録する",
+    "foundAt": "見つけた日時",
+    "description": "品物",
+    "descriptionHint": "例：黒い折りたたみ傘、青い財布（中は確認しない）",
+    "foundPlace": "見つけた場所",
+    "foundPlaceEx": "例：カウンター3番",
+    "storage": "保管場所",
+    "storageEx": "例：レジ下の箱",
+    "owner": "持ち主",
+    "owners": {
+      "customer": "お客様",
+      "staff": "スタッフ",
+      "unknown": "不明"
+    },
+    "ownerStaff": "持ち主のスタッフ",
+    "photoHint": "品物の写真（なくてもよい）",
+    "cancel": "やめる",
+    "save": "記録する",
+    "doReturn": "返した",
+    "doPolice": "警察に届けた",
+    "returnedAt": "返した日時",
+    "policeAt": "届けた日時",
+    "toName": "受け取った人",
+    "toPhone": "電話番号",
+    "station": "警察署・交番",
+    "stationEx": "例：南警察署",
+    "number": "受理番号",
+    "returnPhotoRule": "お客様に返すときは、渡しているところの写真が必要です。",
+    "askCustomer": "お客様に聞いてください（日本語）",
+    "askCustomerJa": "お渡しするところを写真に撮ってもよろしいですか？お顔が写ってもよろしければ、お店の紹介（SNS・ホームページ）に使わせていただけますか？",
+    "consentFace": "お客様の顔も写してよい（お客様の希望・同意あり）",
+    "consentMarketing": "写真をお店の宣伝（SNS・ホームページ）に使ってよい（同意あり）",
+    "faceOk": "顔を写してもよいです。",
+    "faceNo": "同意がないときは、お客様の顔を写さないでください（手元と品物だけ）。",
+    "returnPhotoHint": "渡しているところの写真（必須）",
+    "note": "メモ",
+    "approvalHint": "記録すると管理者の承認待ちになります。",
+    "stage": {
+      "stored": "保管中",
+      "pending": "承認待ち",
+      "rejected": "差し戻し"
+    },
+    "status": {
+      "stored": "保管中",
+      "returned": "返却済み",
+      "police": "警察に届けた",
+      "disposed": "処分した"
+    },
+    "managerTitle": "管理者",
+    "comment": "コメント",
+    "commentHint": "スタッフ全員が見ます。差し戻すときは理由を書いてください。",
+    "approve": "承認する",
+    "reject": "差し戻す",
+    "sendComment": "コメントを送る",
+    "dispose": "処分する",
+    "disposeConfirm": "この忘れ物を処分済みにしますか？",
+    "rejectHint": "差し戻すと、スタッフがもう一度記録し直します。",
+    "reporter": "記録した人",
+    "keptLong": "{{n}}日間保管中です。警察に届けるか確認してください。",
+    "photos": "写真 {{n}}枚",
+    "faceYes": "顔の撮影：同意あり",
+    "faceNone": "顔の撮影：なし",
+    "marketingYes": "宣伝に使う：同意あり",
+    "marketingNone": "宣伝に使う：なし",
+    "recordedBy": "記録した人",
+    "decided": {
+      "approved": "承認",
+      "rejected": "差し戻し",
+      "disposed": "処分",
+      "pending": "承認待ち"
+    },
+    "comments": "コメント・承認の記録",
+    "rejectedHint": "管理者から差し戻されました。コメントを見て、もう一度記録してください。",
+    "filter": {
+      "stored": "保管中",
+      "pending": "承認待ち",
+      "done": "完了",
+      "marketing": "宣伝に使える写真",
+      "all": "すべて"
+    },
+    "marketingHint": "お客様が宣伝への使用に同意した返却の記録です。写真は詳細から開けます。",
+    "none": "ありません。",
+    "faceRuleOk": "お客様が同意しています。顔を写してもよいです（ほかのお客様は写さないでください）。"
   }
 }

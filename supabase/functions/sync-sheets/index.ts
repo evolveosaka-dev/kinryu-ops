@@ -78,6 +78,7 @@ const BACKUP_TABLES = [
   'chorei_records', 'chorei_notes', 'chorei_comments', 'chorei_misses', 'patrol_checks', 'patrol_comments', 'staff_interviews',
   'attachments', 'shift_requests', 'shift_assignments', 'duty_assignments', 'shift_changes', 'shift_offers', 'staff_limits',
   'attendance_overrides', 'stock_items', 'stock_events', 'sales_reports', 'sales_report_log', 'daily_sales', 'incidents',
+  'emergency_contacts', 'emergency_contact_log', 'lost_items', 'lost_item_comments',
   'learn_items', 'notify_recipients', 'ai_reports', 'audit_log',
 ]
 const KEEP_DAYS = 84

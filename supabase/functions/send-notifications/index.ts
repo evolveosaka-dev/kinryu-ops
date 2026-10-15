@@ -47,7 +47,7 @@ const PATROL_TYPE: Record<string, string> = { before_shift: '勤務前', in_shif
 const STEPS: Record<string, string> = { greeting: 'はじめの挨拶', philosophy: '経営理念', phrases: '接客用語', handover: '引継ぎ', grooming: '身だしなみ', closing: '締めの挨拶' }
 const ITEMS: [string, string][] = [['score_smile', '笑顔'], ['score_voice', '声出し'], ['score_grooming', '身だしなみ'], ['score_clean', '清潔'], ['score_quality', '提供品質']]
 const ACTION: Record<string, string> = { void: '取消', time: '時間の修正', follow_up: '面談済み', update: '修正' }
-const KIND: Record<string, string> = { chorei: '朝礼記録', chorei_note: '朝礼の追記', patrol: '巡回チェック', shift_request: 'シフト希望', signup: '新規登録', edit: '修正・取消', staff_alert: '面談指導の通知', stock: '在庫（繰越のずれ・廃棄・破損）', sales: '販売日報', shift_change: '休み・遅刻・早退の連絡', visa_hours: '留学・家族滞在の週28時間超え', incident: 'クレーム・事故' }
+const KIND: Record<string, string> = { chorei: '朝礼記録', chorei_note: '朝礼の追記', patrol: '巡回チェック', shift_request: 'シフト希望', signup: '新規登録', edit: '修正・取消', staff_alert: '面談指導の通知', stock: '在庫（繰越のずれ・廃棄・破損）', sales: '販売日報', shift_change: '休み・遅刻・早退の連絡', visa_hours: '留学・家族滞在の週28時間超え', incident: 'クレーム・事故', lost_item: '忘れ物・落とし物' }
 // keep in sync with src/domain/types.ts MISS_REASONS / chorei.json miss.reason
 const MISS_REASON: Record<string, string> = { busy: 'お客様が多かった', no_manager: '管理者がいなかった', alone: '1人だけの勤務だった', forgot: '忘れた', other: 'その他' }
 // keep in sync with src/domain/stock.ts OPEN_REASONS / LOSS_REASONS
@@ -268,6 +268,33 @@ async function renderEvent(admin: Admin, L: Lookup, e: NotifyEvent): Promise<{ s
   if (e.kind === 'stock') return renderStock(admin, L, e)
   if (e.kind === 'sales') return renderSales(admin, L, e)
   if (e.kind === 'shift_change') return renderShiftChange(admin, L, e)
+  if (e.kind === 'lost_item') {
+    const r = await fetchRow(admin, 'lost_items', e.ref_id)
+    if (!r) return null
+    const owner = { customer: 'お客様', staff: 'スタッフ', unknown: '不明' }[r.owner_type as string] ?? r.owner_type
+    const event = (e.data?.event as string) ?? 'found'
+    const head = { found: '忘れ物の記録', returned: '返却の記録（承認待ち）', police: '警察への届出（承認待ち）' }[event] ?? '忘れ物'
+    const { count } = await admin.from('attachments').select('id', { count: 'exact', head: true }).eq('lost_item_id', r.id).neq('status', 'failed')
+    return {
+      subject: `${head}: ${r.description} — ${slot(L, r)}`,
+      lines: [
+        `品物: ${r.description}`,
+        `店舗・勤番: ${slot(L, r)}（見つけた時刻 ${jst(r.found_at)}${r.found_place ? `・${r.found_place}` : ''}）`,
+        `持ち主: ${owner}${r.owner_name ? `（${[r.owner_name, r.owner_phone].filter(Boolean).join(' ')}）` : ''}`,
+        `保管場所: ${r.storage_place ?? '—'}`,
+        `記録した人: ${r.reporter_name}`,
+        ...(event === 'returned'
+          ? [`返却: ${jst(r.outcome_at)} ${r.outcome_to_name ?? ''}（${r.outcome_by_name}）`, `顔の撮影: ${r.consent_face ? '同意あり' : 'なし'}・宣伝に使う: ${r.consent_marketing ? '同意あり' : 'なし'}`]
+          : event === 'police'
+            ? [`警察: ${jst(r.outcome_at)} ${r.police_station ?? ''} ${r.police_number ?? ''}（${r.outcome_by_name}）`]
+            : []),
+        `写真: ${count ?? 0}件`,
+        '',
+        event === 'found' ? 'アプリの 管理 → 忘れ物 で確認できます。' : 'アプリの 管理 → 忘れ物 で承認してください。',
+      ],
+      link: appUrl('/manager/lost-items'),
+    }
+  }
   if (e.kind === 'incident') {
     const r = await fetchRow(admin, 'incidents', e.ref_id)
     if (!r) return null

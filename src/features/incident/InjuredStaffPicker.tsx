@@ -10,7 +10,7 @@ import { supabase } from '../../lib/supabase'
  * ケガ・事故 → スタッフ: the people of this store's current shift (shift table) at the top of the wheel, marked 🟢,
  * then every other active name of the roster.
  */
-export function InjuredStaffPicker({ storeId, value, onChange }: { storeId: string; value: string | null; onChange: (name: string) => void }) {
+export function InjuredStaffPicker({ storeId, value, onChange, label }: { storeId: string; value: string | null; onChange: (name: string) => void; label?: string }) {
   const { t } = useTranslation()
   const slot = useMemo(() => currentSlot(new Date()), [])
   const onShift = useSlotSchedule(storeId, slot.businessDate, slot.shift)
@@ -28,7 +28,7 @@ export function InjuredStaffPicker({ storeId, value, onChange }: { storeId: stri
   if (options.length === 0) return null
   return (
     <div className="flex flex-col gap-1">
-      <WheelPicker label={t('incident.injured.who')} options={options} value={value} onChange={onChange} />
+      <WheelPicker label={label ?? t('incident.injured.who')} options={options} value={value} onChange={onChange} />
       <p className="text-xs text-muted">{t('incident.injured.onShiftHint', { shift: t(`shift.${slot.shift}`) })}</p>
     </div>
   )

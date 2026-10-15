@@ -41,6 +41,7 @@ export function AttachmentPicker({
   lockedNote,
   missing = false,
   taken = { images: 0, videos: 0 },
+  rule,
 }: {
   value: PreparedMedia[]
   onChange: (v: PreparedMedia[]) => void
@@ -55,6 +56,8 @@ export function AttachmentPicker({
   missing?: boolean
   /** files the record already has (a manager adding files later); they count toward the limits */
   taken?: { images: number; videos: number }
+  /** replaces the 「お客様の顔は撮らない」 rule (a customer who agreed to be photographed) */
+  rule?: string
 }) {
   const { t } = useTranslation()
   const photoInput = useRef<HTMLInputElement>(null)
@@ -94,7 +97,7 @@ export function AttachmentPicker({
         {requirePhoto && ' *'}
       </h2>
       {hint && <p className="text-sm">{hint}</p>}
-      <p className="rounded-lg bg-amber-50 p-2 text-sm font-bold text-amber-900">⚠️ {t('attach.rule')}</p>
+      <p className="rounded-lg bg-amber-50 p-2 text-sm font-bold text-amber-900">⚠️ {rule ?? t('attach.rule')}</p>
       {value.length > 0 && (
         <ul className="flex flex-wrap gap-2">
           {value.map((m) => (

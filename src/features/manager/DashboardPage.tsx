@@ -22,6 +22,8 @@ import { startAt } from '../../domain/schedule'
 import { Sheet } from '../../components/Sheet'
 import { today, useIncidents, useIssueStatus, usePeople, useRecords, useSystemStatus, weekOf, type AdminPatrol } from './data'
 import { URGENT_INCIDENTS } from '../../domain/incident'
+import { keptDays, LOST_KEEP_DAYS, lostStage } from '../../domain/lostItem'
+import { useLostItems } from '../lost/data'
 import { systemProblems } from '../../domain/systemStatus'
 import { STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { PatrolDetail } from './details'
@@ -95,6 +97,9 @@ export function DashboardPage() {
   const incidents = useIncidents()
   const openIncidents = (incidents.data ?? []).filter((r) => r.status !== 'done')
   const urgentIncidents = openIncidents.filter((r) => URGENT_INCIDENTS.includes(r.kind))
+  const lost = useLostItems()
+  const lostPending = (lost.data ?? []).filter((r) => lostStage(r) === 'pending').length
+  const lostLong = (lost.data ?? []).filter((r) => r.status === 'stored' && keptDays(r.found_at) >= LOST_KEEP_DAYS).length
   const sysProblems = system.data ? systemProblems(system.data, now) : []
   const changes = useChanges(addDays(day, -1), addDays(day, 60))
   const pendingChanges = (changes.data ?? []).filter((c) => c.status === 'open')
@@ -226,6 +231,16 @@ export function DashboardPage() {
                   <Dot tone={urgentIncidents.length ? 'red' : 'amber'} /> {t('dashboard.openIncidents')}
                 </span>
                 <span>{openIncidents.length} ›</span>
+              </Link>
+            </li>
+          )}
+          {(lostPending > 0 || lostLong > 0) && (
+            <li>
+              <Link to="/manager/lost-items" className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-amber-50 px-3 font-semibold text-amber-900">
+                <span className="flex items-center gap-2">
+                  <Dot tone="amber" /> {t('dashboard.lostItems', { long: lostLong, days: LOST_KEEP_DAYS })}
+                </span>
+                <span>{lostPending} ›</span>
               </Link>
             </li>
           )}
