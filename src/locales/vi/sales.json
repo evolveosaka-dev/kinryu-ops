@@ -49,7 +49,8 @@
   "otherOut": {
     "none": "Không có mì hủy bỏ・hư hỏng.",
     "add": "Ghi mì hủy bỏ・hư hỏng",
-    "save": "Ghi"
+    "save": "Ghi",
+    "noNote": "Không có"
   },
   "noodle": {
     "formula": "Tổng vé − (mì xuất − bữa ăn NV − hủy bỏ) = chênh lệch",

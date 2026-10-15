@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router'
 import { useAuth, useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
-import { Button, Card, ErrorBox, PageTitle, Segmented, Spinner, TextArea, TextInput } from '../../components/ui'
+import { Button, Card, Checkbox, ErrorBox, PageTitle, Segmented, Spinner, TextArea, TextInput } from '../../components/ui'
 import { readSlotPreset } from '../../domain/duty'
 import {
   CASH_TYPES,
@@ -129,10 +129,13 @@ function NoodleLoss({ slot, noodle, losses }: { slot: Slot; noodle: StockItem; l
   const [qty, setQty] = useState('')
   const [reason, setReason] = useState('')
   const [note, setNote] = useState('')
+  const [noNote, setNoNote] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // 「その他」 always needs the details, so なし cannot apply to it
+  const skipNote = noNote && reason !== 'other'
   const add = useMutation({
     mutationFn: async () => {
-      const tr = await translation.prepare([{ key: 'note', label: ts('form.reasonNote'), text: note.trim() || null }])
+      const tr = await translation.prepare([{ key: 'note', label: ts('form.reasonNote'), text: skipNote ? null : note.trim() || null }])
       await addStockEvent({
         store: slot.store.id,
         date: slot.date,
@@ -150,6 +153,7 @@ function NoodleLoss({ slot, noodle, losses }: { slot: Slot; noodle: StockItem; l
       setQty('')
       setReason('')
       setNote('')
+      setNoNote(false)
       void queryClient.invalidateQueries({ queryKey: ['stock_events'] })
     },
   })
@@ -181,7 +185,19 @@ function NoodleLoss({ slot, noodle, losses }: { slot: Slot; noodle: StockItem; l
         <div className="flex flex-col gap-2 rounded-xl border border-line p-3">
           <TextInput label={`${itemName(ts, noodle)}（${ts(`unit.${noodle.unit}`)}）`} inputMode="decimal" value={qty} onChange={(e) => setQty(e.target.value)} />
           <Segmented label={ts('form.reason')} value={reason} onChange={setReason} columns={1} options={LOSS_REASONS.map((r) => ({ value: r, label: ts(`reason.${r}`) }))} />
-          <TextInput label={reason === 'other' ? ts('form.reasonNoteRequiredLabel') : ts('form.reasonNote')} value={note} maxLength={200} onChange={(e) => setNote(e.target.value)} />
+          <TextInput
+            label={reason === 'other' ? ts('form.reasonNoteRequiredLabel') : ts('form.reasonNote')}
+            value={skipNote ? '' : note}
+            maxLength={200}
+            disabled={skipNote}
+            className="disabled:border-slate-300 disabled:bg-slate-100"
+            onChange={(e) => setNote(e.target.value)}
+          />
+          {reason !== 'other' && (
+            <Checkbox checked={noNote} onChange={setNoNote}>
+              {t('otherOut.noNote')}
+            </Checkbox>
+          )}
           {error && <ErrorBox message={error} />}
           {add.error && !(add.error instanceof TranslationCancelled) && <ErrorBox message={errorText(add.error)} />}
           <Button onClick={submit} disabled={add.isPending}>
@@ -393,7 +409,7 @@ function SalesForm({
       {locked && <p className="rounded-xl bg-slate-200 p-3 text-sm font-bold text-slate-800">🔒 {t('locked')}</p>}
 
       <Section title={`🎫 ${t('section.tickets')}`}>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-[1fr_1.4fr_1fr] gap-2 [&>div]:justify-between [&_label]:whitespace-nowrap">
           {TICKETS.map((k) => (
             <TextInput key={k} label={t(`tickets.${k}`)} inputMode="numeric" value={tickets[k]} onChange={(e) => setTickets((x) => ({ ...x, [k]: e.target.value }))} className="text-right text-lg font-bold" />
           ))}
