@@ -664,7 +664,7 @@
       "patrol": "Patrols: scores of the sent patrol checks (not voided).",
       "reports": "Daily sales reports: Manager → Sales reports.",
       "dataFrom": "2024 figures are not used (from January 2025).",
-      "weather": "Rain: Open-Meteo hourly precipitation (near Namba). Up to yesterday what fell, from today the forecast."
+      "weather": "Weather: Open-Meteo hourly temperature and rain (Namba), saved to the database every day at 4:45. Actual values until yesterday, forecast from today (16 days ahead)."
     },
     "score": "Score"
   },
@@ -900,7 +900,7 @@
     "tomorrow": "Tomorrow",
     "bowls": " bowls",
     "vsTarget": "{{n}}% of target",
-    "how": "Forecast = average of the same day type in the last 6 weeks × events × rain (shifts with ≥ 1 mm forecast).",
+    "how": "Forecast = average ({{m}}) × events × weather ({{w}}).",
     "error": "Error tested on the last 4 weeks ±{{n}}%.",
     "weatherError": "Could not get the weather forecast. Open again later.",
     "tapHint": "Tap a number to see how it is calculated and from which data.",
@@ -912,7 +912,7 @@
     },
     "x": {
       "slotTitle": "Forecast {{date}} {{where}}",
-      "slotFormula": "Forecast = average × events × rain\n= {{base}} × {{ev}} × {{rain}}\n= {{value}} bowls",
+      "slotFormula": "Forecast = average × events × weather\n= {{base}} × {{ev}} × {{rain}}\n= {{value}}",
       "noBase": "No figures for the same day type ({{type}}) in the last 12 weeks, so no forecast.",
       "base": "① Average: days of the same type as {{date}} (“{{type}}”) between {{from}} and {{to}} ({{weeks}} weeks), bowls of {{where}} averaged. {{n}} days → {{avg}}. Only the same day type, because Fridays, Saturdays and long weekends sell differently.",
       "baseWide": "Fewer than 2 such days in the last 6 weeks, so 12 weeks were used.",
@@ -946,7 +946,63 @@
       "rainNote": "From {{from}} to yesterday, the days with 1 mm or more during {{hours}} ({{days}} days, {{n}} rows): the actual bowls divided by the forecast without rain (same-type average × events).\nThe median is used so that one odd day does not pull it; it is kept between {{lo}} and {{hi}}. Fewer than {{min}} rainy days → ×1.00.",
       "errorTitle": "Forecast error (last 4 weeks)",
       "errorFormula": "Error = mean of “|forecast − actual| ÷ actual”\n= mean of {{n}} rows\n= ±{{err}}%",
-      "errorNote": "For the 28 days from {{from}} to yesterday, every day and shift was forecast the same way (only data before that day, and the rain that fell) and compared with the real bowls. All rows are below."
+      "errorNote": "For the 28 days from {{from}} to yesterday, every day and shift was forecast the same way (only data before that day, and the rain that fell) and compared with the real bowls. All rows are below.",
+      "usedMethod": "Average from: {{m}} (the method with the smallest error over the last 4 weeks)",
+      "fallback": "Not enough data for {{m}}, so this shift uses \"A last 6 weeks\".",
+      "seasonalFormula": "Average = same month last year × this year’s level\n= {{ly}} × {{r}}\n= {{base}}",
+      "lastYear": "Same month last year: average of the \"{{type}}\" days of {{month}} for {{where}}. {{n}} days → {{avg}}. This brings in the season (month).",
+      "lastYearFew": "Same month last year: only {{n}} \"{{type}}\" days in {{month}} ({{min}} needed).",
+      "lastYearSkipped": "Days of yearly events left out: {{list}} (events are applied separately in ②).",
+      "yoy": "This year’s level: total of the \"{{type}}\" days {{from}}–{{to}} ({{n}} days) ÷ total 364 days before (same weekday) = {{sum}} ÷ {{sumLy}} = {{raw}}. Kept within {{lo}}–{{hi}} → ×{{r}}. This brings in how this year compares with last year.",
+      "yoyAll": "Fewer than {{min}} days of the same type, so every day of the 6 weeks was used.",
+      "allTypes": "all day types",
+      "lyTable": "Days averaged for last year ({{month}}, {{n}} days)",
+      "yoyTable": "Days for this year’s level ({{n}} days)",
+      "colLastYear": "364 days before",
+      "colMethod": "Method",
+      "chosen": "in use",
+      "methodsTitle": "Error of the three methods ({{n}} slots all three could forecast)",
+      "methodsNote": "A = average of the same day type in the last 6 weeks\nB = average of the same day type in the same month last year\nC = B × this year’s level (last 6 weeks ÷ the same weeks last year)\nThe method with the smallest error is used (C when tied).",
+      "rowsTitle": "All rows (bold = the method in use: {{m}})",
+      "tempLine": "③ Weather, temperature: {{temp}} °C in this shift ({{hours}}), {{diff}} °C vs this shift’s average of the last 6 weeks {{mean}} °C ({{days}} days) → \"{{band}}\" → ×{{f}}. Colder days sell more, hot days less.",
+      "tempUnknown": "③ Weather, temperature: no temperature for this day yet → ×1.00.",
+      "rainBandLine": "Rain: {{mm}} mm ({{h}} hours of rain) → \"{{band}}\" → ×{{f}}.",
+      "weatherTotal": "Weather = temperature ×{{t}} × rain ×{{r}} = ×{{f}}",
+      "weatherOpen": "How the {{shift}} weather effect is calculated →",
+      "weatherTitle": "{{shift}} weather effect",
+      "weatherFormula": "Weather = temperature factor × rain-amount factor\nfactor = median of \"actual ÷ expected\" of the past slots in the band",
+      "weatherNote": "Every day and store of {{hours}} from {{from}} to {{to}}, put in bands by temperature and rain. Expected = average of the same day type in the last 6 weeks × events (no weather).\nTemperature band: the shift’s temperature − its 6-week average (edges {{edges}} °C), on slots with < 1 mm rain only.\nRain band: mm in the shift (edges {{rain}} mm), after taking out the temperature.\nBands with fewer than {{min}} slots → ×1.00. Kept within {{lo}}–{{hi}}. The last 28 days are kept out and used for the error test.",
+      "tempTable": "Temperature bands (slots with < 1 mm rain)",
+      "rainTable": "Rain-amount bands",
+      "colBand": "Band",
+      "colSlots": "Slots",
+      "colMedian": "Median",
+      "colFactor": "Factor",
+      "weatherModesTitle": "Error by weather model (average: {{m}})",
+      "weatherModesNote": "Rain only = on days with ≥ 1 mm, the rainy-day factor (the earlier method)\nRain amount × temperature = temperature band × rain-amount band factors\nThe smaller error is used (rain only when tied).",
+      "rainNoShort": "Rain: {{mm}} mm, under 1 mm → ×1.00."
+    },
+    "method": {
+      "recent": "A last 6 weeks",
+      "lastYear": "B same month last year",
+      "seasonal": "C last year × this year’s level"
+    },
+    "weatherHead": "Weather effect (from the figures):",
+    "weatherMode": {
+      "rain": "rain only",
+      "rainTemp": "rain amount × temperature"
+    },
+    "tempBand": {
+      "0": "4 °C+ colder",
+      "1": "2–4 °C colder",
+      "2": "within ±2 °C",
+      "3": "2–4 °C warmer",
+      "4": "4 °C+ warmer"
+    },
+    "rainBand": {
+      "1": "1–3 mm",
+      "2": "3–6 mm",
+      "3": "6 mm+"
     }
   },
   "emergency": {

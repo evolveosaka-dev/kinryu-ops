@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { normalizedTo25 } from '../../../domain/patrol'
 import { DATA_FROM, type PatrolScore, type Sale } from '../../../domain/salesAnalysis'
-import { shiftRain } from '../../../domain/forecast'
-import { addDays, tokyoParts } from '../../../domain/time'
+import type { WeatherMap } from '../../../domain/forecast'
+import { tokyoParts } from '../../../domain/time'
 import type { Shift } from '../../../domain/types'
 import { unwrap } from '../../../lib/queries'
 import { supabase } from '../../../lib/supabase'
@@ -65,37 +65,33 @@ export function useMonthReports(from: string, to: string) {
   })
 }
 
-/** Osaka (道頓堀 area) */
-const LAT = 34.67
-const LON = 135.5
-interface Hourly {
-  hourly: { time: string[]; precipitation: (number | null)[] }
-}
-
 /**
- * Rain per date × shift from Open-Meteo (free, no key): the archive from 2025 until 60 days ago, then the
- * forecast API (92 past days + 8 days ahead). Hours are Asia/Tokyo.
+ * The weather per business date × shift (weather_shifts: Open-Meteo, Namba, saved every day at 4:45 by
+ * sync-sheets action 'weather'; archive = what happened, forecast = ahead). Read in pages of 1000 rows.
  */
-export function useRain() {
+export function useWeather() {
   return useQuery({
-    queryKey: ['analysis', 'rain', today()],
+    queryKey: ['analysis', 'weather', today()],
     staleTime: 60 * 60 * 1000,
-    retry: 1,
     queryFn: async () => {
-      const q = `latitude=${LAT}&longitude=${LON}&hourly=precipitation&timezone=Asia%2FTokyo`
-      const archiveTo = addDays(today(), -60)
-      const [archive, forecast] = await Promise.all([
-        fetch(`https://archive-api.open-meteo.com/v1/archive?${q}&start_date=${DATA_FROM}&end_date=${archiveTo}`),
-        fetch(`https://api.open-meteo.com/v1/forecast?${q}&past_days=92&forecast_days=8`),
-      ])
-      if (!archive.ok || !forecast.ok) throw new Error(`weather ${archive.status} / ${forecast.status}`)
-      const a = (await archive.json()) as Hourly
-      const f = (await forecast.json()) as Hourly
-      // the two overlap: one value per hour (the forecast API wins)
-      const byHour = new Map<string, number | null>()
-      a.hourly.time.forEach((t, i) => byHour.set(t, a.hourly.precipitation[i] ?? null))
-      f.hourly.time.forEach((t, i) => byHour.set(t, f.hourly.precipitation[i] ?? null))
-      return shiftRain({ time: [...byHour.keys()], precipitation: [...byHour.values()] })
+      const rows: { business_date: string; shift: string; temp_avg: number | null; precip_mm: number; rain_hours: number; source: 'archive' | 'forecast' }[] = []
+      for (let from = 0; ; from += 1000) {
+        const page = unwrap<typeof rows>(
+          await supabase
+            .from('weather_shifts')
+            .select('business_date, shift, temp_avg, precip_mm, rain_hours, source')
+            .gte('business_date', DATA_FROM)
+            .order('business_date')
+            .order('shift')
+            .range(from, from + 999),
+        )
+        rows.push(...page)
+        if (page.length < 1000) break
+      }
+      if (!rows.length) throw new Error('no weather yet')
+      const map: WeatherMap = new Map()
+      for (const r of rows) map.set(`${r.business_date}|${r.shift}`, { temp: r.temp_avg === null ? null : Number(r.temp_avg), mm: Number(r.precip_mm), hours: r.rain_hours, source: r.source })
+      return map
     },
   })
 }

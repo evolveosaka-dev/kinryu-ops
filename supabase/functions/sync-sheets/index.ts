@@ -150,6 +150,74 @@ async function runBackup(admin: ReturnType<typeof adminClient>) {
   return { date, tables, bytes, errors, removed, url: `https://drive.google.com/drive/folders/${folderId}` }
 }
 
+// ---- 天気 (Namba): Open-Meteo hourly → business date × shift (遅番 23:00–6:59 belongs to the day it starts)
+const WX_LAT = 34.67
+const WX_LON = 135.5
+const WX_FROM = '2025-01-01'
+type Hourly = { time: string[]; temperature_2m: (number | null)[]; precipitation: (number | null)[] }
+
+function addDay(date: string, n: number) {
+  const d = new Date(`${date}T00:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + n)
+  return d.toISOString().slice(0, 10)
+}
+
+function weatherRows(h: Hourly, source: 'archive' | 'forecast') {
+  const m = new Map<string, { t: number[]; p: number[]; n: number }>()
+  h.time.forEach((t, i) => {
+    const date = t.slice(0, 10)
+    const hr = Number(t.slice(11, 13))
+    const [d, shift] = hr >= 7 && hr < 17 ? [date, 'early'] : hr >= 17 && hr < 23 ? [date, 'middle'] : hr >= 23 ? [date, 'late'] : [addDay(date, -1), 'late']
+    const k = `${d}|${shift}`
+    const v = m.get(k) ?? { t: [], p: [], n: 0 }
+    if (h.temperature_2m[i] !== null) v.t.push(h.temperature_2m[i]!)
+    if (h.precipitation[i] !== null) v.p.push(h.precipitation[i]!)
+    if (h.temperature_2m[i] !== null || h.precipitation[i] !== null) v.n++
+    m.set(k, v)
+  })
+  const full = { early: 10, middle: 6, late: 8 } as Record<string, number>
+  const r1 = (x: number) => Math.round(x * 10) / 10
+  return [...m]
+    .filter(([k, v]) => v.n >= full[k.split('|')[1]!]!) // only complete shifts
+    .map(([k, v]) => {
+      const [business_date, shift] = k.split('|')
+      return {
+        business_date,
+        shift,
+        temp_avg: v.t.length ? r1(v.t.reduce((a, x) => a + x, 0) / v.t.length) : null,
+        temp_min: v.t.length ? r1(Math.min(...v.t)) : null,
+        temp_max: v.t.length ? r1(Math.max(...v.t)) : null,
+        precip_mm: r1(v.p.reduce((a, x) => a + x, 0)),
+        rain_hours: v.p.filter((x) => x >= 0.5).length,
+        hours: v.n,
+        source,
+        fetched_at: new Date().toISOString(),
+      }
+    })
+}
+
+/** Archive from the last archived day (or 2025-01-01) to yesterday, then the forecast (7 days back … 16 ahead) for the rest. */
+async function runWeather(admin: ReturnType<typeof adminClient>) {
+  const today = new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10)
+  const { data: last } = await admin.from('weather_shifts').select('business_date').eq('source', 'archive').order('business_date', { ascending: false }).limit(1)
+  const from = last?.[0] ? addDay(last[0].business_date as string, -3) : WX_FROM
+  const q = `latitude=${WX_LAT}&longitude=${WX_LON}&hourly=temperature_2m,precipitation&timezone=Asia%2FTokyo`
+  const [a, f] = await Promise.all([
+    fetch(`https://archive-api.open-meteo.com/v1/archive?${q}&start_date=${from}&end_date=${addDay(today, -1)}`),
+    fetch(`https://api.open-meteo.com/v1/forecast?${q}&past_days=7&forecast_days=16`),
+  ])
+  if (!a.ok || !f.ok) throw new HttpError(502, `open-meteo ${a.status} / ${f.status}`)
+  const archive = weatherRows(((await a.json()) as { hourly: Hourly }).hourly, 'archive')
+  const archived = new Set(archive.map((r) => `${r.business_date}|${r.shift}`))
+  const forecast = weatherRows(((await f.json()) as { hourly: Hourly }).hourly, 'forecast').filter((r) => !archived.has(`${r.business_date}|${r.shift}`))
+  const rows = [...archive, ...forecast]
+  for (let i = 0; i < rows.length; i += 1000) {
+    const { error } = await admin.from('weather_shifts').upsert(rows.slice(i, i + 1000), { onConflict: 'business_date,shift' })
+    if (error) throw new HttpError(500, error.message)
+  }
+  return { from, archive: archive.length, forecast: forecast.length }
+}
+
 serve(async (req) => {
   const admin = adminClient()
   const cronSecret = req.headers.get('x-cron-secret')
@@ -162,13 +230,14 @@ serve(async (req) => {
   }
   const body = (await req.clone().json().catch(() => ({}))) as { action?: string }
   if (body.action === 'backup') return runBackup(admin)
+  if (body.action === 'weather') return runWeather(admin)
 
   const [stores, profiles, chorei, patrols, attachments, misses, stockLosses] = await Promise.all([
     admin.from('stores').select('id, name_ja'),
     admin.from('profiles').select('id, display_name, full_name'),
     admin.from('chorei_records').select('*').eq('by_test_account', false).order('business_date', { ascending: false }).order('shift'),
     admin.from('patrol_checks').select('*').eq('by_test_account', false).neq('status', 'draft').order('business_date', { ascending: false }).order('started_at', { ascending: false }),
-    admin.from('attachments').select('*').eq('status', 'uploaded').is('incident_id', null).order('created_at', { ascending: false }),
+    admin.from('attachments').select('*').eq('status', 'uploaded').is('incident_id', null).is('lost_item_id', null).order('created_at', { ascending: false }),
     admin.from('chorei_misses').select('id, store_id, business_date, shift').eq('by_test_account', false),
     admin.from('stock_events').select('id, store_id, business_date, shift').eq('kind', 'loss').eq('by_test_account', false),
   ])
