@@ -5,7 +5,8 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { useMe } from '../../app/auth'
 import { useSentNotice } from '../../components/SentNotice'
 import { StaffPicker } from '../../components/StaffPicker'
-import { Button, Card, Checkbox, ErrorBox, Segmented, Spinner, StickyActions, TextArea, TextInput, PageTitle } from '../../components/ui'
+import { Button, Card, Checkbox, ErrorBox, Segmented, Spinner, StickyActions, TextArea, PageTitle } from '../../components/ui'
+import { DateField } from '../../components/DateField'
 import {
   durationMinutes,
   judgePatrol,
@@ -262,7 +263,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
           onChange={(shift) => update({ shift })}
           options={SHIFTS.map((s) => ({ value: s, label: t(`common:shift.${s}`) }))}
         />
-        <TextInput label={t('common:field.date')} type="date" value={form.businessDate} onChange={(e) => update({ businessDate: e.target.value })} />
+        <DateField label={t('common:field.date')} value={form.businessDate} onChange={(d) => update({ businessDate: d })} />
       </Card>
 
       <div ref={timeCard}>

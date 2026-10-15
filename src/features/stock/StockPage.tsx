@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router'
 import { useAuth, useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
 import { Button, Card, ErrorBox, PageTitle, Segmented, Spinner, TextInput } from '../../components/ui'
+import { DateField } from '../../components/DateField'
 import { readSlotPreset } from '../../domain/duty'
 import type { PreparedMedia } from '../../lib/media'
 import { AttachmentPicker } from '../attachments/AttachmentPicker'
@@ -612,6 +613,7 @@ function TempSummary({ events, onEdit }: { events: StockEvent[]; onEdit: () => v
 /** メニュー → 在庫・仕入 (日報 page 2) for one store × date × shift. */
 export function StockPage() {
   const { t } = useTranslation('stock')
+  const { isManager } = useAuth()
   const locale = currentLocale()
   const stores = useStores()
   const [params] = useSearchParams()
@@ -672,7 +674,7 @@ export function StockPage() {
           options={(stores.data ?? []).map((s) => ({ value: s.id, label: storeName(s, locale) }))}
         />
         <Segmented label={t('common:field.shift')} value={shift} onChange={setShift} options={SHIFTS.map((s) => ({ value: s, label: t(`common:shift.${s}`) }))} />
-        <TextInput label={t('common:field.date')} type="date" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} />
+        <DateField label={t('common:field.date')} value={date} back={isManager ? 60 : 1} onChange={setDate} />
         <p className="text-sm text-muted">{t('previousSlot', { slot: `${formatShortDate(prev.businessDate)} ${t(`common:shift.${prev.shift}`)}` })}</p>
       </Card>
 

@@ -380,5 +380,10 @@
         "phone": "Phone"
       }
     }
+  },
+  "date": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow"
   }
 }

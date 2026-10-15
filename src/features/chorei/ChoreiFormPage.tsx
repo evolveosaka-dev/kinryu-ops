@@ -6,6 +6,7 @@ import { useAuth, useMe } from '../../app/auth'
 import { useSentNotice } from '../../components/SentNotice'
 import { StaffPicker } from '../../components/StaffPicker'
 import { Button, Card, Checkbox, ErrorBox, Segmented, Spinner, StickyActions, TextArea, TextInput, PageTitle } from '../../components/ui'
+import { DateField } from '../../components/DateField'
 import { readSlotPreset } from '../../domain/duty'
 import { CAUTION_PICKS } from '../../domain/phrases'
 import { currentSlot, formatShortDate, formatTokyoTime, MEETING_TIME } from '../../domain/time'
@@ -218,12 +219,12 @@ export function ChoreiFormPage() {
             ),
           }))}
         />
-        <TextInput
+        <DateField
           label={t('common:field.date')}
-          type="date"
           value={businessDate}
-          onChange={(e) => {
-            setBusinessDate(e.target.value)
+          back={backfill ? 60 : 7}
+          onChange={(d) => {
+            setBusinessDate(d)
             setTargetOverride(null)
           }}
         />

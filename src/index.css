@@ -24,3 +24,16 @@ body {
   color: var(--color-ink);
   line-height: 1.6;
 }
+
+/* iPhone: the native date boxes (manager screens) must not grow past the card */
+input[type='date'],
+input[type='datetime-local'] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  max-width: 100%;
+}
+input[type='date']::-webkit-date-and-time-value,
+input[type='datetime-local']::-webkit-date-and-time-value {
+  text-align: left;
+}

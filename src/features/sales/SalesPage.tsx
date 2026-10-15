@@ -5,6 +5,7 @@ import { Link, useSearchParams } from 'react-router'
 import { useAuth, useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
 import { Button, Card, Checkbox, ErrorBox, PageTitle, Segmented, Spinner, TextArea, TextInput } from '../../components/ui'
+import { DateField } from '../../components/DateField'
 import { readSlotPreset } from '../../domain/duty'
 import {
   CASH_TYPES,
@@ -728,7 +729,7 @@ export function SalesPage() {
       <Card className="flex flex-col gap-3">
         <Segmented label={t('common:field.store')} value={store.id} onChange={setStoreId} options={(stores.data ?? []).map((s) => ({ value: s.id, label: storeName(s, locale) }))} />
         <Segmented label={t('common:field.shift')} value={shift} onChange={setShift} options={SHIFTS.map((s) => ({ value: s, label: t(`common:shift.${s}`) }))} />
-        <TextInput label={t('common:field.date')} type="date" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} />
+        <DateField label={t('common:field.date')} value={date} back={isManager ? 60 : 1} onChange={setDate} />
       </Card>
       <History logs={logs.data ?? []} report={report.data ?? null} />
       <SalesForm

@@ -380,5 +380,10 @@
         "phone": "Số điện thoại"
       }
     }
+  },
+  "date": {
+    "today": "Hôm nay",
+    "yesterday": "Hôm qua",
+    "tomorrow": "Ngày mai"
   }
 }
