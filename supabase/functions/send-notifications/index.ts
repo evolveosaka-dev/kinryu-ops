@@ -57,7 +57,7 @@ const STOCK_REASON: Record<string, string> = {
 }
 // keep in sync with src/domain/shiftChange.ts CHANGE_REASONS
 const CHANGE_KIND: Record<string, string> = { absence: '休み', late: '遅刻', early_leave: '早退' }
-const CHANGE_REASON: Record<string, string> = { sick: '体調不良', family: '家族の用事', transport: '交通機関の遅れ', personal: '私用', paid_leave: '有給休暇', store: '店の都合', other: 'その他' }
+const CHANGE_REASON: Record<string, string> = { sick: '体調不良', family: '家族の用事', transport: '交通の原因', personal: '私用', paid_leave: '有給休暇', store: '店の都合', other: 'その他' }
 // keep in sync with src/domain/incident.ts
 const INCIDENT_KIND: Record<string, string> = { complaint: 'お客様のクレーム', injury: 'ケガ・事故', foreign_object: '異物混入', equipment: '設備の故障', food_poisoning: '食中毒の疑い', lost_item: '忘れ物・落とし物', other: 'その他' }
 const STOCK_UNIT: Record<string, string> = { piece: '個', bag: '袋', box: '箱', stick: '本', liter: 'L' }
@@ -464,7 +464,7 @@ async function renderShiftChange(admin: Admin, L: Lookup, e: NotifyEvent) {
       `スタッフ: ${r.roster_name}${r.by_manager ? `（${L.person(r.requester_id)}が記録）` : ''}`,
       `勤務: ${where}`,
       `内容: ${what}`,
-      `理由: ${(r.reason === 'transport' ? { absence: '電車・バスの原因', early_leave: '交通の原因' }[r.kind as string] : null) ?? CHANGE_REASON[r.reason] ?? r.reason}${r.note ? `（${r.note}）` : ''}`,
+      `理由: ${CHANGE_REASON[r.reason] ?? r.reason}${r.note ? `（${r.note}）` : ''}`,
       `連絡: ${jst(r.reported_at)}（${noticeText(r.notice_min)}）`,
       `代わり: ${r.kind === 'late' ? '—' : r.proposed_cover ? `本人が指名 ${r.proposed_cover}さん（話し合い済み・承認待ち）` : r.recruit ? `募集中${r.swap_ok ? '（交換も可）' : ''}` : '募集しない（管理者が手配）'}`,
       '',

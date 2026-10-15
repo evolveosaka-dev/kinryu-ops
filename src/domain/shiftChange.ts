@@ -19,7 +19,14 @@ export const reasonsFor = (_kind: ChangeKind, manager: boolean): ChangeReason[] 
 export const REASON_ICON: Record<ChangeReason, string> = { sick: '🤒', family: '👪', transport: '🚃', personal: '📌', paid_leave: '🏖️', store: '🏪', other: '✏️' }
 export const KIND_ICON: Record<ChangeKind, string> = { absence: '🛌', late: '⏰', early_leave: '🏃' }
 
-export const LATE_OPTIONS = [5, 10, 15, 20, 30, 45, 60, 90, 120]
+/** 遅れる: every 5 minutes, while the person still arrives before the end (the DB allows up to 600). */
+export function lateOptions(a: Pick<Assignment, 'start_min' | 'end_min'>): number[] {
+  const out: number[] = []
+  for (let m = 5; m < Math.min(601, a.end_min - a.start_min); m += 5) out.push(m)
+  return out
+}
+/** Later than this, 休む is the better report. */
+export const LATE_WARN_MIN = 120
 /** Under 2 hours before the start: also phone the manager. */
 export const CALL_WITHIN_MIN = 120
 
@@ -127,10 +134,10 @@ export function reportable<T extends Assignment>(xs: T[], now: Date, days = 31):
   return xs.filter((a) => endAt(a) > now && startAt(a).getTime() <= limit).sort((a, b) => startAt(a).getTime() - startAt(b).getTime())
 }
 
-/** 早退 times: every 30 minutes between the start and the end (exclusive). */
+/** 早退 times: every 15 minutes, from 15 minutes after the start until before the end. */
 export function leaveOptions(a: Pick<Assignment, 'start_min' | 'end_min'>): number[] {
   const out: number[] = []
-  for (let m = Math.ceil((a.start_min + 1) / 30) * 30; m < a.end_min; m += 30) out.push(m)
+  for (let m = Math.ceil((a.start_min + 15) / 15) * 15; m < a.end_min; m += 15) out.push(m)
   return out
 }
 

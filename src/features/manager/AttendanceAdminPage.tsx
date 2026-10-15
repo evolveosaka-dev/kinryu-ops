@@ -3,11 +3,12 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 import { Sheet } from '../../components/Sheet'
+import { WheelPicker } from '../../components/WheelPicker'
 import { useToast } from '../../components/Toast'
 import { Button, Card, ErrorBox, PageTitle, Segmented, Spinner, TextArea, TextInput } from '../../components/ui'
 import { attendanceScores, GRADE_STYLE, labelOf, WINDOW_DAYS, type AttendanceEvent } from '../../domain/attendance'
 import { formatMin, formatRange, STORE_BY_MARK, type Assignment } from '../../domain/schedule'
-import { coverCandidates, coverProblemOf, LATE_OPTIONS, leaveOptions, REASON_ICON, reasonsFor, VISA_LIMIT_MIN, type ChangeReason } from '../../domain/shiftChange'
+import { coverCandidates, coverProblemOf, lateOptions, leaveOptions, REASON_ICON, reasonsFor, VISA_LIMIT_MIN, type ChangeReason } from '../../domain/shiftChange'
 import { addDays, formatShortDate, weekdayOf } from '../../domain/time'
 import { cx } from '../../lib/cx'
 import { errorMessage } from '../../lib/format'
@@ -243,6 +244,9 @@ function DecideSheet({ c, onClose }: { c: ChangeWithOffers; onClose: () => void 
 }
 
 /** 管理者が修正: what the staff member reported (reason, note, minutes late / leaving time). */
+/** The choices plus the value already saved (older reports may hold a time off the grid). */
+const withValue = (xs: number[], v: number | null) => (v === null || xs.includes(v) ? xs : [...xs, v].sort((a, b) => a - b))
+
 function ChangeEdit({ c, onDone }: { c: ChangeWithOffers; onDone: () => void }) {
   const { t } = useTranslation('manager')
   const { t: ts } = useTranslation('shift')
@@ -252,7 +256,7 @@ function ChangeEdit({ c, onDone }: { c: ChangeWithOffers; onDone: () => void }) 
   const translation = useTranslationGate()
   const [reason, setReason] = useState<ChangeReason>(c.reason)
   const [note, setNote] = useState(c.note ?? '')
-  const [lateMin, setLateMin] = useState(String(c.late_min ?? ''))
+  const [lateMin, setLateMin] = useState<number | null>(c.late_min ?? null)
   const [leaveMin, setLeaveMin] = useState<number | null>(c.leave_min ?? null)
   const save = useMutation({
     mutationFn: async () => {
@@ -266,7 +270,7 @@ function ChangeEdit({ c, onDone }: { c: ChangeWithOffers; onDone: () => void }) 
           p_note: tr.values.note,
           p_note_original: tr.originals?.note ?? null,
           p_source_lang: tr.sourceLang,
-          p_late_min: c.kind === 'late' ? Number(lateMin) : null,
+          p_late_min: c.kind === 'late' ? lateMin : null,
           p_leave_min: c.kind === 'early_leave' ? leaveMin : null,
         }),
       )
@@ -292,22 +296,20 @@ function ChangeEdit({ c, onDone }: { c: ChangeWithOffers; onDone: () => void }) 
       />
       <TextArea label={ts('change.note')} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={2} />
       {c.kind === 'late' && (
-        <Segmented
+        <WheelPicker
           label={t('attendance.lateMin')}
           value={lateMin}
           onChange={setLateMin}
-          columns={3}
-          options={[...new Set([...LATE_OPTIONS, ...(c.late_min ? [c.late_min] : [])])].sort((a, b) => a - b).map((m) => ({ value: String(m), label: ts('change.minutes', { n: m, defaultValue: `${m}分` }) }))}
+          options={withValue(lateOptions(c), c.late_min).map((m) => ({ value: m, label: `${ts('change.minutes', { n: m, defaultValue: `${m}分` })}（${formatMin(c.start_min + m)}）` }))}
         />
       )}
       {c.kind === 'early_leave' &&
         (c.status === 'open' ? (
-          <Segmented
+          <WheelPicker
             label={t('attendance.leaveAt')}
-            value={String(leaveMin ?? '')}
-            onChange={(v) => setLeaveMin(Number(v))}
-            columns={3}
-            options={leaveOptions(c).map((m) => ({ value: String(m), label: formatMin(m) }))}
+            value={leaveMin}
+            onChange={setLeaveMin}
+            options={withValue(leaveOptions(c), c.leave_min).map((m) => ({ value: m, label: formatMin(m) }))}
           />
         ) : (
           <p className="text-sm text-muted">{t('attendance.leaveFixed', { time: formatMin(c.leave_min ?? 0) })}</p>

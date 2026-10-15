@@ -149,7 +149,7 @@
     "reason": {
       "sick": "Sick",
       "family": "Family matter",
-      "transport": "Train / bus delay",
+      "transport": "Transport reasons",
       "personal": "Personal",
       "paid_leave": "Paid leave",
       "store": "Store reason",
@@ -217,18 +217,12 @@
       "visa": "{{name}} cannot cover: it would make {{h}} h in 7 days in a row ({{from}}–{{to}}), over the 28 h limit (student / dependent visa).",
       "visa_other": "The swap is not possible: {{name}} would have {{h}} h in 7 days in a row ({{from}}–{{to}}), over the 28 h limit (student / dependent visa)."
     },
-    "reasonFor": {
-      "absence": {
-        "transport": "Train / bus reasons"
-      },
-      "early_leave": {
-        "transport": "Transport reasons"
-      }
-    },
     "availableTitle": "Marked as available (shift request) and not on this shift",
     "availableNone": "Nobody marked this shift as available.",
     "availableChoice": "available {{time}}",
-    "coverPickOther": "Choose someone else"
+    "coverPickOther": "Choose someone else",
+    "lateLong": "If you will be more than {{h}} hours late, please report it as \"Day off\" instead.",
+    "switchToAbsence": "Switch to \"Day off\""
   },
   "score": {
     "title": "Attendance score (last {{n}} days)",

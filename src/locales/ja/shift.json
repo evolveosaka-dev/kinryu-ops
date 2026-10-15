@@ -149,7 +149,7 @@
     "reason": {
       "sick": "体調不良",
       "family": "家族の用事",
-      "transport": "電車・バスの遅れ",
+      "transport": "交通の原因",
       "personal": "私用",
       "paid_leave": "有給休暇",
       "store": "店の都合",
@@ -217,18 +217,12 @@
       "visa": "{{name}}さんはこの勤務に入ると連続7日間（{{from}}〜{{to}}）で{{h}}時間になり、28時間の上限（留学・家族滞在ビザ）を超えるため入れません。",
       "visa_other": "交換すると{{name}}さんが連続7日間（{{from}}〜{{to}}）で{{h}}時間になり、28時間の上限（留学・家族滞在ビザ）を超えるためできません。"
     },
-    "reasonFor": {
-      "absence": {
-        "transport": "電車・バスの原因"
-      },
-      "early_leave": {
-        "transport": "交通の原因"
-      }
-    },
     "availableTitle": "出勤可能（シフト希望）で、この勤務に入っていない人",
     "availableNone": "シフト希望で「出勤できる」にしている人はいません。",
     "availableChoice": "{{time}} 出勤可",
-    "coverPickOther": "ほかの人から選ぶ"
+    "coverPickOther": "ほかの人から選ぶ",
+    "lateLong": "{{h}}時間より長く遅れる場合は、「休む」で連絡してください。",
+    "switchToAbsence": "「休む」に切り替える"
   },
   "score": {
     "title": "出勤の評価（直近{{n}}日）",

@@ -149,7 +149,7 @@
     "reason": {
       "sick": "Ốm, không khỏe",
       "family": "Việc gia đình",
-      "transport": "Tàu / xe buýt trễ",
+      "transport": "Do giao thông",
       "personal": "Việc riêng",
       "paid_leave": "Nghỉ phép có lương",
       "store": "Lý do của cửa hàng",
@@ -217,18 +217,12 @@
       "visa": "{{name}} không thể làm thay: sẽ làm {{h}} tiếng trong 7 ngày liên tục ({{from}}–{{to}}), vượt giới hạn 28 tiếng (visa du học / gia đình).",
       "visa_other": "Không thể đổi ca: {{name}} sẽ làm {{h}} tiếng trong 7 ngày liên tục ({{from}}–{{to}}), vượt giới hạn 28 tiếng (visa du học / gia đình)."
     },
-    "reasonFor": {
-      "absence": {
-        "transport": "Do tàu / xe buýt"
-      },
-      "early_leave": {
-        "transport": "Do giao thông"
-      }
-    },
     "availableTitle": "Người đánh dấu có thể đi làm (đăng ký ca) mà chưa có ca này",
     "availableNone": "Không có ai đánh dấu có thể đi làm ca này.",
     "availableChoice": "có thể làm {{time}}",
-    "coverPickOther": "Chọn người khác"
+    "coverPickOther": "Chọn người khác",
+    "lateLong": "Nếu đến trễ hơn {{h}} tiếng, hãy báo là \"Nghỉ\".",
+    "switchToAbsence": "Chuyển sang \"Nghỉ\""
   },
   "score": {
     "title": "Điểm đi làm ({{n}} ngày gần nhất)",

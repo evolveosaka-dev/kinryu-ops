@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { attendanceScores, gradeOf, labelOf, type AttendanceEvent } from './attendance'
-import { coverCandidates, coverProblemOf, leaveOptions, maxRollingWeek, noticeMinutes, reasonsFor, reportable, visaRuns } from './shiftChange'
+import { coverCandidates, coverProblemOf, lateOptions, leaveOptions, maxRollingWeek, noticeMinutes, reasonsFor, reportable, visaRuns } from './shiftChange'
 
 const a = (roster_name: string, business_date: string, shift: 'early' | 'middle' | 'late', start_min: number, end_min: number) => ({
   roster_name,
@@ -22,8 +22,10 @@ describe('休み連絡', () => {
     expect(reportable(xs, jst('2026-10-15T02:00:00')).map((x) => x.business_date)).toEqual(['2026-10-14', '2026-10-20'])
     expect(reportable(xs, jst('2026-10-15T02:00:00'), 3).map((x) => x.business_date)).toEqual(['2026-10-14'])
   })
-  it('early-leave times every 30 min; notice in minutes', () => {
-    expect(leaveOptions({ start_min: 1020, end_min: 1170 })).toEqual([1050, 1080, 1110, 1140])
+  it('early-leave times every 15 min from 15 min after the start; late every 5 min; notice in minutes', () => {
+    expect(leaveOptions({ start_min: 1020, end_min: 1110 })).toEqual([1035, 1050, 1065, 1080, 1095])
+    expect(lateOptions({ start_min: 1020, end_min: 1050 })).toEqual([5, 10, 15, 20, 25])
+    expect(lateOptions({ start_min: 0, end_min: 900 }).at(-1)).toBe(600)
     expect(noticeMinutes(a('A', '2026-10-15', 'early', 420, 1020), jst('2026-10-15T05:00:00'))).toBe(120)
     expect(noticeMinutes(a('A', '2026-10-15', 'early', 420, 1020), jst('2026-10-15T07:20:00'))).toBe(-20)
   })

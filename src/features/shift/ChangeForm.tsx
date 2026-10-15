@@ -1,13 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Checkbox, ErrorBox, Segmented, TextArea, TextInput } from '../../components/ui'
+import { WheelPicker } from '../../components/WheelPicker'
 import { formatMin, type Assignment } from '../../domain/schedule'
 import {
   CALL_WITHIN_MIN,
   CHANGE_KINDS,
   KIND_ICON,
-  LATE_OPTIONS,
+  LATE_WARN_MIN,
+  lateOptions,
   leaveOptions,
   noticeMinutes,
   REASON_ICON,
@@ -25,19 +27,6 @@ import { fromLocalInput, toLocalInput } from '../manager/data'
 import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 import { useProblemText, useReasonLabel, type AvailableCover } from './changeData'
 import { CHOICE_LABEL } from '../../domain/shiftRequest'
-
-function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={on}
-      onClick={onClick}
-      className={cx('min-h-11 rounded-xl border-[1.5px] px-3 font-bold', on ? 'border-brand bg-brand text-white' : 'border-line bg-white text-ink')}
-    >
-      {children}
-    </button>
-  )
-}
 
 /**
  * 休む / 遅れる / 早退する for one shift. Staff report their own shift; a manager (`rosterName`) records a
@@ -88,6 +77,11 @@ export function ChangeForm({ a, rosterName, onDone }: { a: Assignment; rosterNam
   const [reportedAt, setReportedAt] = useState(() => toLocalInput(new Date().toISOString()))
   const notice = noticeMinutes(a, manager ? new Date(fromLocalInput(reportedAt)) : new Date())
   const reasons = reasonsFor(kind, manager)
+  const lateChoices = useMemo(
+    () => lateOptions(a).map((m) => ({ value: m, label: `${t('change.minutes', { n: m })}（${formatMin(a.start_min + m)}）` })),
+    [a, t],
+  )
+  const leaveChoices = useMemo(() => leaveOptions(a).map((m) => ({ value: m, label: formatMin(m) })), [a])
   const needNote = reason === 'other' && !note.trim()
   const ready = reason !== null && reasons.includes(reason) && !needNote && (kind !== 'late' || lateMin) && (kind !== 'early_leave' || leaveMin) && namedOk
 
@@ -133,28 +127,26 @@ export function ChangeForm({ a, rosterName, onDone }: { a: Assignment; rosterNam
       />
 
       {kind === 'late' && (
-        <fieldset className="flex flex-col gap-1.5">
-          <legend className="mb-1.5 text-[15px] font-bold">{t('change.lateLabel')}</legend>
-          <div className="flex flex-wrap gap-2">
-            {LATE_OPTIONS.filter((m) => m < a.end_min - a.start_min).map((m) => (
-              <Chip key={m} on={lateMin === m} onClick={() => setLateMin(m)}>
-                {t('change.minutes', { n: m })}
-              </Chip>
-            ))}
-          </div>
-        </fieldset>
+        <div className="flex flex-col gap-2">
+          <WheelPicker label={t('change.lateLabel')} options={lateChoices} value={lateMin} onChange={setLateMin} />
+          {lateMin !== null && lateMin > LATE_WARN_MIN && (
+            <div role="alert" className="flex flex-col gap-2 rounded-xl border border-amber-300 bg-amber-50 p-3 text-amber-900">
+              <p className="font-bold">⚠️ {t('change.lateLong', { h: LATE_WARN_MIN / 60 })}</p>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setKind('absence')
+                  if (reason && !reasonsFor('absence', manager).includes(reason)) setReason(null)
+                }}
+              >
+                {KIND_ICON.absence} {t('change.switchToAbsence')}
+              </Button>
+            </div>
+          )}
+        </div>
       )}
       {kind === 'early_leave' && (
-        <fieldset className="flex flex-col gap-1.5">
-          <legend className="mb-1.5 text-[15px] font-bold">{t('change.leaveLabel')}</legend>
-          <div className="flex flex-wrap gap-2">
-            {leaveOptions(a).map((m) => (
-              <Chip key={m} on={leaveMin === m} onClick={() => setLeaveMin(m)}>
-                {formatMin(m)}
-              </Chip>
-            ))}
-          </div>
-        </fieldset>
+        <WheelPicker label={t('change.leaveLabel')} options={leaveChoices} value={leaveMin} onChange={setLeaveMin} />
       )}
 
       <fieldset className="flex flex-col gap-1.5">

@@ -124,10 +124,10 @@ export function useProblemText() {
     })
 }
 
-/** Reason label; 電車・バス reads differently for 休む / 早退 (owner, 2026-10-15). */
+/** Reason label; the same for 休む / 遅れる / 早退 (交通の原因 for all three, owner 2026-10-15). */
 export function useReasonLabel() {
   const { t } = useTranslation('shift')
-  return (kind: ChangeKind, r: ChangeReason) => t([`change.reasonFor.${kind}.${r}`, `change.reason.${r}`])
+  return (_kind: ChangeKind, r: ChangeReason) => t(`change.reason.${r}`)
 }
 
 export interface AvailableCover {
