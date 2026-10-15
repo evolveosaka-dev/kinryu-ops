@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useMe } from '../../app/auth'
 import { useTranslation } from 'react-i18next'
 import { formatMin } from '../../domain/schedule'
 import type { AttendanceEvent } from '../../domain/attendance'
@@ -34,15 +35,17 @@ export function useMyChanges(rosterName: string | null) {
 
 /** Managers: every report of a date range (by shift date). */
 export function useChanges(from: string, to: string) {
+  // a test account works on its own test reports (RLS already hides them from real managers)
+  const tester = useMe().is_test_account
   return useQuery({
-    queryKey: ['shift_changes', 'all', from, to],
+    queryKey: ['shift_changes', 'all', from, to, tester],
     refetchInterval: 60_000,
     queryFn: async () =>
       unwrap<ChangeWithOffers[]>(
         await supabase
           .from('shift_changes')
           .select(CHANGE_COLS)
-          .eq('is_test', false)
+          .in('is_test', tester ? [true, false] : [false])
           .gte('business_date', from)
           .lte('business_date', to)
           .order('business_date')
