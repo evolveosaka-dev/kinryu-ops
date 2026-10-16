@@ -13,7 +13,8 @@
     "role": {
       "staff": "Staff",
       "manager": "Manager",
-      "admin": "System admin"
+      "admin": "System admin",
+      "test_manager": "Test manager"
     },
     "canPatrol": "Patrol member",
     "homeStore": "Store",
@@ -32,7 +33,11 @@
       "needRoster": "First choose and save the shift-table name.",
       "ok": "Within {{h}} h in any 7 days (shift table from 6 days ago to 6 weeks ahead).",
       "over": "{{from}}–{{to}}: over 28 h in 7 days in a row (up to {{h}} h)"
-    }
+    },
+    "testBadge": "🧪 Test (hidden from others)",
+    "testPurged": "records deleted daily at 4:00",
+    "adminOnly": "Only a system admin can make someone a test manager or system admin",
+    "testRoster": "Making this person a test manager removes the shift-table name (with a real name, that person's shifts would disappear for everyone)."
   },
   "sync": {
     "tab": "Spreadsheet",

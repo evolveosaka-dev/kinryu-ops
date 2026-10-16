@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useMe } from '../../app/auth'
+import { useAuth, useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
 import { Button, Card, Checkbox, ErrorBox, Spinner, PageTitle } from '../../components/ui'
 import type { ProfileStatus, Role } from '../../domain/types'
@@ -15,9 +15,12 @@ import { cx } from '../../lib/cx'
 import { useStaffLimits, useVisaWindows } from '../shift/changeData'
 import { ManagerTabs } from './ManagerTabs'
 
-type Patch = Partial<Pick<Profile, 'role' | 'can_patrol' | 'status' | 'full_name' | 'roster_name'>>
+type Patch = Partial<Pick<Profile, 'role' | 'can_patrol' | 'status' | 'full_name' | 'roster_name' | 'is_test_account' | 'keep_test_data'>>
 
-const ROLES: Role[] = ['staff', 'manager', 'admin']
+/** テスト管理者 = role manager + is_test_account (+ keep_test_data); only a システム管理者 gives it or admin */
+type RoleChoice = Role | 'test_manager'
+const ROLES: RoleChoice[] = ['staff', 'manager', 'test_manager', 'admin']
+const ADMIN_ONLY = new Set<RoleChoice>(['test_manager', 'admin'])
 const STATUSES: ProfileStatus[] = ['pending', 'active', 'inactive', 'rejected']
 const selectClass = 'min-h-11 w-full rounded-lg border border-slate-300 bg-white px-2 text-sm'
 
@@ -90,9 +93,18 @@ function UserRow({ user, onSave, isSelf, rosterNames, takenNames, visa, runs }: 
   runs: Run[]
 }) {
   const { t } = useTranslation('manager')
+  const { isAdmin } = useAuth()
   const [draft, setDraft] = useState<Patch>({})
   const [rejecting, setRejecting] = useState(false)
   const v = { ...user, ...draft }
+  const roleValue: RoleChoice = v.is_test_account ? 'test_manager' : v.role
+  const chooseRole = (r: RoleChoice) =>
+    setDraft(
+      r === 'test_manager'
+        ? // a real shift-table name would hide that person's shifts from everyone → cleared
+          { ...draft, role: 'manager', is_test_account: true, keep_test_data: user.is_test_account ? user.keep_test_data : true, roster_name: user.is_test_account ? v.roster_name : null }
+        : { ...draft, role: r, is_test_account: false, keep_test_data: false },
+    )
   const dirty = Object.keys(draft).length > 0
 
   return (
@@ -100,6 +112,12 @@ function UserRow({ user, onSave, isSelf, rosterNames, takenNames, visa, runs }: 
       <div>
         <p className="font-bold">{user.display_name || '（名前なし）'}</p>
         <p className="text-xs text-slate-600">{user.email}</p>
+        {user.is_test_account && (
+          <p className="mt-1 inline-block rounded bg-violet-100 px-2 py-0.5 text-xs font-bold text-violet-900">
+            {t('users.testBadge')}
+            {!user.keep_test_data && ` · ${t('users.testPurged')}`}
+          </p>
+        )}
       </div>
       <label className="text-xs font-bold text-slate-600">
         {t('users.fullName')}
@@ -136,9 +154,14 @@ function UserRow({ user, onSave, isSelf, rosterNames, takenNames, visa, runs }: 
         </label>
         <label className="text-xs font-bold text-slate-600">
           {t('users.role.staff')} / {t('users.role.manager')}
-          <select className={selectClass} value={v.role} disabled={isSelf} onChange={(e) => setDraft({ ...draft, role: e.target.value as Role })}>
+          <select
+            className={selectClass}
+            value={roleValue}
+            disabled={isSelf || (!isAdmin && ADMIN_ONLY.has(roleValue))}
+            onChange={(e) => chooseRole(e.target.value as RoleChoice)}
+          >
             {ROLES.map((r) => (
-              <option key={r} value={r}>
+              <option key={r} value={r} disabled={!isAdmin && ADMIN_ONLY.has(r)}>
                 {t(`users.role.${r}`)}
               </option>
             ))}
@@ -148,6 +171,9 @@ function UserRow({ user, onSave, isSelf, rosterNames, takenNames, visa, runs }: 
           {t('users.canPatrol')}
         </Checkbox>
       </div>
+      {draft.is_test_account && !user.is_test_account && user.roster_name && (
+        <p className="rounded-lg bg-amber-50 p-2 text-xs font-bold text-amber-900">⚠ {t('users.testRoster')}</p>
+      )}
       <VisaBox rosterName={user.roster_name} visa={visa} runs={runs} />
       {rejecting && (
         <div className="flex flex-col gap-2 rounded-lg bg-red-50 p-2">
@@ -193,6 +219,7 @@ function UserRow({ user, onSave, isSelf, rosterNames, takenNames, visa, runs }: 
 export function UsersPage() {
   const { t } = useTranslation('manager')
   const me = useMe()
+  const { isAdmin } = useAuth()
   const toast = useToast()
   const queryClient = useQueryClient()
   const users = useQuery({
@@ -229,6 +256,7 @@ export function UsersPage() {
     <div className="flex flex-col gap-4">
       <ManagerTabs />
       <PageTitle title={t('users.title')} />
+      {!isAdmin && <p className="text-xs text-slate-600">{t('users.adminOnly')}</p>}
       {save.error && <ErrorBox message={errorMessage(save.error)} />}
       {groups.map(
         (g) =>

@@ -114,6 +114,7 @@
     "allShifts": "All-store shifts",
     "allShiftsSub": "Who works when, by store (managers)",
     "testAccount": "This is a test account. The manager screens are view-only; nothing can be changed. Its test records are deleted every day at 4:00 (Japan time); photos and videos are not uploaded.",
+    "testManager": "You are a test manager. You have the same screens and functions as a manager, but what you record is seen only by test accounts (not by other staff or managers). Your records are kept. Real data is view-only. Photos and videos are not uploaded.",
     "learn": "Learn",
     "learnBadge": "Under construction",
     "manual": "Work manual",

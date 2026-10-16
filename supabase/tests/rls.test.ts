@@ -501,7 +501,7 @@ describe('test accounts', () => {
     expect(await t.as(real, `select roster_name from public.shift_coworkers(${DAY}, 'late')`)).toEqual([])
   })
   it('a test account cannot clear its own flag; the nightly purge removes only its records', async () => {
-    await expect(t.as(tester, 'update public.profiles set is_test_account = false where id = auth.uid()')).rejects.toThrow(/only managers/)
+    await expect(t.as(tester, 'update public.profiles set is_test_account = false where id = auth.uid()')).rejects.toThrow(/only managers|only a system admin/)
     const before = await t.admin<{ n: number }>(`select count(*)::int as n from public.chorei_records where leader_id = $1`, [real])
     const [r] = await t.admin<{ n: number }>('select public.purge_test_account_data() as n')
     expect(r!.n).toBeGreaterThan(0)
@@ -526,7 +526,7 @@ describe('test account with the manager role is read-only', () => {
     const ro = /test account: read only/
     await expect(t.as(viewer, `update public.target_bowls set bowls = bowls + 1`)).rejects.toThrow(ro)
     await expect(t.as(viewer, `update public.profiles set status = 'active' where id = $1`, [pending])).rejects.toThrow(ro)
-    await expect(t.as(viewer, `update public.profiles set role = 'admin', is_test_account = false where id = auth.uid()`)).rejects.toThrow(ro)
+    await expect(t.as(viewer, `update public.profiles set role = 'admin', is_test_account = false where id = auth.uid()`)).rejects.toThrow(/only a system admin/)
     await expect(t.as(viewer, `select public.import_shift_month('2026-10-01', '[]')`)).rejects.toThrow(ro)
     await expect(t.as(viewer, `update public.chorei_records set status = 'void', void_reason = 'x' where leader_id <> auth.uid()`)).rejects.toThrow(ro)
     await expect(t.as(viewer, `insert into public.staff_roster (name) values ('ダミー')`)).rejects.toThrow(ro)

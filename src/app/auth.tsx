@@ -17,6 +17,8 @@ interface AuthState {
   profileError: Error | null
   refreshProfile: () => Promise<unknown>
   isManager: boolean
+  /** システム管理者 (role admin) */
+  isAdmin: boolean
   canPatrol: boolean
 }
 
@@ -72,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profileError: profileQuery.error,
     refreshProfile: () => profileQuery.refetch(),
     isManager: active && (profile?.role === 'manager' || profile?.role === 'admin'),
+    isAdmin: active && profile?.role === 'admin',
     canPatrol: active && Boolean(profile?.can_patrol),
   }
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

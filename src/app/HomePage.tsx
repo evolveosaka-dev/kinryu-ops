@@ -57,7 +57,7 @@ export function HomePage() {
       </div>
 
       {me.is_test_account && (
-        <p className="rounded-2xl border-2 border-dashed border-violet-400 bg-violet-50 px-4 py-3 font-bold text-violet-900">🧪 {t('home.testAccount')}</p>
+        <p className="rounded-2xl border-2 border-dashed border-violet-400 bg-violet-50 px-4 py-3 font-bold text-violet-900">🧪 {t(me.keep_test_data ? 'home.testManager' : 'home.testAccount')}</p>
       )}
 
       {Boolean(unread.data?.total) && (

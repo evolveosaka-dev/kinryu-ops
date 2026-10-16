@@ -28,6 +28,8 @@ export interface Profile {
   roster_name: string | null
   /** test account: everything it records is deleted every night (4:00 JST) */
   is_test_account?: boolean
+  /** テスト管理者: a test account whose records are kept (not purged at 4:00); only admins set it */
+  keep_test_data?: boolean
   locale: Locale
   created_at: string
 }
