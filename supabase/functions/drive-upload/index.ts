@@ -15,8 +15,8 @@ const MAX_VIDEO_SEC = 90
 
 interface StartBody {
   action: 'start'
-  /** miss = a 朝礼できなかった report (chorei_misses), files added by a manager; stock = a 廃棄・破損 row or the 終わりの在庫 row of a paper sheet (stock_events) */
-  parentType: 'chorei' | 'patrol' | 'miss' | 'stock' | 'incident' | 'lost_found' | 'lost_return'
+  /** miss = a 朝礼できなかった report (chorei_misses), files added by a manager; stock = a 廃棄・破損 row or the 終わりの在庫 row of a paper sheet (stock_events); sales = the photo of the paper 販売日報 (sales_reports) */
+  parentType: 'chorei' | 'patrol' | 'miss' | 'stock' | 'incident' | 'lost_found' | 'lost_return' | 'sales'
   parentId: string
   kind: 'image' | 'video'
   fileName: string
@@ -33,7 +33,7 @@ serve(async (req) => {
   if (body.action === 'start') {
     const b = body as StartBody
     if (caller.isTestAccount) throw new HttpError(403, 'test account: files are not uploaded')
-    if (!['chorei', 'patrol', 'miss', 'stock', 'incident', 'lost_found', 'lost_return'].includes(b.parentType)) throw new HttpError(400, 'bad parentType')
+    if (!['chorei', 'patrol', 'miss', 'stock', 'incident', 'lost_found', 'lost_return', 'sales'].includes(b.parentType)) throw new HttpError(400, 'bad parentType')
     if (b.kind === 'image' && (!b.mimeType.startsWith('image/') || b.size > MAX_IMAGE_BYTES)) throw new HttpError(400, 'bad image')
     if (b.kind === 'video') {
       if (!b.mimeType.startsWith('video/')) throw new HttpError(400, 'bad video')
@@ -46,9 +46,9 @@ serve(async (req) => {
     // The parent record must be the caller's own (leader / patroller / reporter), or the caller is a manager.
     // Lost items are shared: whoever finds or returns one adds the photos.
     const lost = b.parentType === 'lost_found' || b.parentType === 'lost_return'
-    const table = { chorei: 'chorei_records', patrol: 'patrol_checks', miss: 'chorei_misses', stock: 'stock_events', incident: 'incidents', lost_found: 'lost_items', lost_return: 'lost_items' }[b.parentType]
-    const ownerCol = { chorei: 'leader_id', patrol: 'patroller_id', miss: 'reporter_id', stock: 'author_id', incident: 'reporter_id', lost_found: 'reporter_id', lost_return: 'reporter_id' }[b.parentType]
-    const extra = b.parentType === 'incident' ? 'kind, ' : b.parentType === 'miss' || lost ? '' : b.parentType === 'stock' ? 'voided_at, kind, ' : 'status, '
+    const table = { chorei: 'chorei_records', patrol: 'patrol_checks', miss: 'chorei_misses', stock: 'stock_events', incident: 'incidents', lost_found: 'lost_items', lost_return: 'lost_items', sales: 'sales_reports' }[b.parentType]
+    const ownerCol = { chorei: 'leader_id', patrol: 'patroller_id', miss: 'reporter_id', stock: 'author_id', incident: 'reporter_id', lost_found: 'reporter_id', lost_return: 'reporter_id', sales: 'updated_by' }[b.parentType]
+    const extra = b.parentType === 'incident' ? 'kind, ' : b.parentType === 'miss' || b.parentType === 'sales' || lost ? '' : b.parentType === 'stock' ? 'voided_at, kind, ' : 'status, '
     const { data: parent } = await admin
       .from(table)
       .select(`id, ${ownerCol}, business_date, shift, ${extra}store:stores(name_ja)`)
@@ -58,7 +58,11 @@ serve(async (req) => {
     if (!p || p.status === 'void' || p.voided_at || (b.parentType === 'stock' && p.kind !== 'loss' && p.kind !== 'close')) throw new HttpError(404, 'record not found')
     // 設備の故障 (Workflow V2) and lost items are shared: anyone who works there adds photos
     const shared = lost || (b.parentType === 'incident' && p.kind === 'equipment')
-    if (!caller.isManager && !shared && (parent as Record<string, unknown>)[ownerCol] !== caller.id) throw new HttpError(403, 'not your record')
+    // 販売日報: everyone who saved the report (sales_report_log) may add its photo
+    const wroteSales =
+      b.parentType === 'sales' &&
+      Boolean((await admin.from('sales_report_log').select('id').eq('report_id', b.parentId).eq('author_id', caller.id).limit(1).maybeSingle()).data)
+    if (!caller.isManager && !shared && !wroteSales && (parent as Record<string, unknown>)[ownerCol] !== caller.id) throw new HttpError(403, 'not your record')
 
     const { data: row, error } = await admin
       .from('attachments')
@@ -70,6 +74,7 @@ serve(async (req) => {
         stock_event_id: b.parentType === 'stock' ? b.parentId : null,
         incident_id: b.parentType === 'incident' ? b.parentId : null,
         lost_item_id: lost ? b.parentId : null,
+        sales_report_id: b.parentType === 'sales' ? b.parentId : null,
         phase: b.parentType === 'lost_found' ? 'found' : b.parentType === 'lost_return' ? 'return' : null,
         kind: b.kind,
         file_name: b.fileName.slice(0, 200),
@@ -85,9 +90,9 @@ serve(async (req) => {
     const embedded = parent.store as unknown as { name_ja: string } | { name_ja: string }[] | null
     const store = (Array.isArray(embedded) ? embedded[0] : embedded)?.name_ja ?? 'store'
     const date = parent.business_date as string
-    const folderPath = [date.slice(0, 7), store, b.parentType === 'patrol' ? '巡回' : b.parentType === 'stock' ? '在庫' : b.parentType === 'incident' ? 'クレーム・事故' : lost ? '忘れ物' : '朝礼']
+    const folderPath = [date.slice(0, 7), store, b.parentType === 'patrol' ? '巡回' : b.parentType === 'stock' ? '在庫' : b.parentType === 'sales' ? '販売日報' : b.parentType === 'incident' ? 'クレーム・事故' : lost ? '忘れ物' : '朝礼']
     const ext = b.fileName.includes('.') ? b.fileName.slice(b.fileName.lastIndexOf('.')).toLowerCase() : ''
-    const driveName = `${date}_${SHIFT_JA[parent.shift as string] ?? parent.shift}_${{ chorei: '朝礼', patrol: '巡回', miss: '朝礼なし', stock: parent.kind === 'close' ? '日報の写真' : '廃棄・破損', incident: 'クレーム・事故', lost_found: '忘れ物', lost_return: '忘れ物_返却' }[b.parentType]}_${row.id.slice(0, 8)}${ext}`
+    const driveName = `${date}_${SHIFT_JA[parent.shift as string] ?? parent.shift}_${{ chorei: '朝礼', patrol: '巡回', miss: '朝礼なし', stock: parent.kind === 'close' ? '日報の写真' : '廃棄・破損', incident: 'クレーム・事故', lost_found: '忘れ物', lost_return: '忘れ物_返却', sales: '販売日報の写真' }[b.parentType]}_${row.id.slice(0, 8)}${ext}`
 
     const createSession = async (folderId: string) =>
       fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id', {

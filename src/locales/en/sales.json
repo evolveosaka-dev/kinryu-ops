@@ -139,5 +139,39 @@
     "dateRange": "You can record only yesterday’s, today’s or tomorrow’s shifts."
   },
   "locked": "More than 12 hours have passed since it was sent, so only managers can change it.",
-  "toConfirmAgain": "Check (send again)"
+  "toConfirmAgain": "Check (send again)",
+  "photo": {
+    "action": "Read from a photo of the daily report",
+    "title": "Read from a photo of the daily report",
+    "help": "Photograph the filled daily report (page 1) straight, in good light, with the whole sheet in the picture. The AI reads it and fills in the report below. Nothing is saved yet.",
+    "camera": "Take a photo",
+    "gallery": "Choose a photo",
+    "reading": "Reading…",
+    "readingHint": "This takes about 20 seconds. Please stay on this screen.",
+    "readFailed": "Could not read it ({{error}}). Take the photo again or type the figures.",
+    "cancel": "Cancel",
+    "readTitle": "Read from the photo",
+    "checkHelp": "Compare with the paper. Fix or check every 🔴. Figures in a yellow box are ones the AI could not read clearly.",
+    "allOk": "The paper's results and the app's match. Compare with the paper, then send.",
+    "showPhoto": "Show the photo",
+    "savedWith": "When you save (draft or send), the photo is saved with the report.",
+    "discard": "Stop using the photo (what was filled in is cleared)",
+    "sheetPhoto": "Photo of the sheet",
+    "store": {
+      "sennichimae": "Sennichimae",
+      "midosuji": "Midosuji"
+    },
+    "flag": {
+      "slot": "The photo looks like the report of \"{{what}}\", not the store / date / shift chosen above.",
+      "compare": "{{label}}: the paper says {{paper}}, the app computes {{app}}.",
+      "carried": "Carried over: the paper says {{paper}}, the previous shift's report {{app}} (the app uses the previous shift's amount).",
+      "countsMissing": "The paper has no count per bill / coin (only the total {{total}}). Count the cash and enter the numbers.",
+      "staffTime": "{{name}}: paper {{paper}}, shift table {{planned}}. If late / left early / overtime, change the status.",
+      "staffNotOnPaper": "{{name}} (shift table {{planned}}) is not on the paper. If they were absent, set the status to \"Absent\".",
+      "staffUnknown": "Could not find \"{{written}}\" in the staff list. Check the name.",
+      "otherOut": "Other noodles out: {{text}} → enter it with \"Record noodle waste / damage\".",
+      "waterHour": "Water meter {{hour}}:00 ({{value}}) is not a time of this shift, so it was not filled in.",
+      "unsure": "{{n}} figure(s) the AI could not read clearly (yellow boxes)."
+    }
+  }
 }

@@ -84,6 +84,8 @@ export interface SalesReport {
   submitted_by_name: string | null
   updated_at: string
   updated_by_name: string | null
+  /** the photo of the paper sheet (managers see the Drive link) */
+  attachments?: { id: string; status: string; drive_url: string | null }[]
 }
 
 export interface SalesLog {

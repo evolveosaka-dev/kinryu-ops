@@ -139,5 +139,39 @@
     "dateRange": "Chỉ ghi được cho ca của hôm qua, hôm nay hoặc ngày mai."
   },
   "locked": "Đã quá 12 giờ kể từ khi gửi, chỉ quản lý mới sửa được.",
-  "toConfirmAgain": "Kiểm tra (gửi lại)"
+  "toConfirmAgain": "Kiểm tra (gửi lại)",
+  "photo": {
+    "action": "Đọc từ ảnh phiếu 日報",
+    "title": "Đọc từ ảnh phiếu 日報",
+    "help": "Chụp phiếu 日報 (trang 1) đã ghi: chụp thẳng, đủ sáng, lấy hết tờ giấy. AI sẽ đọc và điền vào báo cáo bên dưới. Chưa lưu gì cả.",
+    "camera": "Chụp ảnh",
+    "gallery": "Chọn ảnh",
+    "reading": "Đang đọc…",
+    "readingHint": "Mất khoảng 20 giây. Vui lòng ở lại màn hình này.",
+    "readFailed": "Không đọc được ({{error}}). Hãy chụp lại hoặc nhập bằng tay.",
+    "cancel": "Hủy",
+    "readTitle": "Đã đọc từ ảnh",
+    "checkHelp": "Hãy so với tờ giấy. Mục 🔴 nhất định phải sửa hoặc kiểm tra. Số trong khung vàng là chỗ AI đọc không rõ.",
+    "allOk": "Kết quả trên giấy và trên app khớp nhau. Hãy so với tờ giấy rồi gửi.",
+    "showPhoto": "Xem ảnh",
+    "savedWith": "Khi lưu (lưu tạm hoặc gửi), ảnh này cũng được lưu cùng báo cáo.",
+    "discard": "Bỏ ảnh này (nội dung đã điền sẽ bị xóa)",
+    "sheetPhoto": "Ảnh phiếu 日報",
+    "store": {
+      "sennichimae": "Tiệm Sennichimae",
+      "midosuji": "Tiệm Midosuji"
+    },
+    "flag": {
+      "slot": "Ảnh có vẻ là phiếu của「{{what}}」, khác với tiệm / ngày / ca đang chọn ở trên.",
+      "compare": "{{label}}: trên giấy là {{paper}}, app tính ra {{app}}.",
+      "carried": "Tiền chuyển ca: trên giấy là {{paper}}, báo cáo ca trước là {{app}} (app dùng số của ca trước).",
+      "countsMissing": "Trên giấy không có số tờ / đồng theo từng loại (chỉ có tổng {{total}}). Hãy đếm tiền và nhập số lượng.",
+      "staffTime": "{{name}}: trên giấy {{paper}}, bảng ca {{planned}}. Nếu đi muộn / về sớm / làm thêm, hãy sửa trạng thái.",
+      "staffNotOnPaper": "{{name}} (bảng ca {{planned}}) không có trên giấy. Nếu nghỉ, hãy chọn trạng thái「Nghỉ ca」.",
+      "staffUnknown": "Không biết「{{written}}」là ai trong danh sách nhân viên. Hãy kiểm tra tên.",
+      "otherOut": "Xuất khác: {{text}} → hãy nhập bằng nút ghi mì hủy / hỏng.",
+      "waterHour": "Đồng hồ nước lúc {{hour}} giờ ({{value}}) không phải giờ của ca này nên không được điền.",
+      "unsure": "Có {{n}} chỗ AI đọc không rõ (khung vàng)."
+    }
+  }
 }

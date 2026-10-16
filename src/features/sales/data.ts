@@ -1,5 +1,7 @@
+import { FunctionsHttpError } from '@supabase/supabase-js'
 import { useQuery } from '@tanstack/react-query'
 import type { SalesLog, SalesReport } from '../../domain/sales'
+import type { SalesPhotoRead } from '../../domain/salesPhoto'
 import type { StockEvent } from '../../domain/stock'
 import type { Shift } from '../../domain/types'
 import { unwrap } from '../../lib/queries'
@@ -12,7 +14,7 @@ export function useSalesReport(storeId: string, date: string, shift: Shift) {
     staleTime: 15 * 1000,
     queryFn: async () =>
       unwrap<SalesReport | null>(
-        await supabase.from('sales_reports').select('*').eq('store_id', storeId).eq('business_date', date).eq('shift', shift).maybeSingle(),
+        await supabase.from('sales_reports').select('*, attachments(id, status, drive_url)').eq('store_id', storeId).eq('business_date', date).eq('shift', shift).maybeSingle(),
       ),
   })
 }
@@ -45,4 +47,27 @@ export async function fetchLossEvents(from: string, to: string) {
   return unwrap<StockEvent[]>(
     await supabase.from('stock_events').select('*').eq('kind', 'loss').is('voided_at', null).gte('business_date', from).lte('business_date', to),
   )
+}
+
+const toBase64 = (blob: Blob) =>
+  new Promise<string>((resolve, reject) => {
+    const r = new FileReader()
+    r.onload = () => resolve(String(r.result).slice(String(r.result).indexOf(',') + 1))
+    r.onerror = () => reject(r.error ?? new Error('read failed'))
+    r.readAsDataURL(blob)
+  })
+
+/** 日報(1ページ表) の写真 → figures read by the AI (Edge Function sales-read); nothing is saved. */
+export async function readSalesPhoto(storeId: string, image: Blob): Promise<SalesPhotoRead> {
+  const { data, error } = await supabase.functions.invoke<SalesPhotoRead>('sales-read', {
+    body: { storeId, image: await toBase64(image), mediaType: image.type || 'image/jpeg' },
+  })
+  if (error || !data) {
+    if (error instanceof FunctionsHttpError) {
+      const json = (await (error.context as Response).json().catch(() => ({}))) as { error?: string }
+      throw new Error(json.error ?? error.message)
+    }
+    throw error ?? new Error('not read')
+  }
+  return data
 }

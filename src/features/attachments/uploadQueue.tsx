@@ -10,7 +10,7 @@ import type { MediaKind, PreparedMedia } from '../../lib/media'
 export interface UploadItem {
   id: string
   ownerId: string
-  parentType: 'chorei' | 'patrol' | 'miss' | 'stock' | 'incident' | 'lost_found' | 'lost_return'
+  parentType: 'chorei' | 'patrol' | 'miss' | 'stock' | 'incident' | 'lost_found' | 'lost_return' | 'sales'
   parentId: string
   kind: MediaKind
   fileName: string

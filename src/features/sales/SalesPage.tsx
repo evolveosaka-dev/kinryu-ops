@@ -43,7 +43,10 @@ import { findTarget, targetHint } from '../../domain/targets'
 import type { Store } from '../../lib/types'
 import { addStockEvent, itemName, useStockEvents, useStockItems } from '../stock/data'
 import { TranslationCancelled, useTranslationGate, type GateField } from '../translate/useTranslationGate'
+import { useUploadQueue } from '../attachments/uploadQueue'
+import { photoToReport, slotMismatch } from '../../domain/salesPhoto'
 import { saveSalesReport, useSalesLog, useSalesReport } from './data'
+import { SalesPhotoCheck, SalesPhotoPick, type SalesPhoto } from './SalesPhoto'
 
 interface Slot {
   store: Store
@@ -228,7 +231,12 @@ function SalesForm({
   target,
   targetNote,
   locked,
+  photo,
+  onPhotoClear,
 }: {
+  /** figures read from the photo of the paper sheet: the form starts from them and shows what to check */
+  photo: SalesPhoto | null
+  onPhotoClear: () => void
   locked: boolean
   targetNote: string | null
   slot: Slot
@@ -248,6 +256,10 @@ function SalesForm({
   const roster = useRoster()
   const me = useMe()
   const myName = me.roster_name || me.display_name
+  const uploads = useUploadQueue()
+  // a figure the AI could not read with confidence: marked until it is changed
+  const unsure = new Set(photo?.read.unsure ?? [])
+  const mark = (key: string) => unsure.has(key) && 'ring-2 ring-amber-400 bg-amber-50'
 
   const [tickets, setTickets] = useState<Record<TicketKind, string>>(() => ({
     ramen: numText(report?.tickets.ramen),
@@ -340,7 +352,9 @@ function SalesForm({
       data.noodle_reason = noodleBad ? (tr.values.noodle_reason ?? '') : ''
       data.cash_book = bookRows.map((r, i) => (r.type === 'refund' ? { ...r, reason: tr.values[`refund_${i}`] ?? '' } : { ...r, reason: undefined }))
       data.staff = staff.map((s, i) => ({ ...s, note: tr.values[`staff_${i}`] ?? undefined }))
-      await saveSalesReport(slot.store.id, slot.date, slot.shift, { ...data, original_texts: tr.originals, source_lang: tr.sourceLang }, submit)
+      const id = await saveSalesReport(slot.store.id, slot.date, slot.shift, { ...data, original_texts: tr.originals, source_lang: tr.sourceLang }, submit)
+      // the photo of the paper sheet goes to Drive with the report (queued, retried); once
+      if (photo) await uploads.enqueue('sales', id, [photo.media])
       return submit
     },
     onSuccess: (submit) => {
@@ -348,6 +362,7 @@ function SalesForm({
       toast(submit ? t('submitted') : t('saved'))
       void queryClient.invalidateQueries({ queryKey: ['sales_report'] })
       void queryClient.invalidateQueries({ queryKey: ['sales_report_log'] })
+      if (photo) onPhotoClear()
       window.scrollTo({ top: 0 })
     },
   })
@@ -407,12 +422,19 @@ function SalesForm({
   return (
     <fieldset disabled={locked} className="flex min-w-0 flex-col gap-4">
       {translation.review}
+      {photo && (
+        <SalesPhotoCheck
+          photo={photo}
+          live={{ ticketTotal: total, noodleDiff: check?.diff ?? null, cashExpected: cash.expected, cashDiff: cash.diff, cashActual: cash.actual }}
+          onClear={onPhotoClear}
+        />
+      )}
       {locked && <p className="rounded-xl bg-slate-200 p-3 text-sm font-bold text-slate-800">🔒 {t('locked')}</p>}
 
       <Section title={`🎫 ${t('section.tickets')}`}>
         <div className="grid grid-cols-[1fr_1.4fr_1fr] gap-2 [&>div]:justify-between [&_label]:whitespace-nowrap">
           {TICKETS.map((k) => (
-            <TextInput key={k} label={t(`tickets.${k}`)} inputMode="numeric" value={tickets[k]} onChange={(e) => setTickets((x) => ({ ...x, [k]: e.target.value }))} className="text-right text-lg font-bold" />
+            <TextInput key={k} label={t(`tickets.${k}`)} inputMode="numeric" value={tickets[k]} onChange={(e) => setTickets((x) => ({ ...x, [k]: e.target.value }))} className={cx('text-right text-lg font-bold', mark(`tickets.${k}`))} />
           ))}
         </div>
         <p className="flex items-baseline justify-between rounded-xl bg-surface px-3 py-2">
@@ -584,7 +606,7 @@ function SalesForm({
           {DENOMINATIONS.map((d) => (
             <label key={d} className="flex items-center gap-1.5">
               <span className="w-[4.6rem] shrink-0 text-right text-sm font-bold whitespace-nowrap tabular-nums">{DENOM_LABEL[d] ?? `${d}円`} ×</span>
-              <input inputMode="numeric" aria-label={`${d}円`} className={`${smallInput} text-right font-bold`} value={counts[String(d)]} onChange={(e) => setCounts((c) => ({ ...c, [String(d)]: e.target.value }))} />
+              <input inputMode="numeric" aria-label={`${d}円`} className={cx(smallInput, 'text-right font-bold', mark(`cash_counts.${d}`))} value={counts[String(d)]} onChange={(e) => setCounts((c) => ({ ...c, [String(d)]: e.target.value }))} />
             </label>
           ))}
         </div>
@@ -596,7 +618,7 @@ function SalesForm({
                 {prevActual !== null ? (
                   yen(prevActual)
                 ) : (
-                  <input inputMode="numeric" aria-label={t('cash.carried')} className={`${smallInput} w-32 text-right`} placeholder={t('cash.carriedManual')} value={carriedText} onChange={(e) => setCarriedText(e.target.value)} />
+                  <input inputMode="numeric" aria-label={t('cash.carried')} className={cx(smallInput, 'w-32 text-right', mark('cash_carried'))} placeholder={t('cash.carriedManual')} value={carriedText} onChange={(e) => setCarriedText(e.target.value)} />
                 )}
               </td>
             </tr>
@@ -629,7 +651,7 @@ function SalesForm({
       <Section title={`📝 ${t('section.notes')}`}>
         <div className="grid grid-cols-2 gap-2">
           {WATER_TIMES[slot.shift].map((h) => (
-            <TextInput key={h} label={t('water.label', { time: h.slice(0, 2) })} inputMode="numeric" maxLength={5} value={water[h] ?? ''} onChange={(e) => setWater((w) => ({ ...w, [h]: e.target.value }))} className="text-right font-bold" />
+            <TextInput key={h} label={t('water.label', { time: h.slice(0, 2) })} inputMode="numeric" maxLength={5} value={water[h] ?? ''} onChange={(e) => setWater((w) => ({ ...w, [h]: e.target.value }))} className={cx('text-right font-bold', mark(`water.${h.slice(0, 2)}`))} />
           ))}
         </div>
         <div className="flex items-end justify-between gap-2">
@@ -687,6 +709,8 @@ export function SalesPage() {
   const [storeId, setStoreId] = useState(preset.storeCode ? '' : (getLastStore() ?? ''))
   const [date, setDate] = useState(initial.businessDate)
   const [shift, setShift] = useState<Shift>(initial.shift)
+  const [picking, setPicking] = useState(false)
+  const [photo, setPhoto] = useState<(SalesPhoto & { report: SalesReport; slotKey: string }) | null>(null)
 
   const store = stores.data?.find((s) => s.id === storeId) ?? stores.data?.find((s) => s.code === preset.storeCode) ?? stores.data?.[0]
   const id = store?.id ?? ''
@@ -716,6 +740,9 @@ export function SalesPage() {
   const target = found?.bowls ?? null
   const targetNote = found ? targetHint(t, found) : null
   const slot: Slot = { store, date, shift }
+  const slotKey = `${id}|${date}|${shift}`
+  // a read photo belongs to the slot it was read for
+  const shownPhoto = photo?.slotKey === slotKey ? photo : null
   // after 送信: the writers may still change it for 12 hours, then managers only (also checked by the database)
   const r = report.data
   const locked =
@@ -731,11 +758,39 @@ export function SalesPage() {
         <Segmented label={t('common:field.shift')} value={shift} onChange={setShift} options={SHIFTS.map((s) => ({ value: s, label: t(`common:shift.${s}`) }))} />
         <DateField label={t('common:field.date')} value={date} back={isManager ? 60 : 1} onChange={setDate} />
       </Card>
+      {!locked && !picking && !shownPhoto && (
+        <Button variant="secondary" onClick={() => setPicking(true)}>
+          📷 {t('photo.action')}
+        </Button>
+      )}
+      {picking && (
+        <SalesPhotoPick
+          storeId={id}
+          onCancel={() => setPicking(false)}
+          onRead={(read, media) => {
+            const made = photoToReport(read, report.data ?? null, { shift }, scheduled.data ?? [], prevReport.data?.cash_actual ?? null)
+            const other = slotMismatch(read, { storeCode: store.code, date, shift })
+            setPhoto({ read, media, flags: other ? [other, ...made.flags] : made.flags, report: made.report, slotKey })
+            setPicking(false)
+          }}
+        />
+      )}
       <History logs={logs.data ?? []} report={report.data ?? null} />
+      {isManager && (report.data?.attachments ?? []).some((a) => a.drive_url) && (
+        <p className="flex flex-wrap gap-2 text-sm">
+          {report.data!.attachments!.filter((a) => a.drive_url).map((a) => (
+            <a key={a.id} href={a.drive_url!} target="_blank" rel="noreferrer" className="font-bold text-brand-dark underline">
+              🖼️ {t('photo.sheetPhoto')}
+            </a>
+          ))}
+        </p>
+      )}
       <SalesForm
-        key={`${id}|${date}|${shift}|${report.data?.updated_at ?? 'new'}`}
+        key={`${slotKey}|${report.data?.updated_at ?? 'new'}|${shownPhoto ? 'photo' : ''}`}
         slot={slot}
-        report={report.data ?? null}
+        report={shownPhoto?.report ?? report.data ?? null}
+        photo={shownPhoto}
+        onPhotoClear={() => setPhoto(null)}
         prevActual={prevReport.data?.cash_actual ?? null}
         scheduled={scheduled.data ?? []}
         noodle={noodle}
