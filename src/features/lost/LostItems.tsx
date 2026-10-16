@@ -143,7 +143,7 @@ function LostSheet({ r, onClose }: { r: LostRow; onClose: () => void }) {
         {isManager ? <AttachmentList list={found} parentId={r.id} /> : found.length > 0 && <p>📷 {t('lost.photos', { n: found.length })}</p>}
       </Card>
 
-      {r.status !== 'stored' && (
+      {r.status !== 'stored' && r.status !== 'awaiting' && (
         <Card className="flex flex-col gap-1 text-sm">
           <h3 className="font-bold">
             {LOST_STATUS_ICON[r.status]} {t(`lost.status.${r.status}`)}
