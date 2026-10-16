@@ -1113,5 +1113,42 @@
     "saved": "Saved",
     "none": "No equipment yet.",
     "add": "Add equipment"
+  },
+  "shiftSync": {
+    "title": "Automatic import from Office 365",
+    "note": "The shared shift workbook is read every day at 6:00 and the changes are shown on the dashboard (approved absences / covers and 朝礼・巡回 extensions are kept).",
+    "link": "Share link",
+    "saveLink": "Save link",
+    "cancel": "Cancel",
+    "change": "Change",
+    "saved": "Link saved",
+    "badUrl": "Enter a SharePoint / OneDrive share link (https://…sharepoint.com/…).",
+    "lastOk": "Last import {{at}}: month {{m}}, {{rows}} shifts, {{n}} changes",
+    "lastFail": "Last import {{at}} failed: {{error}}",
+    "runNow": "Import now",
+    "running": "Importing…",
+    "ran": "Imported {{rows}} shifts ({{n}} changes)",
+    "history": "Change history",
+    "noHistory": "No changes yet.",
+    "failed": "The automatic shift import failed",
+    "dashboard": "Shift table changes (7 days)",
+    "sheetTitle": "Shift table changes",
+    "sheetHelp": "What changed in the shift workbook (compared with the previous import). Changes on past dates are corrections to match the actual work.",
+    "legend": "① Midosuji　⑤ Sennichimae　e.g. ⑤7-17 = Sennichimae 7:00–17:00",
+    "source": {
+      "office365": "imported from Office 365",
+      "app": "imported in the app"
+    },
+    "month": "Shifts of month {{m}}",
+    "count": "{{n}} changes",
+    "pastCount": "{{n}} on past dates",
+    "past": "Changes on past dates: {{n}} (to {{to}})",
+    "coming": "Upcoming changes: {{n}} (from {{from}})",
+    "kind": {
+      "added": "Added",
+      "removed": "Removed",
+      "changed": "Changed"
+    },
+    "weekdays": "Sun,Mon,Tue,Wed,Thu,Fri,Sat"
   }
 }

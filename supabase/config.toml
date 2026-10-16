@@ -31,3 +31,6 @@ verify_jwt = false
 
 [functions.sales-read]
 verify_jwt = false
+
+[functions.shift-sync]
+verify_jwt = false

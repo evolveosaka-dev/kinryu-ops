@@ -28,6 +28,8 @@ import { systemProblems } from '../../domain/systemStatus'
 import { STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { PatrolDetail } from './details'
 import { ManagerTabs } from './ManagerTabs'
+import { ShiftChangesSheet } from './ShiftSync'
+import { pastChanges, useShiftImportLog, useShiftSyncStatus } from './shiftSyncData'
 
 /** 面談が必要 / 面談後の再発 (スタッフ別), shown only when there is something to do. */
 function StaffAlerts() {
@@ -105,6 +107,12 @@ export function DashboardPage() {
   const pendingChanges = (changes.data ?? []).filter((c) => c.status === 'open')
   const urgentChanges = pendingChanges.filter((c) => startAt(c).getTime() - now.getTime() < 12 * 3600_000)
   const [visaOpen, setVisaOpen] = useState(false)
+  // シフト表の変更 (Office 365 / app imports of the last 7 days) and a failed automatic import
+  const shiftLogs = useShiftImportLog(7)
+  const shiftSync = useShiftSyncStatus()
+  const [shiftOpen, setShiftOpen] = useState(false)
+  const shiftChangeCount = (shiftLogs.data ?? []).reduce((n, l) => n + l.n_changes, 0)
+  const shiftPastCount = (shiftLogs.data ?? []).reduce((n, l) => n + pastChanges(l).length, 0)
 
   if (records.isLoading || stores.isLoading) return <Spinner />
   if (records.error) return <ErrorBox message={errorMessage(records.error)} />
@@ -271,6 +279,34 @@ export function DashboardPage() {
               </button>
             </li>
           )}
+          {shiftSync.data?.status && !shiftSync.data.status.ok && (
+            <li>
+              <Link to="/manager/shift-import" className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-red-50 px-3 font-semibold text-red-900">
+                <span className="flex items-center gap-2">
+                  <Dot tone="red" /> {t('shiftSync.failed')}
+                </span>
+                <span>›</span>
+              </Link>
+            </li>
+          )}
+          {shiftChangeCount > 0 && (
+            <li>
+              <button
+                type="button"
+                onClick={() => setShiftOpen(true)}
+                className={cx(
+                  'flex min-h-11 w-full items-center justify-between gap-2 rounded-xl px-3 text-left font-semibold',
+                  shiftPastCount ? 'bg-red-50 text-red-900' : 'bg-amber-50 text-amber-900',
+                )}
+              >
+                <span className="flex flex-wrap items-center gap-x-2">
+                  <Dot tone={shiftPastCount ? 'red' : 'amber'} /> {t('shiftSync.dashboard')}
+                  {shiftPastCount > 0 && <span className="text-xs">（{t('shiftSync.pastCount', { n: shiftPastCount })}）</span>}
+                </span>
+                <span>{shiftChangeCount} ›</span>
+              </button>
+            </li>
+          )}
           <li>
             <Link to="/manager/users" className="flex min-h-11 items-center justify-between gap-2 rounded-xl bg-blue-50 px-3 font-semibold text-blue-900">
               {t('dashboard.pendingUsers')} <span>{pending}</span>
@@ -320,6 +356,7 @@ export function DashboardPage() {
         />
       </div>
 
+      {shiftOpen && <ShiftChangesSheet logs={shiftLogs.data ?? []} onClose={() => setShiftOpen(false)} />}
       {visaOpen && (
         <Sheet title={t('dashboard.visaOver')} onClose={() => setVisaOpen(false)}>
           <p className="rounded-xl bg-sky-50 p-3 text-sm font-bold whitespace-pre-line text-sky-900">{t('dashboard.visaHow')}</p>

@@ -10,6 +10,7 @@ import { errorMessage } from '../../lib/format'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import { ManagerTabs } from './ManagerTabs'
+import { ShiftSyncCard } from './ShiftSync'
 
 interface Parsed {
   fileName: string
@@ -70,6 +71,7 @@ export function ShiftImportPage() {
       void queryClient.invalidateQueries({ queryKey: ['shift_coworkers'] })
       void queryClient.invalidateQueries({ queryKey: ['staff_roster'] })
       void queryClient.invalidateQueries({ queryKey: ['admin', 'shift-month-count'] })
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'shift_import_log'] })
     },
   })
 
@@ -92,6 +94,7 @@ export function ShiftImportPage() {
     <div className="flex flex-col gap-3">
       <ManagerTabs />
       <PageTitle title={t('shiftImport.title')} />
+      <ShiftSyncCard />
       <p className="text-sm text-muted">{t('shiftImport.note')}</p>
       <label className="flex min-h-13 cursor-pointer items-center justify-center rounded-xl border-[1.5px] border-dashed border-brand bg-white font-bold text-brand-dark hover:bg-brand-soft">
         📂 {t('shiftImport.pick')}
