@@ -1149,6 +1149,18 @@
       "removed": "Removed",
       "changed": "Changed"
     },
-    "weekdays": "Sun,Mon,Tue,Wed,Thu,Fri,Sat"
+    "weekdays": "Sun,Mon,Tue,Wed,Thu,Fri,Sat",
+    "homeCard": "The shift table was updated: {{n}} changes"
+  },
+  "dutyAlert": {
+    "card": "Assign the duties: {{date}} {{shift}} ({{name}})",
+    "title": "Assign duties",
+    "whyMoved": "The shift table changed {{date}} {{shift}} from {{name}} to {{to}}. {{name}}'s 朝礼・巡回 duties are still there. Give them to someone else.",
+    "whyNoShift": "{{name}} is not in the shift table for {{date}} {{shift}}. Give the 朝礼・巡回 duties of that time to someone else.",
+    "pick": "Who takes them",
+    "pickHint": "🟢 = working the same {{shift}} that day (store, time). Everyone else below.",
+    "assign": "Assign to {{name}}",
+    "done": "Assigned {{n}} duties to {{name}}",
+    "already": "This person already has the same duty. Choose someone else."
   }
 }

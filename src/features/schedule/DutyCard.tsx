@@ -20,7 +20,7 @@ const STATUS_STYLE: Record<DutyStatus, string> = {
   missed: 'bg-amber-100 text-amber-900',
 }
 
-function DutyTime({ d }: { d: Duty }) {
+export function DutyTime({ d }: { d: Pick<Duty, 'time_mode' | 'start_min' | 'end_min'> }) {
   const { t } = useTranslation('shift')
   if (d.time_mode === 'at') return <>{formatMin(d.start_min)}</>
   if (d.time_mode === 'about') return <>{t('duty.about', { time: formatMin(d.start_min) })}</>

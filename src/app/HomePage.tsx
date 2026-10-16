@@ -6,6 +6,8 @@ import { SpokenPhrase } from '../components/SpokenPhrase'
 import { Card, SectionTitle } from '../components/ui'
 import { useUnreadComments } from '../features/comments/Comments'
 import { DutyCard } from '../features/schedule/DutyCard'
+import { HomeShiftAlerts } from '../features/manager/HomeShiftAlerts'
+import { ShiftNewsCard } from '../features/schedule/ShiftNews'
 import { NextShiftCard } from '../features/schedule/NextShiftCard'
 import { RecruitHomeCard } from '../features/shift/RecruitHomeCard'
 import { PHILOSOPHY, SERVICE_PHRASES } from '../domain/phrases'
@@ -71,6 +73,9 @@ export function HomePage() {
           </span>
         </Link>
       )}
+
+      {isManager && <HomeShiftAlerts />}
+      <ShiftNewsCard />
 
       <RecruitHomeCard />
 

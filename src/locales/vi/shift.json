@@ -281,5 +281,17 @@
     "notYet": "Hãy chọn ngày đầu và ngày cuối.",
     "old": "Đã nhập trước đây: {{text}}",
     "pledge": "Kỳ nghỉ dài của trường ở trên là đúng sự thật. Nếu khai sai, tôi chịu hoàn toàn trách nhiệm. Khi được yêu cầu, tôi có thể nộp 「長期休業期間の証明書」 (giấy xác nhận kỳ nghỉ dài) do trường cấp."
+  },
+  "news": {
+    "card": "Lịch làm của bạn đã thay đổi ({{n}})",
+    "title": "Thay đổi lịch làm",
+    "help": "Bảng phân ca đã được cập nhật. Đây là những chỗ thay đổi trong ca của bạn.",
+    "kind": {
+      "added": "Thêm",
+      "removed": "Bỏ",
+      "changed": "Đổi"
+    },
+    "past": "Ngày đã qua",
+    "toSchedule": "Xem lịch làm"
   }
 }

@@ -281,5 +281,17 @@
     "notYet": "Choose the first and the last day.",
     "old": "Entered before: {{text}}",
     "pledge": "The school holiday period above is true. If it is not, I accept full responsibility. I can submit the school's certificate of the long holiday (長期休業期間の証明書) when asked."
+  },
+  "news": {
+    "card": "Your shifts changed ({{n}})",
+    "title": "Shift changes",
+    "help": "The shift table was updated. These are the changes to your shifts.",
+    "kind": {
+      "added": "Added",
+      "removed": "Removed",
+      "changed": "Changed"
+    },
+    "past": "Past day",
+    "toSchedule": "See my schedule"
   }
 }
