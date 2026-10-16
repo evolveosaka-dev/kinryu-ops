@@ -9,7 +9,7 @@
   --color-muted: #4b5563;
   --color-line: #d1d5db;
   --color-surface: #f3f4f6;
-  --font-sans: 'BIZ UDPGothic', 'Noto Sans', 'Noto Sans Sinhala', 'Noto Sans Devanagari', 'Noto Sans JP', system-ui, sans-serif;
+  --font-sans: 'BIZ UDPGothic', 'Noto Sans', 'Noto Sans Sinhala', 'Noto Sans Devanagari', 'Noto Sans Myanmar', 'Noto Sans JP', system-ui, sans-serif;
 }
 
 html {

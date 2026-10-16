@@ -23,7 +23,7 @@ import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import { LEARN_BUCKET, translateLearnItem, useLearnItem, usePhotoUrls } from './data'
 
-const TR_LANGS: Exclude<Locale, 'ja'>[] = ['en', 'vi', 'ne', 'si']
+const TR_LANGS: Exclude<Locale, 'ja'>[] = ['en', 'vi', 'ne', 'si', 'my']
 
 interface DraftStep {
   key: string

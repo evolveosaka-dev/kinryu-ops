@@ -1,6 +1,6 @@
 // Translate staff free text to Japanese (and back to the writer's language for checking).
 //
-// POST { fields: [{ key, text }], backLang: 'vi' | 'si' | 'ne' | 'en' | 'ja' }
+// POST { fields: [{ key, text }], backLang: 'vi' | 'si' | 'ne' | 'my' | 'en' | 'ja' }
 //   → { sourceLang, fields: [{ key, ja, back }] }
 //
 // Text is data, never instructions. Signed-in, active users only; 30 calls per user per hour.
@@ -11,7 +11,7 @@ const MODEL = 'claude-haiku-4-5'
 const MAX_FIELDS = 8
 const MAX_CHARS = 1000
 const CALLS_PER_HOUR = 30
-const LANG_NAMES: Record<string, string> = { vi: 'Vietnamese', si: 'Sinhala', ne: 'Nepali', en: 'English', ja: 'Japanese' }
+const LANG_NAMES: Record<string, string> = { vi: 'Vietnamese', si: 'Sinhala', ne: 'Nepali', my: 'Burmese (Myanmar)', en: 'English', ja: 'Japanese' }
 
 const SYSTEM = `You translate short notes written by staff of a Japanese ramen restaurant (金龍ラーメン, Osaka) into natural, polite Japanese for the managers.
 

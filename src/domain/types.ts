@@ -1,7 +1,7 @@
 export const SHIFTS = ['early', 'middle', 'late'] as const
 export type Shift = (typeof SHIFTS)[number]
 
-export const LOCALES = ['ja', 'en', 'vi', 'si', 'ne'] as const
+export const LOCALES = ['ja', 'en', 'vi', 'si', 'ne', 'my'] as const
 export type Locale = (typeof LOCALES)[number]
 
 export type DayType = 'weekday' | 'weekend_holiday'

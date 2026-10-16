@@ -4,7 +4,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const ROOT = join(import.meta.dirname, '..', 'src', 'locales')
-const STAFF_LOCALES = ['en', 'vi', 'si', 'ne']
+const STAFF_LOCALES = ['en', 'vi', 'si', 'ne', 'my']
 const MANAGER_LOCALES = ['en']
 
 const flatten = (obj, prefix = '') =>

@@ -25,7 +25,7 @@ const KINDS: Record<string, string> = {
   payment: '会計・券売機故障',
   other: 'その他',
 }
-const LANG_NAMES: Record<string, string> = { vi: 'Vietnamese', si: 'Sinhala', ne: 'Nepali', en: 'English', ja: 'Japanese' }
+const LANG_NAMES: Record<string, string> = { vi: 'Vietnamese', si: 'Sinhala', ne: 'Nepali', my: 'Burmese (Myanmar)', en: 'English', ja: 'Japanese' }
 
 const SYSTEM = `You help a staff member of a Japanese ramen restaurant (金龍ラーメン, Osaka; two 24-hour stores) who is
 dealing with a complaint or accident right now. Propose what to do on the spot, in short numbered steps.

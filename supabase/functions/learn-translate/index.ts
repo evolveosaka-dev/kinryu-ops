@@ -1,4 +1,4 @@
-// 学ぶ: translate one manual / video page from Japanese into en / vi / ne / si and save it.
+// 学ぶ: translate one manual / video page from Japanese into en / vi / ne / si / my and save it.
 //
 // POST { itemId } → { translatedAt }
 //
@@ -8,10 +8,10 @@ import { adminClient, env, HttpError, requireUser, serve } from '../_shared/http
 
 // newest first; the next one is used when a model is not available to this API key
 const MODELS = ['claude-sonnet-5-5', 'claude-sonnet-4-5']
-const LANGS = ['en', 'vi', 'ne', 'si'] as const
+const LANGS = ['en', 'vi', 'ne', 'si', 'my'] as const
 
 const SYSTEM = `You translate training material for the staff of a Japanese ramen restaurant (金龍ラーメン, Osaka, open 24 hours).
-The staff come from Vietnam, Nepal, Sri Lanka and other countries; many read slowly. Translate the Japanese page into English (en), Vietnamese (vi), Nepali (ne) and Sinhala (si).
+The staff come from Vietnam, Nepal, Sri Lanka, Myanmar and other countries; many read slowly. Translate the Japanese page into English (en), Vietnamese (vi), Nepali (ne), Sinhala (si) and Burmese (my).
 Rules:
 - Translate faithfully and completely, in short, plain sentences. Do not add or remove content.
 - Words the staff must SAY in Japanese stay in Japanese: anything inside 「」 or 『』, and the greetings いらっしゃい / まいど / お待たせしました / おおきに / ありがとうございます. Keep them in Japanese inside 「」 and add the romaji in brackets the first time, e.g. 「いらっしゃい！」(Irasshai!).

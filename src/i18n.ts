@@ -45,6 +45,14 @@ import siSales from './locales/si/sales.json'
 import neSales from './locales/ne/sales.json'
 import neChorei from './locales/ne/chorei.json'
 import nePatrol from './locales/ne/patrol.json'
+import myCommon from './locales/my/common.json'
+import myChorei from './locales/my/chorei.json'
+import myPatrol from './locales/my/patrol.json'
+import myGenko from './locales/my/genko.json'
+import myShift from './locales/my/shift.json'
+import myLearn from './locales/my/learn.json'
+import myStock from './locales/my/stock.json'
+import mySales from './locales/my/sales.json'
 
 export const resources = {
   ja: { common: jaCommon, chorei: jaChorei, patrol: jaPatrol, manager: jaManager, genko: jaGenko, shift: jaShift, learn: jaLearn, stock: jaStock, sales: jaSales },
@@ -52,6 +60,7 @@ export const resources = {
   vi: { common: viCommon, chorei: viChorei, patrol: viPatrol, genko: viGenko, shift: viShift, learn: viLearn, stock: viStock, sales: viSales },
   si: { common: siCommon, chorei: siChorei, patrol: siPatrol, genko: siGenko, shift: siShift, learn: siLearn, stock: siStock, sales: siSales },
   ne: { common: neCommon, chorei: neChorei, patrol: nePatrol, genko: neGenko, shift: neShift, learn: neLearn, stock: neStock, sales: neSales },
+  my: { common: myCommon, chorei: myChorei, patrol: myPatrol, genko: myGenko, shift: myShift, learn: myLearn, stock: myStock, sales: mySales },
 } as const
 
 // Load only the font a locale needs (slow mobile data).
@@ -59,6 +68,7 @@ const FONT_FAMILIES: Partial<Record<Locale, string>> = {
   vi: 'Noto+Sans:wght@400;700',
   si: 'Noto+Sans+Sinhala:wght@400;700',
   ne: 'Noto+Sans+Devanagari:wght@400;700',
+  my: 'Noto+Sans+Myanmar:wght@400;700',
 }
 const JP_FONT = 'BIZ+UDPGothic:wght@400;700'
 
