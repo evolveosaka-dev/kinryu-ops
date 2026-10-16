@@ -47,7 +47,7 @@ const PATROL_TYPE: Record<string, string> = { before_shift: '勤務前', in_shif
 const STEPS: Record<string, string> = { greeting: 'はじめの挨拶', philosophy: '経営理念', phrases: '接客用語', handover: '引継ぎ', grooming: '身だしなみ', closing: '締めの挨拶' }
 const ITEMS: [string, string][] = [['score_smile', '笑顔'], ['score_voice', '声出し'], ['score_grooming', '身だしなみ'], ['score_clean', '清潔'], ['score_quality', '提供品質']]
 const ACTION: Record<string, string> = { void: '取消', time: '時間の修正', follow_up: '面談済み', update: '修正' }
-const KIND: Record<string, string> = { chorei: '朝礼記録', chorei_note: '朝礼の追記', patrol: '巡回チェック', shift_request: 'シフト希望', signup: '新規登録', edit: '修正・取消', staff_alert: '面談指導の通知', stock: '在庫（繰越のずれ・廃棄・破損）', sales: '販売日報', shift_change: '休み・遅刻・早退の連絡', visa_hours: '留学・家族滞在の週28時間超え', incident: 'クレーム・事故', lost_item: '忘れ物・落とし物' }
+const KIND: Record<string, string> = { chorei: '朝礼記録', chorei_note: '朝礼の追記', patrol: '巡回チェック', shift_request: 'シフト希望', signup: '新規登録', edit: '修正・取消', staff_alert: '面談指導の通知', stock: '在庫（繰越のずれ・廃棄・破損）', sales: '販売日報', shift_change: '休み・遅刻・早退の連絡', visa_hours: '留学・家族滞在の週28時間超え', incident: 'クレーム・事故', lost_item: '忘れ物・落とし物', stock_standard: '基準在庫の違い（日報の写真）' }
 // keep in sync with src/domain/types.ts MISS_REASONS / chorei.json miss.reason
 const MISS_REASON: Record<string, string> = { busy: 'お客様が多かった', no_manager: '管理者がいなかった', alone: '1人だけの勤務だった', forgot: '忘れた', other: 'その他' }
 // keep in sync with src/domain/stock.ts OPEN_REASONS / LOSS_REASONS
@@ -267,6 +267,7 @@ async function renderEvent(admin: Admin, L: Lookup, e: NotifyEvent): Promise<{ s
     }
   }
   if (e.kind === 'stock') return renderStock(admin, L, e)
+  if (e.kind === 'stock_standard') return renderStockStandard(admin, L, e)
   if (e.kind === 'sales') return renderSales(admin, L, e)
   if (e.kind === 'shift_change') return renderShiftChange(admin, L, e)
   if (e.kind === 'lost_item') {
@@ -428,6 +429,30 @@ async function renderStock(admin: Admin, L: Lookup, e: NotifyEvent) {
       ...(r.kind === 'loss' ? [`写真・動画: ${count ?? 0}件`] : []),
     ],
     link: appUrl(`/stock?store=${store?.code ?? ''}&date=${r.business_date}&shift=${r.shift}`),
+  }
+}
+
+/** 日報の写真: the standard written by hand next to an item differs from 在庫の品目 (to the system admins). */
+async function renderStockStandard(admin: Admin, L: Lookup, e: NotifyEvent) {
+  const r = await fetchRow(admin, 'stock_events', e.ref_id)
+  if (!r) return null
+  const { data: items } = await admin.from('stock_items').select('id, name_ja, unit, standard').eq('store_id', r.store_id)
+  const item = new Map((items ?? []).map((i) => [i.id, i]))
+  const rows = ((e.data.rows ?? []) as { item: string; paper: number; text: string }[]).map((x) => {
+    const i = item.get(x.item)
+    const unit = STOCK_UNIT[i?.unit ?? ''] ?? ''
+    return `・${i?.name_ja ?? '?'}: 紙 ${x.paper}${unit}（「${x.text}」） / アプリ ${i?.standard ?? 'なし'}${i?.standard === null ? '' : unit}`
+  })
+  return {
+    subject: `基準在庫の違い ${slot(L, r)} — ${rows.length}品目`,
+    lines: [
+      `日報の写真から読み取った基準在庫（品目の横の手書きの数）が、アプリの「在庫の品目」と違います。`,
+      `必要なら 管理 → 設定 → 在庫の品目 で直してください。`,
+      `店舗・勤番: ${slot(L, r)}`,
+      `記録した人: ${r.author_name}（${jst(r.created_at)}）`,
+      ...rows,
+    ],
+    link: appUrl('/manager/stock-items'),
   }
 }
 
@@ -681,6 +706,13 @@ async function recipients(admin: Admin): Promise<Recipient[]> {
   return data as Recipient[]
 }
 
+/** Active system admins (role admin, not test accounts) as recipients. */
+async function admins(admin: Admin): Promise<Recipient[]> {
+  const { data, error } = await admin.from('profiles').select('email').eq('role', 'admin').eq('status', 'active').eq('is_test_account', false)
+  if (error) throw new HttpError(500, error.message)
+  return (data ?? []).filter((p) => p.email).map((p) => ({ email: p.email }) as Recipient)
+}
+
 async function sendInstant(admin: Admin) {
   const { data, error } = await admin.from('notify_events').select('*').is('instant_done_at', null).order('id').limit(50)
   if (error) throw new HttpError(500, error.message)
@@ -703,7 +735,8 @@ async function sendInstant(admin: Admin) {
     }
     // 在庫 and ordinary 販売日報 go only into the 7:30 summary; a 販売日報 with a difference goes out at once
     const summaryOnly = e.kind === 'stock' || (e.kind === 'sales' && !e.urgent)
-    const to = summaryOnly ? [] : people.filter((p) => p.kinds.includes(e.kind) && (p.mode === 'instant' || e.urgent))
+    // 基準在庫の違い goes only to the system admins (they fix 在庫の品目)
+    const to = e.kind === 'stock_standard' ? await admins(admin) : summaryOnly ? [] : people.filter((p) => p.kinds.includes(e.kind) && (p.mode === 'instant' || e.urgent))
     if (!to.length) {
       await done()
       continue

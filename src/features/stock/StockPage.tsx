@@ -36,9 +36,10 @@ import { errorMessage, storeName } from '../../lib/format'
 import { getLastStore, setLastStore } from '../../lib/lastStore'
 import { useStores } from '../../lib/queries'
 import type { Store } from '../../lib/types'
+import { PhotoRead } from './PhotoRead'
 import { addStockEvent, itemName, replaceStockEvent, useStockEvents, useStockItems, useStockPhotos, voidStockEvent } from './data'
 
-type Mode = LineKind | 'temp' | 'recount'
+type Mode = LineKind | 'temp' | 'recount' | 'photo' | 'missing'
 interface Slot {
   store: Store
   date: string
@@ -262,6 +263,7 @@ function EntryForm({
   states,
   initialReason = '',
   replacing,
+  partial = false,
   onDone,
 }: {
   kind: LineKind
@@ -270,6 +272,8 @@ function EntryForm({
   initialReason?: string
   /** 管理者が修正: the row whose figures are replaced (states are worked out without it) */
   replacing?: StockEvent
+  /** 終わりの在庫 of only these items (the ones missing from a paper sheet) */
+  partial?: boolean
   onDone: () => void
 }) {
   const { t } = useTranslation('stock')
@@ -337,6 +341,7 @@ function EntryForm({
         reason: reasons.length ? reason : null,
         noteOriginal: tr.originals?.note ?? null,
         sourceLang: tr.sourceLang,
+        partial,
       })
       // photos / videos go to Google Drive in the background (queued, retried)
       if (kind === 'loss' && media.length) await uploads.enqueue('stock', id, media)
@@ -658,10 +663,15 @@ export function StockPage() {
 
   if (mode === 'temp') return <TempForm slot={slot} events={events.data ?? []} onDone={done} />
   if (mode === 'recount') return <EntryForm kind="open" slot={slot} states={states} initialReason="no_record" onDone={done} />
+  if (mode === 'photo')
+    return <PhotoRead slot={slot} states={states} existing={(events.data ?? []).filter((e) => !e.voided_at && e.kind !== 'temp_start' && e.kind !== 'temp_end').length} onDone={done} />
+  if (mode === 'missing') return <EntryForm kind="close" slot={slot} states={states.filter((s) => s.left === null)} partial onDone={done} />
   if (mode) return <EntryForm kind={mode} slot={slot} states={states} onDone={done} />
 
   const unknownOpening = states.length > 0 && states.some((s) => s.opening === null)
   const closed = states.some((s) => s.left !== null)
+  // a sheet read from a photo leaves out the items that are not on the paper
+  const notCounted = closed ? states.filter((s) => s.left === null) : []
 
   return (
     <div className="flex flex-col gap-4">
@@ -694,6 +704,13 @@ export function StockPage() {
         </div>
       )}
 
+      {notCounted.length > 0 && (
+        <div className="flex flex-col gap-2 rounded-xl bg-amber-50 p-3 ring-1 ring-amber-300">
+          <p className="text-sm font-bold text-amber-900">⚠️ {t('photo.missingBanner', { items: notCounted.map((s) => itemName(t, s.item)).join('、') })}</p>
+          <Button onClick={() => setMode('missing')}>{t('photo.missingAction')}</Button>
+        </div>
+      )}
+
       <Card className="flex flex-col gap-2">
         <h2 className="font-bold">{closed ? t('stateClosed') : t('stateNow')}</h2>
         <StateTable states={states} />
@@ -701,6 +718,7 @@ export function StockPage() {
       </Card>
 
       <div className="grid grid-cols-1 gap-2.5">
+        <Button onClick={() => setMode('photo')}>📷 {t('photo.action')}</Button>
         <Button onClick={() => setMode('in')}>{t('action.in')}</Button>
         <Button variant="secondary" onClick={() => setMode('out')}>
           {t('action.out')}

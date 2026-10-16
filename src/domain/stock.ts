@@ -15,9 +15,9 @@ export const OPEN_REASONS = ['miscount', 'unrecorded', 'unknown', 'no_record', '
 export const LOSS_REASONS = ['dropped', 'spoiled', 'quality', 'mistake', 'other'] as const
 export type StockReason = (typeof OPEN_REASONS)[number] | (typeof LOSS_REASONS)[number]
 
-/** Where 受入 comes from / where 払出 goes (own store is hidden). */
-export const IN_PLACES = ['honten', 'sennichimae', 'midosuji', 'ebisubashi', 'warehouse', 'vendor'] as const
-export const OUT_PLACES = ['midosuji', 'sennichimae', 'ebisubashi', 'other'] as const
+/** Where 受入 comes from / where 払出 goes (own store is hidden). honten = 相合橋本店 (仕込場 is in its basement). Keep in sync with add_stock_event and stock-read. */
+export const IN_PLACES = ['honten', 'sennichimae', 'midosuji', 'ebisubashi', 'dotonbori', 'warehouse', 'vendor'] as const
+export const OUT_PLACES = ['honten', 'midosuji', 'sennichimae', 'ebisubashi', 'dotonbori', 'other'] as const
 
 export interface StockItem {
   id: string

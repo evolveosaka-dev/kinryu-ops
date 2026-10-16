@@ -15,7 +15,7 @@ const MAX_VIDEO_SEC = 90
 
 interface StartBody {
   action: 'start'
-  /** miss = a 朝礼できなかった report (chorei_misses), files added by a manager; stock = a 廃棄・破損 row (stock_events) */
+  /** miss = a 朝礼できなかった report (chorei_misses), files added by a manager; stock = a 廃棄・破損 row or the 終わりの在庫 row of a paper sheet (stock_events) */
   parentType: 'chorei' | 'patrol' | 'miss' | 'stock' | 'incident' | 'lost_found' | 'lost_return'
   parentId: string
   kind: 'image' | 'video'
@@ -55,7 +55,7 @@ serve(async (req) => {
       .eq('id', b.parentId)
       .maybeSingle()
     const p = parent as Record<string, unknown> | null
-    if (!p || p.status === 'void' || p.voided_at || (b.parentType === 'stock' && p.kind !== 'loss')) throw new HttpError(404, 'record not found')
+    if (!p || p.status === 'void' || p.voided_at || (b.parentType === 'stock' && p.kind !== 'loss' && p.kind !== 'close')) throw new HttpError(404, 'record not found')
     // 設備の故障 (Workflow V2) and lost items are shared: anyone who works there adds photos
     const shared = lost || (b.parentType === 'incident' && p.kind === 'equipment')
     if (!caller.isManager && !shared && (parent as Record<string, unknown>)[ownerCol] !== caller.id) throw new HttpError(403, 'not your record')
@@ -87,7 +87,7 @@ serve(async (req) => {
     const date = parent.business_date as string
     const folderPath = [date.slice(0, 7), store, b.parentType === 'patrol' ? '巡回' : b.parentType === 'stock' ? '在庫' : b.parentType === 'incident' ? 'クレーム・事故' : lost ? '忘れ物' : '朝礼']
     const ext = b.fileName.includes('.') ? b.fileName.slice(b.fileName.lastIndexOf('.')).toLowerCase() : ''
-    const driveName = `${date}_${SHIFT_JA[parent.shift as string] ?? parent.shift}_${{ chorei: '朝礼', patrol: '巡回', miss: '朝礼なし', stock: '廃棄・破損', incident: 'クレーム・事故', lost_found: '忘れ物', lost_return: '忘れ物_返却' }[b.parentType]}_${row.id.slice(0, 8)}${ext}`
+    const driveName = `${date}_${SHIFT_JA[parent.shift as string] ?? parent.shift}_${{ chorei: '朝礼', patrol: '巡回', miss: '朝礼なし', stock: parent.kind === 'close' ? '日報の写真' : '廃棄・破損', incident: 'クレーム・事故', lost_found: '忘れ物', lost_return: '忘れ物_返却' }[b.parentType]}_${row.id.slice(0, 8)}${ext}`
 
     const createSession = async (folderId: string) =>
       fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id', {

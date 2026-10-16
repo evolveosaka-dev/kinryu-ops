@@ -25,3 +25,6 @@ verify_jwt = false
 
 [functions.incident-ai]
 verify_jwt = false
+
+[functions.stock-read]
+verify_jwt = false
