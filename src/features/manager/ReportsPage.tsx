@@ -10,6 +10,7 @@ import { cx } from '../../lib/cx'
 import { errorMessage } from '../../lib/format'
 import { supabase } from '../../lib/supabase'
 import { jstDateTime, today, useReports } from './data'
+import { DailyReportView } from './DailyReportView'
 import { ManagerTabs } from './ManagerTabs'
 
 const SHIFT_JA: Record<string, string> = { early: '早番', middle: '中番', late: '遅番' }
@@ -24,7 +25,7 @@ function Num({ label, value, sub, tone }: { label: string; value: string; sub?: 
   )
 }
 
-function ReportView({ r }: { r: AiReport }) {
+function ReportView({ r }: { r: AiReport & { kind: 'weekly' | 'monthly' } }) {
   const { t } = useTranslation('manager')
   const { t: tc } = useTranslation()
   const d = r.data
@@ -125,7 +126,7 @@ function ReportView({ r }: { r: AiReport }) {
   )
 }
 
-/** 管理 → レポート: AI weekly / monthly reports (made automatically, or now). */
+/** 管理 → レポート: AI daily / weekly / monthly reports (made automatically, or now). */
 export function ReportsPage() {
   const { t } = useTranslation('manager')
   const me = useMe()
@@ -176,13 +177,17 @@ export function ReportsPage() {
           <select className="min-h-11 rounded-xl border border-slate-300 bg-white px-2" value={shown?.id ?? ''} onChange={(e) => setOpenId(e.target.value)}>
             {list.map((r) => (
               <option key={r.id} value={r.id}>
-                {r.kind === 'monthly' ? t('reports.monthly', { y: r.period_from.slice(0, 4), m: Number(r.period_from.slice(5, 7)) }) : t('reports.weekly', { from: formatShortDate(r.period_from), to: formatShortDate(r.period_to) })}
+                {r.kind === 'daily'
+                  ? t('reports.dailyTitle', { date: formatShortDate(r.period_from) })
+                  : r.kind === 'monthly'
+                    ? t('reports.monthly', { y: r.period_from.slice(0, 4), m: Number(r.period_from.slice(5, 7)) })
+                    : t('reports.weekly', { from: formatShortDate(r.period_from), to: formatShortDate(r.period_to) })}
               </option>
             ))}
           </select>
         )}
       </div>
-      {shown ? <ReportView r={shown} /> : <p className="rounded-xl bg-surface p-4 text-center text-muted">{t('reports.none')}</p>}
+      {shown ? shown.kind === 'daily' ? <DailyReportView r={shown} /> : <ReportView r={shown} /> : <p className="rounded-xl bg-surface p-4 text-center text-muted">{t('reports.none')}</p>}
     </div>
   )
 }

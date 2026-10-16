@@ -7,6 +7,8 @@
 //  - action "test" (a manager, 設定 → 通知メール): a test mail to one recipient.
 //  - action "report" (pg_cron 8:00 JST daily, or a manager): AIレポート — Monday → last week, the 1st → last month;
 //    figures from report_data(), 要点・提案 by Claude, saved in ai_reports and mailed to the recipients with kind 'report'.
+//  - action "daily_report" (pg_cron 7:30 JST, or a manager with action "report" kind "daily"): AI日報 of yesterday from
+//    daily_report_data() (朝礼・巡回・休み連絡・クレーム事故 + open cases), mailed to the recipients with kind 'daily_report'.
 // The cron caller sends x-cron-secret (checked against Vault); managers send their access token.
 import Anthropic from 'npm:@anthropic-ai/sdk'
 import { adminClient, env, HttpError, requireUser, serve } from '../_shared/http.ts'
@@ -559,7 +561,8 @@ async function renderShiftChange(admin: Admin, L: Lookup, e: NotifyEvent) {
 /** Sends through Resend and counts the mails in mail_log (管理 → システム状態). */
 // ---- AIレポート
 
-const REPORT_MODELS = ['claude-sonnet-5-5', 'claude-sonnet-4-5']
+// Opus first (owner, 2026-10-16); Sonnet if Opus is not available
+const REPORT_MODELS = ['claude-opus-5-5', 'claude-sonnet-5-5']
 const REPORT_SYSTEM = `あなたは大阪のラーメン店「金龍ラーメン」（御堂筋店・千日前店、どちらも24時間営業、早番7-17・中番17-23・遅番23-7）の運営アドバイザーです。
 管理者向けの定期レポートを日本語で書きます。読み手は店長・社長です。
 与えられたJSONの数字だけを使い、データにないことは推測で書かないでください。数字は具体的に書いてください（例：達成率85%、前週より+3pt）。
@@ -675,6 +678,115 @@ async function scheduledReports(admin: Admin) {
     out.push(await makeReport(admin, p.kind, p.from, p.to, null, true))
   }
   return { reports: out }
+}
+
+// ---- AI日報 (one business day, from 朝礼 + 巡回 + 休み連絡 + クレーム・事故; names are used)
+
+const DAILY_SYSTEM = `あなたは大阪のラーメン店「金龍ラーメン」（御堂筋店・千日前店、24時間営業、早番7-17・中番17-23・遅番23-7）の接客品質アドバイザーです。
+前日1日分（3勤番×2店）の朝礼・巡回・休み連絡・クレーム事故の記録から、店長・社長向けの日報を日本語で書きます。
+与えられたJSONだけを使い、データにないことは推測で書かないでください。記録がない勤番は「記録なし」と書きます。
+- slots：店×勤番。chorei は朝礼（leader＝指導者、participants＝参加者、caution＝注意点、notes＝追記、comments＝管理者のコメント）。chorei が null で chorei_missed があれば未実施とその理由（busy＝お客様が多かった、no_manager＝管理者不在、alone＝1人勤務、forgot＝忘れた）。
+- patrols：巡回（patroller＝巡回者、staff＝巡回されたスタッフ、score/max＝点数（25点満点で20以上が目標）、judgement＝good良好/improve要改善/coaching即日指導、good_points＝良かった点、improvements＝改善点・指導内容、issue_tags＝改善点の対象者と項目、comments＝管理者のコメント・指示、customer＝お客様の様子）。
+- 指導の判定：improvements または comments に、その場で注意・指導・説明した内容が書かれていれば「指導済み」。問題だけが書かれて指導した内容がなければ「指導未確認」とし、誰がいつ伝えるべきかを書きます。
+- attendance：休み・遅刻・早退（cover＝代わりの人、told_after_start＝開始後の連絡）。incidents：その勤番のクレーム・事故（no＝番号）。
+- open_cases：前日より前に起きて、まだ完了していない案件（days_open＝経過日数、overdue＝期限切れ）。
+人の名前はデータのとおり書いてかまいませんが、人を責める書き方はせず、事実と次の行動を書きます。
+出力の形（この見出しだけを使い、全体で1200字以内。該当がなければ「なし」）：
+【全体のまとめ】
+・（2〜3個）
+【巡回で良かった点】
+・（店・勤番・誰の何が良かったか）
+【巡回で見つかった問題と指導】
+・店 勤番 対象者：問題 → 指導済み（内容）／指導未確認（次の対応）
+【突発・クレーム・事故】
+・（休み・遅刻・早退、クレーム・事故。対応の状況）
+【未解決の案件】
+・（番号・内容・経過日数・次の対応）
+【改善提案（サービス品質・お客様満足）】
+・（2〜4個。誰が・いつ・何をするか。次の朝礼の注意点として使える形で）`
+
+/** Key facts of each slot as plain lines (mail), the same as the app shows. */
+function dailyLines(d: Row): string[] {
+  const out: string[] = []
+  for (const s of (d.slots ?? []) as Row[]) {
+    const head = `■ ${s.store} ${SHIFT[s.shift] ?? s.shift}${s.bowls != null ? `（${s.bowls}杯${s.target ? `／目標 ${s.target}` : ''}）` : ''}`
+    out.push(head)
+    const c = s.chorei as Row | null
+    const m = s.chorei_missed as Row | null
+    if (c) {
+      const who = (c.participants as string[]).join('、')
+      out.push(`　朝礼: 指導 ${c.leader ?? '—'}${who ? `／参加 ${who}` : ''}${c.caution ? `／注意点: ${c.caution}` : ''}`)
+    } else if (m?.kind === 'done') out.push('　朝礼: 実施（管理者が確認）')
+    else if (m) out.push(`　朝礼: 未実施（${MISS_REASON[m.reason] ?? m.reason ?? '—'}${m.note ? `：${m.note}` : ''}）`)
+    else out.push('　朝礼: 記録なし')
+    const patrols = (s.patrols ?? []) as Row[]
+    if (!patrols.length) out.push('　巡回: なし')
+    for (const p of patrols) {
+      out.push(`　巡回 ${p.time ?? ''} ${p.patroller ?? '—'} → ${(p.staff as string[] | null)?.join('、') || '—'}: ${p.score ?? '—'}/${p.max ?? '—'}点 ${JUDGE[p.judgement] ?? ''}`)
+    }
+    for (const a of (s.attendance ?? []) as Row[]) {
+      out.push(`　${CHANGE_KIND[a.kind] ?? a.kind}: ${a.name}（${CHANGE_REASON[a.reason] ?? a.reason}${a.late_min ? `・${a.late_min}分` : ''}${a.cover ? `・代わり ${a.cover}` : ''}）`)
+    }
+    for (const i of (s.incidents ?? []) as Row[]) {
+      out.push(`　${INCIDENT_KIND[i.kind] ?? i.kind} #${i.no}: ${String(i.description).slice(0, 60)}（${WF_STATE[i.state] ?? i.state}）`)
+    }
+  }
+  const open = (d.open_cases ?? []) as Row[]
+  out.push(`■ 未解決の案件: ${open.length ? '' : 'なし'}`)
+  for (const o of open) {
+    out.push(`　#${o.no} ${INCIDENT_KIND[o.kind] ?? o.kind}（${String(o.store).replace('店', '')} ${day(o.date)}〜 ${o.days_open}日・${WF_STATE[o.state] ?? o.state}${o.overdue ? '・期限切れ' : ''}${o.assignee ? `・担当 ${o.assignee}` : ''}）`)
+  }
+  return out
+}
+
+async function askClaude(system: string, input: string, maxTokens: number) {
+  const workspaceId = Deno.env.get('ANTHROPIC_WORKSPACE_ID')
+  const client = new Anthropic({ apiKey: env('ANTHROPIC_API_KEY'), defaultHeaders: workspaceId ? { 'anthropic-workspace-id': workspaceId } : undefined })
+  for (const m of REPORT_MODELS) {
+    try {
+      const response = await client.messages.create({ model: m, max_tokens: maxTokens, system, messages: [{ role: 'user', content: input }] })
+      const block = response.content.find((b) => b.type === 'text')
+      if (!block || block.type !== 'text') throw new HttpError(502, 'empty AI answer')
+      return { text: block.text.trim(), model: m, usage: response.usage }
+    } catch (err) {
+      if (err instanceof Anthropic.NotFoundError && m !== REPORT_MODELS.at(-1)) continue
+      if (err instanceof Anthropic.APIError) throw new HttpError(502, `AI failed (${err.status}): ${err.message}`)
+      throw err
+    }
+  }
+  throw new HttpError(502, 'no AI model')
+}
+
+async function makeDailyReport(admin: Admin, date: string, createdBy: string | null, mail: boolean) {
+  const data = await admin.rpc('daily_report_data', { p_date: date })
+  if (data.error) throw new HttpError(500, data.error.message)
+  const input = `<daily_report date="${date}">${JSON.stringify(data.data)}</daily_report>`
+  const ai = await askClaude(DAILY_SYSTEM, input, 4000)
+  const { data: saved, error } = await admin
+    .from('ai_reports')
+    .upsert({ kind: 'daily', period_from: date, period_to: date, data: data.data, summary: ai.text, model: ai.model, created_by: createdBy, created_at: new Date().toISOString() }, { onConflict: 'kind,period_from' })
+    .select('id')
+    .single()
+  if (error) throw new HttpError(500, error.message)
+  await admin.from('translation_log').insert({ user_id: createdBy, chars: input.length, input_tokens: ai.usage.input_tokens, output_tokens: ai.usage.output_tokens, model: ai.model })
+  let sent = 0
+  if (mail) {
+    const subject = `【日報】${day(date)} 朝礼・巡回・クレーム事故のまとめ`
+    const to_ = (await recipients(admin)).filter((p) => p.kinds.includes('daily_report'))
+    const text = `${subject}\n\n${ai.text}\n\n■■ 記録の一覧\n${dailyLines(data.data as Row).join('\n')}\n\n▶ アプリで見る（印刷・PDF保存もできます）: ${appUrl('/manager/reports')}${FOOTER}`
+    if (to_.length) await sendBatch(to_.map((p) => ({ to: p.email, subject, text })), `daily-report-${saved.id}-${Date.now()}`, 'daily_report', admin)
+    await admin.from('ai_reports').update({ mailed_at: new Date().toISOString() }).eq('id', saved.id)
+    sent = to_.length
+  }
+  return { id: saved.id, sent }
+}
+
+/** Scheduled 7:30 JST: yesterday's 日報, once. */
+async function scheduledDailyReport(admin: Admin) {
+  const date = addDays(tokyoToday(), -1)
+  const { data } = await admin.from('ai_reports').select('mailed_at').eq('kind', 'daily').eq('period_from', date).maybeSingle()
+  if (data?.mailed_at) return { reports: [] }
+  return { reports: [await makeDailyReport(admin, date, null, true)] }
 }
 
 async function sendBatch(mails: Mail[], idempotencyKey: string, kind: string, admin: Admin = adminClient()) {
@@ -851,6 +963,7 @@ serve(async (req) => {
     if (error || !ok) throw new HttpError(401, 'bad cron secret')
     if (body.action === 'digest') return sendDigest(admin)
     if (body.action === 'report') return scheduledReports(admin)
+    if (body.action === 'daily_report') return scheduledDailyReport(admin)
     return sendInstant(admin)
   }
   const caller = await requireUser(req, admin)
@@ -859,6 +972,10 @@ serve(async (req) => {
   if (body.action === 'test' && body.recipient_id) return sendTest(admin, body.recipient_id)
   if (body.action === 'report') {
     const ok = (d?: string) => Boolean(d && /^\d{4}-\d{2}-\d{2}$/.test(d))
+    if (body.kind === 'daily') {
+      if (!ok(body.from) || body.from! >= tokyoToday()) throw new HttpError(400, 'bad date')
+      return makeDailyReport(admin, body.from!, caller.id, Boolean(body.mail))
+    }
     if ((body.kind !== 'weekly' && body.kind !== 'monthly') || !ok(body.from) || !ok(body.to) || body.from! > body.to!) throw new HttpError(400, 'bad period')
     return makeReport(admin, body.kind, body.from!, body.to!, caller.id, Boolean(body.mail))
   }
