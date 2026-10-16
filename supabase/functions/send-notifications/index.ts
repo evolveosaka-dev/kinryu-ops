@@ -59,7 +59,7 @@ const STOCK_REASON: Record<string, string> = {
 const CHANGE_KIND: Record<string, string> = { absence: '休み', late: '遅刻', early_leave: '早退' }
 const CHANGE_REASON: Record<string, string> = { sick: '体調不良', family: '家族の用事', transport: '交通の原因', personal: '私用', paid_leave: '有給休暇', store: '店の都合', other: 'その他' }
 // keep in sync with src/domain/incident.ts
-const INCIDENT_KIND: Record<string, string> = { complaint: 'お客様のクレーム', injury: 'ケガ・事故', foreign_object: '異物混入', equipment: '設備の故障', food_poisoning: '食中毒の疑い', lost_item: '忘れ物・落とし物', phone_message: '電話の伝言', payment: '会計・券売機トラブル', other: 'その他' }
+const INCIDENT_KIND: Record<string, string> = { complaint: 'お客様のクレーム', injury: 'ケガ・事故', foreign_object: '異物混入', equipment: '設備の故障', food_poisoning: '食中毒の疑い', lost_item: '忘れ物・落とし物', phone_message: '電話の伝言', payment: '会計・券売機故障', other: 'その他' }
 const WF_STATE: Record<string, string> = { reported: '報告済み', checking: '確認中', in_progress: '対応中', on_hold: '保留・外部待ち', repaired: '修理完了・確認待ち', done: '完了', reopened: '再対応', cancelled: '取消', received: '受付', content_check: '内容確認', answered: '回答', resolution_check: '解決確認', occurred: '発生', safety: '安全確保', reported_mgr: '管理者報告', investigating: '調査中', prevention: '再発防止', found: '発見', isolated: '隔離・提供停止', corrected: '是正', safety_check: '安全確認', txn_check: '取引確認', decision: '対応判断', refund_fix: '返金・修正', reconcile: '照合', classified: '分類', check: '確認' }
 const STOCK_UNIT: Record<string, string> = { piece: '個', bag: '袋', box: '箱', stick: '本', liter: 'L' }
 const PREV_SHIFT: Record<string, [number, string]> = { early: [-1, 'late'], middle: [0, 'early'], late: [0, 'middle'] }

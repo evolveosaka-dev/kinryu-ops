@@ -292,7 +292,7 @@
       "food_poisoning": "食中毒の疑い",
       "lost_item": "忘れ物・落とし物",
       "phone_message": "電話の伝言",
-      "payment": "会計・券売機トラブル",
+      "payment": "会計・券売機故障",
       "other": "その他"
     },
     "urgentHint": "管理者にすぐメールが届きます。急ぐときは電話もしてください。",
