@@ -4,16 +4,22 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../app/auth'
 import { Sheet } from '../../components/Sheet'
 import { Button, Card, Checkbox, ErrorBox, Segmented, TextArea, TextInput } from '../../components/ui'
+import { INCIDENT_ICON } from '../../domain/incident'
 import {
   actionsFor,
   durations,
+  FLOWS,
+  NEEDS_PREVENTION,
+  nextStep,
+  pathOf,
+  stepActions,
   fmtMinutes,
   isOverdue,
   PRIORITIES,
   PRIORITY_STYLE,
   WF_ACTIONS,
-  WF_PATH,
   WF_STYLE,
+  type WfState,
   type Priority,
   type WfAction,
 } from '../../domain/incidentWorkflow'
@@ -42,19 +48,21 @@ export function WfChips({ r }: { r: WfIncident }) {
   )
 }
 
-/** 報告済み → 確認中 → 対応中 → 修理完了・確認待ち → 完了 (保留・再対応・取消 shown as a note) */
+/** the steps of the kind (設備: 報告済み → 確認中 → 対応中 → 修理完了・確認待ち → 完了; 保留・再対応・取消 shown as a note) */
 function Progress({ r }: { r: WfIncident }) {
   const { t } = useTranslation()
-  const at = r.wf_state === 'on_hold' || r.wf_state === 'reopened' ? 2 : r.wf_state === 'cancelled' ? -1 : WF_PATH.indexOf(r.wf_state)
+  const path = pathOf(r.kind)
+  const at = r.wf_state === 'on_hold' || r.wf_state === 'reopened' ? 2 : r.wf_state === 'cancelled' ? -1 : path.indexOf(r.wf_state)
+  const cols = { gridTemplateColumns: `repeat(${path.length}, minmax(0, 1fr))` }
   return (
     <div className="flex flex-col gap-1">
-      <ol className="grid grid-cols-5 gap-1">
-        {WF_PATH.map((s, i) => (
+      <ol className="grid gap-1" style={cols}>
+        {path.map((s, i) => (
           <li key={s} className={cx('h-1.5 rounded-full', i <= at ? 'bg-brand' : 'bg-slate-200')} />
         ))}
       </ol>
-      <ol className="grid grid-cols-5 gap-1 text-center text-[10px] leading-tight text-muted">
-        {WF_PATH.map((s) => (
+      <ol className="grid gap-1 text-center text-[10px] leading-tight text-muted" style={cols}>
+        {path.map((s) => (
           <li key={s}>{t(`wf.state.${s}`)}</li>
         ))}
       </ol>
@@ -95,6 +103,10 @@ export function WfDetail({ r, onClose }: { r: WfIncident; onClose: () => void })
   const [cost, setCost] = useState('')
   const [vendor, setVendor] = useState('')
   const [conflict, setConflict] = useState(false)
+  const [step, setStep] = useState<'advance' | 'back' | 'cancel' | null>(null)
+  const [backTo, setBackTo] = useState<WfState | ''>('')
+  const [answer, setAnswer] = useState(r.resolution ?? '')
+  const [prevention, setPrevention] = useState(r.prevention ?? '')
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: ['incidents'] })
     void queryClient.invalidateQueries({ queryKey: ['incident_events', r.id] })
@@ -145,16 +157,46 @@ export function WfDetail({ r, onClose }: { r: WfIncident; onClose: () => void })
     },
     onError,
   })
+  const doStep = useMutation({
+    mutationFn: async (a: 'advance' | 'back' | 'cancel') => {
+      const next = nextStep(r.kind, r.wf_state)
+      const g = await gate.prepare([
+        { key: 'body', label: t('wf.note'), text: reason.trim() || null },
+        { key: 'resolution', label: t('wf.f.answer'), text: a === 'advance' && next === 'answered' ? answer.trim() || null : null },
+        { key: 'prevention', label: t('wf.f.prevention'), text: a === 'advance' && next === 'done' && NEEDS_PREVENTION.includes(r.kind) ? prevention.trim() || null : null },
+        { key: 'cause', label: t('wf.f.cause'), text: a === 'advance' && next === 'done' ? cause.trim() || null : null },
+      ])
+      const data: Record<string, unknown> = {}
+      if (g.values.resolution) data.resolution = g.values.resolution
+      if (g.values.prevention) data.prevention = g.values.prevention
+      if (g.values.cause) data.cause = g.values.cause
+      if (a === 'back') data.to = backTo
+      await incidentAct(r.id, a, r.version, g.values.body ?? null, { original: g.originals?.body ?? null, sourceLang: g.sourceLang, data })
+    },
+    onSuccess: () => {
+      setStep(null)
+      setReason('')
+      setConflict(false)
+      refresh()
+    },
+    onError,
+  })
   const d = durations(r, events.data ?? [])
+  const isEq = r.kind === 'equipment'
+  const next = nextStep(r.kind, r.wf_state)
+  const steps = isEq ? [] : stepActions(r.kind, r.wf_state, isManager)
+  const earlier = (FLOWS[r.kind] ?? []).slice(0, Math.max(0, (FLOWS[r.kind] ?? []).indexOf(r.wf_state)))
   const store = storeName(stores.data?.find((s) => s.id === r.store_id), currentLocale())
-  const actions = actionsFor(r.wf_state, isManager)
+  const actions = isEq ? actionsFor(r.wf_state, isManager) : []
   const files = r.attachments.filter((a) => a.status !== 'failed')
   return (
-    <Sheet title={`${incidentNo(r.incident_no)} ${r.equipment_name ?? t('incident.kinds.equipment')}`} onClose={onClose}>
+    <Sheet title={`${incidentNo(r.incident_no, r.kind)} ${isEq ? (r.equipment_name ?? t('incident.kinds.equipment')) : t(`incident.kinds.${r.kind}`)}`} onClose={onClose}>
       {gate.review}
       <Card className="flex flex-col gap-2 text-sm">
         <div className="flex items-start justify-between gap-2">
-          <span className="text-base font-bold">🔧 {store}</span>
+          <span className="text-base font-bold">
+            {INCIDENT_ICON[r.kind]} {store}
+          </span>
           <WfChips r={r} />
         </div>
         <Progress r={r} />
@@ -164,11 +206,11 @@ export function WfDetail({ r, onClose }: { r: WfIncident; onClose: () => void })
         <Row label={t('wf.f.due')}>
           <span className={cx(isOverdue(r) && 'font-bold text-red-700')}>{r.due_at ? formatWhen(r.due_at) : '—'}</span>
         </Row>
-        <Row label={t('wf.f.occurred')}>
+        <Row label={isEq ? t('wf.f.occurred') : t('incident.when')}>
           {formatWhen(r.occurred_at)}
           {!r.occurred_known && <span className="ml-1 text-xs text-amber-800">（{t('wf.estimated')}）</span>}
         </Row>
-        <Row label={t('wf.f.discovered')}>{r.discovered_at ? formatWhen(r.discovered_at) : '—'}</Row>
+        {isEq && <Row label={t('wf.f.discovered')}>{r.discovered_at ? formatWhen(r.discovered_at) : '—'}</Row>}
         <Row label={t('wf.f.reported')}>
           {formatWhen(r.created_at)} ・ {r.reporter_name}
         </Row>
@@ -178,6 +220,16 @@ export function WfDetail({ r, onClose }: { r: WfIncident; onClose: () => void })
             {formatWhen(r.closed_at)} ・ {r.closed_by_name}
           </Row>
         )}
+        {(r.customer_name || r.customer_phone) && (
+          <Row label={t('wf.f.party')}>{[r.customer_name, r.customer_phone].filter(Boolean).join(' ')}</Row>
+        )}
+        {r.injured_who && (
+          <Row label={t('incident.injured.title')}>
+            {r.injured_who.map((w) => (w === 'staff' && r.injured_staff ? `${t('incident.injured.staff')}（${r.injured_staff}）` : t(`incident.injured.${w}`))).join('・')}
+          </Row>
+        )}
+        {r.action_taken && <Row label={t('incident.action')}>{r.action_taken}</Row>}
+        {r.prevention && <Row label={t('wf.f.prevention')}>{r.prevention}</Row>}
         {r.cause && <Row label={t('wf.f.cause')}>{r.cause}</Row>}
         {r.resolution && <Row label={t('wf.f.resolution')}>{r.resolution}</Row>}
         {r.cancel_reason && <Row label={t('wf.f.cancel')}>{r.cancel_reason}</Row>}
@@ -195,7 +247,9 @@ export function WfDetail({ r, onClose }: { r: WfIncident; onClose: () => void })
             ['hold', d.hold],
             ['downtime', d.downtime],
           ] as const
-        ).map(([k, v]) => (
+        )
+          .filter(([k]) => isEq || k === 'firstResponse' || k === 'complete')
+          .map(([k, v]) => (
           <details key={k}>
             <summary className="flex cursor-pointer justify-between gap-2">
               <span>{t(`wf.d.${k}`)}</span>
@@ -210,6 +264,64 @@ export function WfDetail({ r, onClose }: { r: WfIncident; onClose: () => void })
       </Card>
 
       {conflict && <ErrorBox message={t('wf.conflict')} />}
+
+      {steps.length > 0 && (
+        <Card className="flex flex-col gap-2">
+          <h3 className="font-bold">{isManager ? tm('wf.actionsTitle') : t('wf.staffActions')}</h3>
+          <div className="grid grid-cols-1 gap-2">
+            {steps.map((a) => (
+              <Button key={a} variant={a === 'advance' ? 'primary' : 'secondary'} onClick={() => setStep(step === a ? null : a)}>
+                {a === 'advance' && next ? t('wf.nextStep', { step: t(`wf.state.${next}`) }) : t(`wf.stepAction.${a}`)}
+              </Button>
+            ))}
+          </div>
+          {step && (
+            <div className="flex flex-col gap-2 rounded-xl border border-brand p-3">
+              {step === 'advance' && next === 'answered' && (
+                <TextArea label={`${t('wf.f.answer')} *`} rows={3} value={answer} maxLength={2000} onChange={(e) => setAnswer(e.target.value)} />
+              )}
+              {step === 'advance' && next === 'done' && NEEDS_PREVENTION.includes(r.kind) && (
+                <TextArea label={`${t('wf.f.prevention')} *`} rows={2} value={prevention} maxLength={2000} onChange={(e) => setPrevention(e.target.value)} />
+              )}
+              {step === 'advance' && next === 'done' && <TextArea label={t('wf.f.cause')} rows={2} value={cause} maxLength={2000} onChange={(e) => setCause(e.target.value)} />}
+              {step === 'back' && (
+                <label className="flex flex-col gap-1 text-[15px] font-bold">
+                  {t('wf.backTo')}
+                  <select className="min-h-12 rounded-xl border border-slate-400 bg-white px-2 font-normal" value={backTo} onChange={(e) => setBackTo(e.target.value as WfState)}>
+                    <option value="">—</option>
+                    {(r.wf_state === 'cancelled' ? (FLOWS[r.kind] ?? []).filter((s) => s !== 'done') : earlier).map((s) => (
+                      <option key={s} value={s}>
+                        {t(`wf.state.${s}`)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <TextArea
+                label={step === 'advance' ? t('wf.note') : `${t('wf.reason')} *`}
+                hint={step === 'advance' && next ? t(`wf.stepHint.${next}`, { defaultValue: '' }) || undefined : undefined}
+                rows={2}
+                value={reason}
+                maxLength={2000}
+                onChange={(e) => setReason(e.target.value)}
+              />
+              {doStep.error && !(doStep.error instanceof TranslationCancelled) && !conflict && <ErrorBox message={errorMessage(doStep.error)} />}
+              <Button
+                onClick={() => doStep.mutate(step)}
+                disabled={
+                  doStep.isPending ||
+                  (step !== 'advance' && !reason.trim()) ||
+                  (step === 'back' && !backTo) ||
+                  (step === 'advance' && next === 'answered' && !answer.trim()) ||
+                  (step === 'advance' && next === 'done' && NEEDS_PREVENTION.includes(r.kind) && !prevention.trim())
+                }
+              >
+                {doStep.isPending ? t('action.loading') : t('wf.do')}
+              </Button>
+            </div>
+          )}
+        </Card>
+      )}
 
       {actions.length > 0 && (
         <Card className="flex flex-col gap-2">
@@ -292,7 +404,7 @@ export function WfDetail({ r, onClose }: { r: WfIncident; onClose: () => void })
               </span>
               <span className="font-bold">
                 {e.kind === 'state' || e.kind === 'created'
-                  ? `${t(`wf.event.${e.action ?? 'report'}`)}${e.to_state ? ` → ${t(`wf.state.${e.to_state}`)}` : ''}`
+                  ? `${e.action === 'advance' || e.action === 'back' ? t(`wf.stepAction.${e.action}`) : t(`wf.event.${e.action ?? 'report'}`)}${e.to_state ? ` → ${t(`wf.state.${e.to_state}`)}` : ''}`
                   : e.kind === 'assign'
                     ? t('wf.event.assign', { name: (e.data.assignee_name as string) ?? '—', priority: t(`wf.priority.${(e.data.priority as Priority) ?? 'normal'}`) })
                     : t(`wf.event.${e.kind}`)}

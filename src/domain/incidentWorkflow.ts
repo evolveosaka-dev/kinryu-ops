@@ -1,11 +1,50 @@
 // クレーム・事故 Workflow V2 (migration 20261017000001). The database decides (incident_act); this mirrors its
 // transition table for the buttons, and computes the durations from the history so every figure can be traced.
 
-export const WF_STATES = ['reported', 'checking', 'in_progress', 'on_hold', 'repaired', 'done', 'reopened', 'cancelled'] as const
+export const WF_STATES = [
+  'reported', 'checking', 'in_progress', 'on_hold', 'repaired', 'done', 'reopened', 'cancelled',
+  'received', 'content_check', 'answered', 'resolution_check',
+  'occurred', 'safety', 'reported_mgr', 'investigating', 'prevention',
+  'found', 'isolated', 'corrected', 'safety_check',
+  'txn_check', 'decision', 'refund_fix', 'reconcile',
+  'classified', 'check',
+] as const
 export type WfState = (typeof WF_STATES)[number]
-export const OPEN_STATES: readonly WfState[] = ['reported', 'checking', 'in_progress', 'on_hold', 'repaired', 'reopened']
-/** the progress bar: the normal path */
+export const isOpen = (s: WfState) => s !== 'done' && s !== 'cancelled'
+/** the progress bar of 設備の故障: the normal path */
 export const WF_PATH: readonly WfState[] = ['reported', 'checking', 'in_progress', 'repaired', 'done']
+
+/** Stage 3: the steps of every other kind — same table as incident_flow() in SQL. */
+export const FLOWS: Record<string, readonly WfState[]> = {
+  complaint: ['received', 'content_check', 'in_progress', 'answered', 'resolution_check', 'done'],
+  injury: ['occurred', 'safety', 'reported_mgr', 'investigating', 'prevention', 'done'],
+  foreign_object: ['found', 'isolated', 'investigating', 'corrected', 'safety_check', 'done'],
+  food_poisoning: ['found', 'isolated', 'investigating', 'corrected', 'safety_check', 'done'],
+  payment: ['reported', 'txn_check', 'decision', 'refund_fix', 'reconcile', 'done'],
+  phone_message: ['received', 'in_progress', 'done'],
+  other: ['reported', 'classified', 'in_progress', 'check', 'done'],
+}
+/** steps staff may take themselves (incident_staff_steps) */
+export const STAFF_STEPS: Record<string, readonly WfState[]> = { injury: ['safety', 'reported_mgr'], foreign_object: ['isolated'], food_poisoning: ['isolated'] }
+export const pathOf = (kind: string): readonly WfState[] => (kind === 'equipment' ? WF_PATH : (FLOWS[kind] ?? WF_PATH))
+export const nextStep = (kind: string, s: WfState): WfState | null => {
+  const f = FLOWS[kind]
+  if (!f) return null
+  const i = f.indexOf(s)
+  return i >= 0 ? (f[i + 1] ?? null) : null
+}
+/** advance / back / cancel for the kinds with steps */
+export function stepActions(kind: string, s: WfState, manager: boolean): ('advance' | 'back' | 'cancel')[] {
+  const out: ('advance' | 'back' | 'cancel')[] = []
+  const next = nextStep(kind, s)
+  if (next && (manager || STAFF_STEPS[kind]?.includes(next))) out.push('advance')
+  const f = FLOWS[kind] ?? []
+  if (manager && (s === 'cancelled' || f.indexOf(s) > 0)) out.push('back')
+  if (manager && isOpen(s)) out.push('cancel')
+  return out
+}
+/** 完了 of these kinds needs 再発防止; 回答 needs the answer */
+export const NEEDS_PREVENTION = ['injury', 'foreign_object', 'food_poisoning']
 
 export const WF_STYLE: Record<WfState, string> = {
   reported: 'bg-red-100 text-red-900',
@@ -16,6 +55,25 @@ export const WF_STYLE: Record<WfState, string> = {
   done: 'bg-green-100 text-green-900',
   reopened: 'bg-orange-100 text-orange-900',
   cancelled: 'bg-slate-200 text-slate-700',
+  received: 'bg-red-100 text-red-900',
+  occurred: 'bg-red-100 text-red-900',
+  found: 'bg-red-100 text-red-900',
+  content_check: 'bg-amber-100 text-amber-900',
+  classified: 'bg-amber-100 text-amber-900',
+  txn_check: 'bg-amber-100 text-amber-900',
+  safety: 'bg-amber-100 text-amber-900',
+  isolated: 'bg-amber-100 text-amber-900',
+  reported_mgr: 'bg-amber-100 text-amber-900',
+  investigating: 'bg-blue-100 text-blue-900',
+  decision: 'bg-blue-100 text-blue-900',
+  answered: 'bg-teal-100 text-teal-900',
+  corrected: 'bg-teal-100 text-teal-900',
+  refund_fix: 'bg-teal-100 text-teal-900',
+  prevention: 'bg-teal-100 text-teal-900',
+  resolution_check: 'bg-teal-100 text-teal-900',
+  safety_check: 'bg-teal-100 text-teal-900',
+  reconcile: 'bg-teal-100 text-teal-900',
+  check: 'bg-teal-100 text-teal-900',
 }
 
 export const PRIORITIES = ['normal', 'high', 'urgent'] as const
@@ -146,7 +204,7 @@ export interface WfRow extends WfTimes {
 }
 
 export const isOverdue = (r: Pick<WfRow, 'wf_state' | 'due_at'>, now = new Date()) =>
-  Boolean(r.due_at && OPEN_STATES.includes(r.wf_state) && r.wf_state !== 'repaired' && new Date(r.due_at) < now)
+  Boolean(r.due_at && isOpen(r.wf_state) && r.wf_state !== 'repaired' && new Date(r.due_at) < now)
 
 /** 再発: the same equipment broke again within 90 days of an earlier report (cancelled ones left out). */
 export function recurrences<T extends WfRow>(rows: T[]): T[] {
@@ -167,7 +225,7 @@ const avg = (xs: number[]) => (xs.length ? Math.round(xs.reduce((a, x) => a + x,
 /** The dashboard figures, each with the rows behind it. */
 export function wfMetrics<T extends WfRow>(rows: T[], now = new Date()) {
   const live = rows.filter((r) => r.wf_state !== 'cancelled')
-  const open = live.filter((r) => OPEN_STATES.includes(r.wf_state))
+  const open = live.filter((r) => isOpen(r.wf_state))
   const overdue = live.filter((r) => isOverdue(r, now))
   const acked = live.filter((r) => r.acknowledged_at)
   const repaired = live.filter((r) => r.repaired_at)

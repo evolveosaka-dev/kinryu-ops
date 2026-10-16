@@ -187,8 +187,8 @@ export function IncidentPage() {
     },
     onSuccess: (res) => {
       toast(t('incident.sent'))
-      // a 設備の故障 opens in the list, to follow it
-      if (res.equipment) setParams({ tab: 'wf', open: res.id })
+      // the new record opens in 対応状況, to follow it (ケガ: 安全確保 next)
+      setParams({ tab: 'wf', open: res.id })
       setEqId('')
       setEqOther('')
       setPriority('normal')
@@ -226,7 +226,7 @@ export function IncidentPage() {
             onClick={() => setParams(k === 'wf' ? { tab: 'wf' } : {})}
             className={cx('min-h-12 rounded-xl border-[1.5px] font-bold', tab === k ? 'border-brand bg-brand text-white' : 'border-line bg-white text-ink')}
           >
-            {k === 'new' ? `📝 ${t('wf.tabNew')}` : `🔧 ${t('wf.tabList')}`}
+            {k === 'new' ? `📝 ${t('wf.tabNew')}` : `📋 ${t('wf.tabList')}`}
           </button>
         ))}
       </div>

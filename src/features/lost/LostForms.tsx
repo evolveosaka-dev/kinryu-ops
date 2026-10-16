@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Card, Checkbox, ErrorBox, Segmented, TextArea, TextInput } from '../../components/ui'
-import { LOST_OWNER_ICON, LOST_OWNERS, type LostItem, type LostOwner } from '../../domain/lostItem'
+import { ID_METHODS, LOST_OWNER_ICON, LOST_OWNERS, type IdMethod, type LostItem, type LostOwner } from '../../domain/lostItem'
 import { currentLocale } from '../../i18n'
 import { cx } from '../../lib/cx'
 import { errorMessage, storeName } from '../../lib/format'
@@ -149,6 +149,8 @@ export function LostOutcomeForm({ item, outcome, onDone }: { item: LostItem; out
   const [number, setNumber] = useState('')
   const [media, setMedia] = useState<PreparedMedia[]>([])
   const [tried, setTried] = useState(false)
+  const [idMethod, setIdMethod] = useState<IdMethod | null>(null)
+  const [idChecked, setIdChecked] = useState(false)
   const customer = outcome === 'returned' && item.owner_type === 'customer'
   const needPhoto = customer && !media.some((m) => m.kind === 'image')
   const send = useMutation({
@@ -167,6 +169,8 @@ export function LostOutcomeForm({ item, outcome, onDone }: { item: LostItem; out
           p_police_station: outcome === 'police' ? station.trim() || null : null,
           p_police_number: outcome === 'police' ? number.trim() || null : null,
           p_original_texts: g.originals,
+          p_id_method: outcome === 'returned' ? idMethod : null,
+          p_id_checked: outcome === 'returned' && idChecked,
         }),
       )
       if (media.length) await uploads.enqueue('lost_return', item.id, media)
@@ -200,6 +204,29 @@ export function LostOutcomeForm({ item, outcome, onDone }: { item: LostItem; out
           <TextInput label={t('lost.number')} value={number} maxLength={50} onChange={(e) => setNumber(e.target.value)} />
         </div>
       )}
+      {outcome === 'returned' && (
+        <div className="flex flex-col gap-2 rounded-xl border border-blue-300 bg-blue-50 p-3">
+          <p className="text-sm font-bold">🪪 {t('lost.idCheck')} *</p>
+          <div className="grid grid-cols-2 gap-2">
+            {ID_METHODS.map((m) => (
+              <button
+                key={m}
+                type="button"
+                role="radio"
+                aria-checked={idMethod === m}
+                onClick={() => setIdMethod(m)}
+                className={cx('min-h-11 rounded-xl border-[1.5px] px-2 text-sm font-bold', idMethod === m ? 'border-brand bg-brand text-white' : 'border-line bg-white text-ink')}
+              >
+                {t(`lost.idMethod.${m}`)}
+              </button>
+            ))}
+          </div>
+          <Checkbox checked={idChecked} onChange={setIdChecked}>
+            {t('lost.idConfirmed')}
+          </Checkbox>
+          <p className="text-xs text-muted">{t('lost.idHint')}</p>
+        </div>
+      )}
       {customer && (
         <div className="flex flex-col gap-2 rounded-xl border border-amber-300 bg-amber-50 p-3">
           <p className="text-sm font-bold text-amber-900">📸 {t('lost.returnPhotoRule')}</p>
@@ -223,8 +250,51 @@ export function LostOutcomeForm({ item, outcome, onDone }: { item: LostItem; out
         <Button variant="secondary" onClick={onDone} disabled={send.isPending}>
           {t('lost.cancel')}
         </Button>
-        <Button onClick={() => (needPhoto ? setTried(true) : send.mutate())} disabled={send.isPending}>
+        <Button onClick={() => (needPhoto ? setTried(true) : send.mutate())} disabled={send.isPending || (outcome === 'returned' && (!idMethod || !idChecked))}>
           {send.isPending ? t('action.loading') : t('lost.save')}
+        </Button>
+      </div>
+    </Card>
+  )
+}
+
+/** 返却待ち: the owner was reached and will come. */
+export function LostAwaitForm({ item, onDone }: { item: LostItem; onDone: () => void }) {
+  const { t } = useTranslation()
+  const gate = useTranslationGate()
+  const queryClient = useQueryClient()
+  const [note, setNote] = useState('')
+  const [pickup, setPickup] = useState('')
+  const save = useMutation({
+    mutationFn: async () => {
+      const g = await gate.prepare([{ key: 'note', label: t('lost.contactNote'), text: note.trim() || null }])
+      unwrap(
+        await supabase.rpc('lost_item_await', {
+          p_id: item.id,
+          p_note: g.values.note,
+          p_pickup_at: pickup ? new Date(pickup).toISOString() : null,
+          p_back: false,
+        }),
+      )
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['lost_items'] })
+      onDone()
+    },
+  })
+  return (
+    <Card className="flex flex-col gap-3 ring-2 ring-blue-300">
+      {gate.review}
+      <h3 className="font-bold">⏳ {t('lost.doAwait')}</h3>
+      <TextArea label={t('lost.contactNote')} hint={t('lost.contactHint')} rows={2} value={note} maxLength={1000} onChange={(e) => setNote(e.target.value)} />
+      <TextInput label={t('lost.pickupAt')} type="datetime-local" value={pickup} onChange={(e) => setPickup(e.target.value)} />
+      {save.error && !(save.error instanceof TranslationCancelled) && <ErrorBox message={errorMessage(save.error)} />}
+      <div className="grid grid-cols-2 gap-2">
+        <Button variant="secondary" onClick={onDone} disabled={save.isPending}>
+          {t('lost.cancel')}
+        </Button>
+        <Button onClick={() => save.mutate()} disabled={save.isPending}>
+          {save.isPending ? t('action.loading') : t('lost.save')}
         </Button>
       </div>
     </Card>

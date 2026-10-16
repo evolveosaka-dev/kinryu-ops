@@ -56,7 +56,7 @@ describe('contact log + report_incident', () => {
     expect(await t.as(manager, 'select id from public.emergency_contact_log')).toHaveLength(1)
 
     // managers correct the report, but not who wrote it
-    await t.as(manager, `update public.incidents set description = '麺がぬるかった', kind = 'other' where id = $1`, [r!.id])
+    await t.as(manager, `update public.incidents set description = '麺がぬるかった' where id = $1`, [r!.id])
     await expect(t.as(manager, `update public.incidents set reporter_name = '別人' where id = $1`, [r!.id])).rejects.toThrow(/reporter/)
   })
 })

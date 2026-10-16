@@ -359,7 +359,10 @@ describe('クレーム・事故', () => {
     expect(await t.as(kita, `select id from public.incidents`)).toEqual([])
     expect(await t.as(minami, `select id from public.incidents`)).toHaveLength(2)
     await expect(t.as(minami, `update public.incidents set status = 'done' where id = $1 returning id`, [a!.id])).resolves.toEqual([])
-    await t.as(manager, `update public.incidents set status = 'done', owner_name = '管理者', resolution = '温度確認', prevention = '提供前に確認' where id = $1`, [a!.id])
+    // handled through the workflow (stage 3): the steps up to 完了 with 再発防止
+    let v = 1
+    const handling = JSON.stringify({ resolution: '温度確認', prevention: '提供前に確認' })
+    for (let k = 0; k < 5; k++) v = (await t.as<{ v: number }>(manager, `select public.incident_act($1, 'advance', $2, null, null, null, $3) as v`, [a!.id, v, handling]))[0]!.v
     const [row] = await t.admin<{ resolved: boolean }>(`select resolved_at is not null as resolved from public.incidents where id = $1`, [a!.id])
     expect(row!.resolved).toBe(true)
     // managers may correct the report since 20261016000002; who reported stays

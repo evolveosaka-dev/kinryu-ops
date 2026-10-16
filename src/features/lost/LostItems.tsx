@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../app/auth'
 import { Sheet } from '../../components/Sheet'
 import { Button, Card, ErrorBox, Spinner, TextArea } from '../../components/ui'
-import { keptDays, LOST_KEEP_DAYS, LOST_OWNER_ICON, LOST_STATUS_ICON, lostStage, matchesLostFilter, type LostFilter } from '../../domain/lostItem'
+import { keptDays, LOST_OWNER_ICON, pastKeep, LOST_STATUS_ICON, lostStage, matchesLostFilter, type LostFilter } from '../../domain/lostItem'
 import { currentLocale } from '../../i18n'
 import { cx } from '../../lib/cx'
 import { errorMessage, storeName } from '../../lib/format'
@@ -14,7 +14,7 @@ import { formatWhen } from '../incident/data'
 import { AttachmentList } from '../manager/AttachmentList'
 import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 import { useLostItems, type LostRow } from './data'
-import { LostOutcomeForm, LostReportForm } from './LostForms'
+import { LostAwaitForm, LostOutcomeForm, LostReportForm } from './LostForms'
 
 const STAGE_STYLE = {
   stored: 'bg-sky-100 text-sky-900',
@@ -26,7 +26,7 @@ const STAGE_STYLE = {
 function StageChip({ r }: { r: LostRow }) {
   const { t } = useTranslation()
   const stage = lostStage(r)
-  const label = stage === 'done' ? t(`lost.status.${r.status}`) : t(`lost.stage.${stage}`)
+  const label = stage === 'done' || r.status === 'awaiting' ? t(`lost.status.${r.status}`) : t(`lost.stage.${stage}`)
   return <span className={cx('shrink-0 rounded-full px-2 py-0.5 text-xs font-bold', STAGE_STYLE[stage])}>{label}</span>
 }
 
@@ -75,7 +75,7 @@ function ManagerActions({ r }: { r: LostRow }) {
         <Button variant="secondary" onClick={() => act.mutate('comment')} disabled={act.isPending || !body.trim()}>
           💬 {t('lost.sendComment')}
         </Button>
-        {(stage === 'stored' || stage === 'rejected') && r.status === 'stored' && (
+        {(stage === 'stored' || stage === 'rejected') && (r.status === 'stored' || r.status === 'awaiting') && (
           <Button variant="secondary" onClick={() => window.confirm(t('lost.disposeConfirm')) && act.mutate('dispose')} disabled={act.isPending}>
             🗑️ {t('lost.dispose')}
           </Button>
@@ -90,7 +90,12 @@ function LostSheet({ r, onClose }: { r: LostRow; onClose: () => void }) {
   const { t } = useTranslation()
   const { isManager } = useAuth()
   const stores = useStores()
-  const [outcome, setOutcome] = useState<'returned' | 'police' | null>(null)
+  const [outcome, setOutcome] = useState<'returned' | 'police' | 'await' | null>(null)
+  const queryClient = useQueryClient()
+  const backToStored = useMutation({
+    mutationFn: async () => unwrap(await supabase.rpc('lost_item_await', { p_id: r.id, p_note: null, p_pickup_at: null, p_back: true })),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['lost_items'] }),
+  })
   const stage = lostStage(r)
   const found = r.attachments.filter((a) => a.phase !== 'return' && a.status !== 'failed')
   const returned = r.attachments.filter((a) => a.phase === 'return' && a.status !== 'failed')
@@ -124,7 +129,17 @@ function LostSheet({ r, onClose }: { r: LostRow; onClose: () => void }) {
             {t('comment.original')}: {r.original_texts.description}
           </p>
         )}
-        {r.status === 'stored' && days >= LOST_KEEP_DAYS && <p className="rounded-lg bg-amber-50 p-2 font-bold text-amber-900">⚠️ {t('lost.keptLong', { n: days })}</p>}
+        <p>
+          <b>{t('lost.keepUntil')}:</b> {r.keep_until ? formatWhen(r.keep_until) : '—'}
+        </p>
+        {r.status === 'awaiting' && (
+          <p className="rounded-lg bg-sky-50 p-2">
+            ⏳ <b>{t('lost.status.awaiting')}</b>
+            {r.pickup_at && ` ・ ${t('lost.pickupAt')}: ${formatWhen(r.pickup_at)}`}
+            {r.contact_note && <span className="block whitespace-pre-wrap">{r.contact_note}</span>}
+          </p>
+        )}
+        {pastKeep(r) && <p className="rounded-lg bg-amber-50 p-2 font-bold text-amber-900">⚠️ {t('lost.keptLong', { n: days })}</p>}
         {isManager ? <AttachmentList list={found} parentId={r.id} /> : found.length > 0 && <p>📷 {t('lost.photos', { n: found.length })}</p>}
       </Card>
 
@@ -142,6 +157,11 @@ function LostSheet({ r, onClose }: { r: LostRow; onClose: () => void }) {
           {r.police_station && (
             <p>
               <b>{t('lost.station')}:</b> {r.police_station} {r.police_number && `（${t('lost.number')} ${r.police_number}）`}
+            </p>
+          )}
+          {r.status === 'returned' && r.id_method && (
+            <p>
+              <b>{t('lost.idCheck')}:</b> {t(`lost.idMethod.${r.id_method}`)} {r.id_checked && '✓'}
             </p>
           )}
           {r.outcome_note && <p className="whitespace-pre-wrap">{r.outcome_note}</p>}
@@ -170,7 +190,7 @@ function LostSheet({ r, onClose }: { r: LostRow; onClose: () => void }) {
             <div key={c.id} className="rounded-lg bg-surface p-2">
               <p className="text-xs text-muted">
                 {formatWhen(c.created_at)} ・ {c.author_name}
-                {c.action && <b className="ml-1">{t(`lost.decided.${c.action === 'approve' ? 'approved' : c.action === 'reject' ? 'rejected' : 'disposed'}`)}</b>}
+                {c.action && <b className="ml-1">{t(`lost.decided.${c.action === 'approve' ? 'approved' : c.action === 'reject' ? 'rejected' : c.action === 'dispose' ? 'disposed' : c.action}`)}</b>}
               </p>
               {c.body && <p className="whitespace-pre-wrap">{c.body}</p>}
             </div>
@@ -179,14 +199,26 @@ function LostSheet({ r, onClose }: { r: LostRow; onClose: () => void }) {
       )}
 
       {(stage === 'stored' || stage === 'rejected') &&
-        (outcome ? (
+        (outcome === 'await' ? (
+          <LostAwaitForm item={r} onDone={() => setOutcome(null)} />
+        ) : outcome ? (
           <LostOutcomeForm item={r} outcome={outcome} onDone={() => setOutcome(null)} />
         ) : (
           <div className="grid grid-cols-2 gap-2">
+            {r.status === 'stored' && (
+              <Button variant="secondary" className="col-span-2" onClick={() => setOutcome('await')}>
+                ⏳ {t('lost.doAwait')}
+              </Button>
+            )}
             <Button onClick={() => setOutcome('returned')}>🤝 {t('lost.doReturn')}</Button>
             <Button variant="secondary" onClick={() => setOutcome('police')}>
               🚓 {t('lost.doPolice')}
             </Button>
+            {r.status === 'awaiting' && (
+              <Button variant="secondary" className="col-span-2" onClick={() => backToStored.mutate()} disabled={backToStored.isPending}>
+                📦 {t('lost.backToStored')}
+              </Button>
+            )}
           </div>
         ))}
       {stage === 'rejected' && <p className="text-sm font-bold text-red-800">↩️ {t('lost.rejectedHint')}</p>}
@@ -257,7 +289,7 @@ export function LostItemsList({ initialFilter = 'stored', canAdd = true }: { ini
                     {r.owner_name && `（${r.owner_name}）`} ・ 📦 {r.storage_place ?? '—'}
                     {r.lost_item_comments.length > 0 && ` ・ 💬 ${r.lost_item_comments.length}`}
                   </span>
-                  {r.status === 'stored' && days >= LOST_KEEP_DAYS && <span className="text-xs font-bold text-amber-800">⚠️ {t('lost.keptLong', { n: days })}</span>}
+                  {pastKeep(r) && <span className="text-xs font-bold text-amber-800">⚠️ {t('lost.keptLong', { n: days })}</span>}
                 </button>
               </li>
             )

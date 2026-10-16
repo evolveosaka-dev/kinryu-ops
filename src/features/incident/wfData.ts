@@ -94,7 +94,7 @@ export function useIncidentCosts(id: string | null, manager: boolean) {
 /** One workflow action (the database checks the role, the transition and the version). Returns the new version. */
 export async function incidentAct(
   id: string,
-  action: WfAction | 'comment' | 'assign',
+  action: WfAction | 'comment' | 'assign' | 'advance' | 'back',
   version: number | null,
   body: string | null,
   extra: { original?: string | null; sourceLang?: string | null; data?: Record<string, unknown> } = {},
@@ -112,5 +112,6 @@ export async function incidentAct(
   )
 }
 
-/** 設-0001 (受付番号) */
-export const incidentNo = (n: number) => `設-${String(n).padStart(4, '0')}`
+const NO_PREFIX: Record<string, string> = { equipment: '設', complaint: 'ク', injury: '事', foreign_object: '衛', food_poisoning: '衛', payment: '会', phone_message: '電', other: '他' }
+/** 受付番号: 設-0001 (設備), ク- (クレーム), 事- (事故・ケガ), 衛- (商品・衛生), 会- (会計), 電- (伝言), 他- */
+export const incidentNo = (n: number, kind = 'equipment') => `${NO_PREFIX[kind] ?? '他'}-${String(n).padStart(4, '0')}`

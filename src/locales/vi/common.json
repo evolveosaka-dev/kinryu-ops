@@ -292,6 +292,7 @@
       "food_poisoning": "Nghi ngộ độc thực phẩm",
       "lost_item": "Đồ để quên / rơi",
       "phone_message": "Lời nhắn qua điện thoại",
+      "payment": "Sự cố thanh toán / máy bán vé",
       "other": "Khác"
     },
     "urgentHint": "Quản lý nhận mail ngay. Nếu gấp hãy gọi điện nữa.",
@@ -439,7 +440,8 @@
       "stored": "Đang giữ",
       "returned": "Đã trả",
       "police": "Đã nộp cảnh sát",
-      "disposed": "Đã xử lý bỏ"
+      "disposed": "Đã xử lý bỏ",
+      "awaiting": "Chờ trả lại"
     },
     "managerTitle": "Quản lý",
     "comment": "Bình luận",
@@ -451,7 +453,7 @@
     "disposeConfirm": "Đánh dấu món đồ này là đã xử lý bỏ?",
     "rejectHint": "Trả lại = nhân viên ghi lại lần nữa.",
     "reporter": "Người ghi",
-    "keptLong": "Đã giữ {{n}} ngày. Hãy xem có cần nộp cho cảnh sát không.",
+    "keptLong": "Đã quá hạn lưu giữ (7 ngày; ngày thứ {{n}}). Hãy xem có cần nộp cho cảnh sát không.",
     "photos": "{{n}} ảnh",
     "faceYes": "Chụp mặt: có đồng ý",
     "faceNone": "Chụp mặt: không",
@@ -462,7 +464,11 @@
       "approved": "Đã duyệt",
       "rejected": "Trả lại",
       "disposed": "Xử lý bỏ",
-      "pending": "Chờ duyệt"
+      "pending": "Chờ duyệt",
+      "found": "Phát hiện",
+      "await": "Chờ trả lại",
+      "returned": "Đã trả",
+      "police": "Nộp cảnh sát"
     },
     "comments": "Bình luận và duyệt",
     "rejectedHint": "Quản lý đã trả lại. Hãy đọc bình luận rồi ghi lại.",
@@ -475,7 +481,22 @@
     },
     "marketingHint": "Các lần trả đồ khách đã đồng ý cho dùng quảng bá. Mở từng mục để xem ảnh.",
     "none": "Không có.",
-    "faceRuleOk": "Khách đã đồng ý: được chụp mặt khách (không chụp khách khác)."
+    "faceRuleOk": "Khách đã đồng ý: được chụp mặt khách (không chụp khách khác).",
+    "doAwait": "Chờ trả lại (đã liên lạc được chủ đồ)",
+    "backToStored": "Về lại đang giữ (chủ không đến)",
+    "keepUntil": "Hạn lưu giữ",
+    "pickupAt": "Dự kiến đến nhận",
+    "contactNote": "Nội dung liên lạc",
+    "contactHint": "Ai đã liên lạc, bằng cách nào, chủ đồ nói gì…",
+    "idCheck": "Xác nhận chủ đồ",
+    "idMethod": {
+      "id_card": "Giấy tờ tuỳ thân",
+      "name_features": "Tên / đặc điểm khớp",
+      "phone": "Số điện thoại khớp",
+      "other": "Khác"
+    },
+    "idConfirmed": "Đã xác nhận đúng là chủ đồ",
+    "idHint": "Nhờ người đó tả màu, hình dạng, đồ bên trong trước; khớp thì mới đưa."
   },
   "wf": {
     "overdue": "Quá hạn",
@@ -508,7 +529,7 @@
     "safety": "Hỏng khẩn cấp: không dùng thiết bị đó. Nếu được hãy ngắt điện, gas, nước, không để khách và nhân viên lại gần, và gọi ngay cho quản lý.",
     "mine": "bạn phụ trách",
     "tabNew": "Ghi nhận",
-    "tabList": "Sự cố thiết bị",
+    "tabList": "Tình trạng xử lý",
     "eqOther": "Khác (nhập tên)",
     "eqName": "Tên thiết bị",
     "occurredKnown": "Biết lúc thiết bị bị hỏng",
@@ -522,7 +543,26 @@
       "repaired": "Đã sửa, chờ xác nhận",
       "done": "Hoàn tất",
       "reopened": "Xử lý lại",
-      "cancelled": "Đã huỷ"
+      "cancelled": "Đã huỷ",
+      "received": "Tiếp nhận",
+      "content_check": "Xác nhận nội dung",
+      "answered": "Đã trả lời",
+      "resolution_check": "Xác nhận giải quyết",
+      "occurred": "Xảy ra",
+      "safety": "Đảm bảo an toàn",
+      "reported_mgr": "Đã báo quản lý",
+      "investigating": "Điều tra nguyên nhân",
+      "prevention": "Phòng tái phát",
+      "found": "Phát hiện",
+      "isolated": "Cách ly / ngừng phục vụ",
+      "corrected": "Khắc phục",
+      "safety_check": "Xác nhận an toàn",
+      "txn_check": "Xác nhận giao dịch",
+      "decision": "Quyết định xử lý",
+      "refund_fix": "Hoàn tiền / sửa",
+      "reconcile": "Đối chiếu",
+      "classified": "Phân loại",
+      "check": "Kiểm tra"
     },
     "priority": {
       "normal": "Thường",
@@ -569,7 +609,10 @@
       "cancel": "Lý do huỷ",
       "state": "Trạng thái",
       "priority": "Ưu tiên",
-      "equipment": "Thiết bị"
+      "equipment": "Thiết bị",
+      "answer": "Câu trả lời (cho khách)",
+      "prevention": "Phòng tái phát",
+      "party": "Đối phương"
     },
     "event": {
       "report": "Báo cáo",
@@ -596,6 +639,19 @@
       "water": "Cấp thoát nước",
       "electric": "Điện / đèn",
       "other": "Khác"
+    },
+    "anyKind": "Loại: tất cả",
+    "nextStep": "Tiếp: {{step}}",
+    "backTo": "Quay về bước",
+    "stepAction": {
+      "advance": "Sang bước tiếp",
+      "back": "Quay về bước trước",
+      "cancel": "Huỷ"
+    },
+    "stepHint": {
+      "safety": "Đã đảm bảo an toàn cho người bị thương (sơ cứu, gọi cấp cứu…)",
+      "reported_mgr": "Đã báo cho quản lý (gọi điện…)",
+      "isolated": "Không dùng sản phẩm / nguyên liệu đó nữa, đã ngừng phục vụ"
     }
   }
 }

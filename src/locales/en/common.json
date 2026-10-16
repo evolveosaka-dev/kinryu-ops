@@ -292,6 +292,7 @@
       "food_poisoning": "Suspected food poisoning",
       "lost_item": "Lost item",
       "phone_message": "Phone message",
+      "payment": "Payment / ticket machine",
       "other": "Other"
     },
     "urgentHint": "The managers get a mail at once. If it is urgent, also call.",
@@ -439,7 +440,8 @@
       "stored": "Kept",
       "returned": "Returned",
       "police": "Taken to the police",
-      "disposed": "Disposed"
+      "disposed": "Disposed",
+      "awaiting": "Waiting for the owner"
     },
     "managerTitle": "Manager",
     "comment": "Comment",
@@ -451,7 +453,7 @@
     "disposeConfirm": "Mark this item as disposed?",
     "rejectHint": "Sent back = staff record it again.",
     "reporter": "Recorded by",
-    "keptLong": "Kept for {{n}} days. Check whether to take it to the police.",
+    "keptLong": "Past the keep-until date (7 days; day {{n}}). Check whether to take it to the police.",
     "photos": "{{n}} photo(s)",
     "faceYes": "Face: agreed",
     "faceNone": "Face: no",
@@ -462,7 +464,11 @@
       "approved": "Approved",
       "rejected": "Sent back",
       "disposed": "Disposed",
-      "pending": "Waiting"
+      "pending": "Waiting",
+      "found": "Found",
+      "await": "Waiting",
+      "returned": "Returned",
+      "police": "To the police"
     },
     "comments": "Comments & approvals",
     "rejectedHint": "A manager sent this back. Read the comment and record it again.",
@@ -475,7 +481,22 @@
     },
     "marketingHint": "Returns where the customer agreed to promotional use. Open a record for the photos.",
     "none": "Nothing here.",
-    "faceRuleOk": "The customer agreed: their face may be in the photo (do not show other customers)."
+    "faceRuleOk": "The customer agreed: their face may be in the photo (do not show other customers).",
+    "doAwait": "Waiting for the owner (they were reached)",
+    "backToStored": "Back to kept (they did not come)",
+    "keepUntil": "Keep until",
+    "pickupAt": "Planned pick-up",
+    "contactNote": "Contact made",
+    "contactHint": "Who contacted them and how, what they said…",
+    "idCheck": "Identity check",
+    "idMethod": {
+      "id_card": "ID card",
+      "name_features": "Name / details match",
+      "phone": "Phone number matches",
+      "other": "Other"
+    },
+    "idConfirmed": "I confirmed this is the owner",
+    "idHint": "Ask them to describe the colour, shape or contents first; hand it over when it matches."
   },
   "wf": {
     "overdue": "Overdue",
@@ -508,7 +529,7 @@
     "safety": "Urgent breakdown: do not use that equipment. Turn off power, gas or water if you can, keep customers and staff away, and call a manager now.",
     "mine": "yours",
     "tabNew": "Record",
-    "tabList": "Equipment problems",
+    "tabList": "Status",
     "eqOther": "Other (type the name)",
     "eqName": "Equipment name",
     "occurredKnown": "I know when it broke",
@@ -522,7 +543,26 @@
       "repaired": "Repaired, to confirm",
       "done": "Done",
       "reopened": "Rework",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "received": "Received",
+      "content_check": "Checking the content",
+      "answered": "Answered",
+      "resolution_check": "Checking the resolution",
+      "occurred": "Occurred",
+      "safety": "Safety secured",
+      "reported_mgr": "Reported to a manager",
+      "investigating": "Investigating the cause",
+      "prevention": "Prevention",
+      "found": "Found",
+      "isolated": "Isolated / service stopped",
+      "corrected": "Corrected",
+      "safety_check": "Safety confirmed",
+      "txn_check": "Checking the transaction",
+      "decision": "Deciding",
+      "refund_fix": "Refund / correction",
+      "reconcile": "Reconciling",
+      "classified": "Classified",
+      "check": "Checking"
     },
     "priority": {
       "normal": "Normal",
@@ -569,7 +609,10 @@
       "cancel": "Reason for cancelling",
       "state": "State",
       "priority": "Priority",
-      "equipment": "Equipment"
+      "equipment": "Equipment",
+      "answer": "Answer (to the customer)",
+      "prevention": "Prevention",
+      "party": "Other party"
     },
     "event": {
       "report": "Reported",
@@ -596,6 +639,19 @@
       "water": "Water / drain",
       "electric": "Electric / lights",
       "other": "Other"
+    },
+    "anyKind": "Type: all",
+    "nextStep": "Next: {{step}}",
+    "backTo": "Back to",
+    "stepAction": {
+      "advance": "Next step",
+      "back": "Back to an earlier step",
+      "cancel": "Cancel"
+    },
+    "stepHint": {
+      "safety": "The injured person is safe (first aid, ambulance…)",
+      "reported_mgr": "Reported to a manager (phone…)",
+      "isolated": "The same product / ingredient is not used; serving stopped"
     }
   }
 }

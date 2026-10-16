@@ -292,6 +292,7 @@
       "food_poisoning": "食中毒の疑い",
       "lost_item": "忘れ物・落とし物",
       "phone_message": "電話の伝言",
+      "payment": "会計・券売機トラブル",
       "other": "その他"
     },
     "urgentHint": "管理者にすぐメールが届きます。急ぐときは電話もしてください。",
@@ -439,7 +440,8 @@
       "stored": "保管中",
       "returned": "返却済み",
       "police": "警察に届けた",
-      "disposed": "処分した"
+      "disposed": "処分した",
+      "awaiting": "返却待ち"
     },
     "managerTitle": "管理者",
     "comment": "コメント",
@@ -451,7 +453,7 @@
     "disposeConfirm": "この忘れ物を処分済みにしますか？",
     "rejectHint": "差し戻すと、スタッフがもう一度記録し直します。",
     "reporter": "記録した人",
-    "keptLong": "{{n}}日間保管中です。警察に届けるか確認してください。",
+    "keptLong": "保管期限（7日）を過ぎました（{{n}}日目）。警察に届けるか確認してください。",
     "photos": "写真 {{n}}枚",
     "faceYes": "顔の撮影：同意あり",
     "faceNone": "顔の撮影：なし",
@@ -462,7 +464,11 @@
       "approved": "承認",
       "rejected": "差し戻し",
       "disposed": "処分",
-      "pending": "承認待ち"
+      "pending": "承認待ち",
+      "found": "発見",
+      "await": "返却待ち",
+      "returned": "返却",
+      "police": "警察へ"
     },
     "comments": "コメント・承認の記録",
     "rejectedHint": "管理者から差し戻されました。コメントを見て、もう一度記録してください。",
@@ -475,7 +481,22 @@
     },
     "marketingHint": "お客様が宣伝への使用に同意した返却の記録です。写真は詳細から開けます。",
     "none": "ありません。",
-    "faceRuleOk": "お客様が同意しています。顔を写してもよいです（ほかのお客様は写さないでください）。"
+    "faceRuleOk": "お客様が同意しています。顔を写してもよいです（ほかのお客様は写さないでください）。",
+    "doAwait": "返却待ちにする（持ち主に連絡がついた）",
+    "backToStored": "保管中に戻す（来なかった）",
+    "keepUntil": "保管期限",
+    "pickupAt": "受け取りに来る予定",
+    "contactNote": "連絡したこと",
+    "contactHint": "誰が・どうやって連絡したか、本人の話など",
+    "idCheck": "本人確認",
+    "idMethod": {
+      "id_card": "身分証",
+      "name_features": "名前・特徴が一致",
+      "phone": "電話番号が一致",
+      "other": "その他"
+    },
+    "idConfirmed": "持ち主本人であることを確認した",
+    "idHint": "品物の色・形・中身などを先に言ってもらい、一致したら渡します。"
   },
   "wf": {
     "overdue": "期限超過",
@@ -508,7 +529,7 @@
     "safety": "緊急の故障：その設備は使わないでください。電気・ガス・水を止められるときは止め、お客様とスタッフを近づけないでください。すぐ管理者に電話してください。",
     "mine": "あなたの担当",
     "tabNew": "記録する",
-    "tabList": "設備トラブル",
+    "tabList": "対応状況",
     "eqOther": "その他（名前を入力）",
     "eqName": "設備の名前",
     "occurredKnown": "故障した時刻が分かる",
@@ -522,7 +543,26 @@
       "repaired": "修理完了・確認待ち",
       "done": "完了",
       "reopened": "再対応",
-      "cancelled": "取消"
+      "cancelled": "取消",
+      "received": "受付",
+      "content_check": "内容確認",
+      "answered": "回答",
+      "resolution_check": "解決確認",
+      "occurred": "発生",
+      "safety": "安全確保",
+      "reported_mgr": "管理者報告",
+      "investigating": "原因調査",
+      "prevention": "再発防止",
+      "found": "発見",
+      "isolated": "隔離・提供停止",
+      "corrected": "是正",
+      "safety_check": "安全確認",
+      "txn_check": "取引確認",
+      "decision": "対応判断",
+      "refund_fix": "返金・修正",
+      "reconcile": "照合",
+      "classified": "分類",
+      "check": "確認"
     },
     "priority": {
       "normal": "通常",
@@ -569,7 +609,10 @@
       "cancel": "取消の理由",
       "state": "状態",
       "priority": "優先度",
-      "equipment": "設備"
+      "equipment": "設備",
+      "answer": "回答（お客様への回答）",
+      "prevention": "再発防止",
+      "party": "相手"
     },
     "event": {
       "report": "報告",
@@ -596,6 +639,19 @@
       "water": "給排水",
       "electric": "電気・照明",
       "other": "その他"
+    },
+    "anyKind": "種類：すべて",
+    "nextStep": "次へ：{{step}}",
+    "backTo": "戻す段階",
+    "stepAction": {
+      "advance": "次の段階へ",
+      "back": "前の段階に戻す",
+      "cancel": "取消"
+    },
+    "stepHint": {
+      "safety": "ケガをした人の安全を確保した（手当て・救急車など）",
+      "reported_mgr": "管理者に報告した（電話など）",
+      "isolated": "同じ商品・材料を使わない、提供を止めた"
     }
   }
 }

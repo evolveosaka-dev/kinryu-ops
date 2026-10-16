@@ -22,7 +22,7 @@ import { startAt } from '../../domain/schedule'
 import { Sheet } from '../../components/Sheet'
 import { today, useIncidents, useIssueStatus, usePeople, useRecords, useSystemStatus, weekOf, type AdminPatrol } from './data'
 import { URGENT_INCIDENTS } from '../../domain/incident'
-import { keptDays, LOST_KEEP_DAYS, lostStage } from '../../domain/lostItem'
+import { LOST_KEEP_DAYS, lostStage, pastKeep } from '../../domain/lostItem'
 import { useLostItems } from '../lost/data'
 import { systemProblems } from '../../domain/systemStatus'
 import { STAFF_ISSUES_ENABLED } from '../../domain/issues'
@@ -99,7 +99,7 @@ export function DashboardPage() {
   const urgentIncidents = openIncidents.filter((r) => URGENT_INCIDENTS.includes(r.kind))
   const lost = useLostItems()
   const lostPending = (lost.data ?? []).filter((r) => lostStage(r) === 'pending').length
-  const lostLong = (lost.data ?? []).filter((r) => r.status === 'stored' && keptDays(r.found_at) >= LOST_KEEP_DAYS).length
+  const lostLong = (lost.data ?? []).filter((r) => pastKeep(r)).length
   const sysProblems = system.data ? systemProblems(system.data, now) : []
   const changes = useChanges(addDays(day, -1), addDays(day, 60))
   const pendingChanges = (changes.data ?? []).filter((c) => c.status === 'open')

@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { useAuth, useMe } from '../../app/auth'
 import { Card, Spinner } from '../../components/ui'
-import { fmtMinutes, isOverdue, OPEN_STATES, PRIORITIES, WF_STATES, wfMetrics, type Priority, type WfState } from '../../domain/incidentWorkflow'
+import { INCIDENT_ICON, INCIDENT_KINDS, type IncidentKind } from '../../domain/incident'
+import { fmtMinutes, isOpen, isOverdue, PRIORITIES, WF_STATES, wfMetrics, type Priority, type WfState } from '../../domain/incidentWorkflow'
 import { currentLocale } from '../../i18n'
 import { cx } from '../../lib/cx'
 import { storeName } from '../../lib/format'
@@ -25,11 +26,12 @@ export function WfCard({ r, onOpen }: { r: WfIncident; onOpen: () => void }) {
     <button
       type="button"
       onClick={onOpen}
-      className={cx('flex w-full flex-col gap-1 rounded-xl border bg-white p-3 text-left', r.priority === 'urgent' && OPEN_STATES.includes(r.wf_state) ? 'border-red-500 border-2' : 'border-line')}
+      className={cx('flex w-full flex-col gap-1 rounded-xl border bg-white p-3 text-left', r.priority === 'urgent' && isOpen(r.wf_state) ? 'border-red-500 border-2' : 'border-line')}
     >
       <span className="flex items-start justify-between gap-2">
         <b className="min-w-0">
-          🔧 {r.equipment_name ?? t('incident.kinds.equipment')} <span className="text-xs font-normal text-muted">{incidentNo(r.incident_no)}</span>
+          {INCIDENT_ICON[r.kind]} {r.kind === 'equipment' ? (r.equipment_name ?? t('incident.kinds.equipment')) : t(`incident.kinds.${r.kind}`)}{' '}
+          <span className="text-xs font-normal text-muted">{incidentNo(r.incident_no, r.kind)}</span>
         </b>
         <WfChips r={r} />
       </span>
@@ -45,22 +47,23 @@ export function WfCard({ r, onOpen }: { r: WfIncident; onOpen: () => void }) {
   )
 }
 
-type Filter = { store: string; state: 'open' | 'all' | WfState; priority: '' | Priority; assignee: string; overdue: boolean }
+type Filter = { store: string; kind: '' | IncidentKind; state: 'open' | 'all' | WfState; priority: '' | Priority; assignee: string; overdue: boolean }
 
-/** 一覧 with the filters of the spec (店舗・状態・優先度・担当者・期限超過); カテゴリ is 設備の故障 in stage 1. */
+/** 一覧 with the filters of the spec (店舗・カテゴリ・状態・優先度・担当者・期限超過). Staff see 設備の故障 of both stores and their own reports (RLS). */
 export function WfList({ initialOpen = null, dashboard = false }: { initialOpen?: string | null; dashboard?: boolean }) {
   const { t } = useTranslation()
   const tm = useTranslation('manager').t
   const { isManager } = useAuth()
   const stores = useStores()
   const q = useWfIncidents()
-  const [f, setF] = useState<Filter>({ store: '', state: 'open', priority: '', assignee: '', overdue: false })
+  const [f, setF] = useState<Filter>({ store: '', kind: '', state: 'open', priority: '', assignee: '', overdue: false })
   const [openId, setOpenId] = useState<string | null>(initialOpen)
   if (q.isLoading) return <Spinner />
   const all = q.data ?? []
   const list = all
-    .filter((r) => (f.state === 'open' ? OPEN_STATES.includes(r.wf_state) : f.state === 'all' ? true : r.wf_state === f.state))
+    .filter((r) => (f.state === 'open' ? isOpen(r.wf_state) : f.state === 'all' ? true : r.wf_state === f.state))
     .filter((r) => !f.store || r.store_id === f.store)
+    .filter((r) => !f.kind || r.kind === f.kind)
     .filter((r) => !f.priority || r.priority === f.priority)
     .filter((r) => !f.assignee || (f.assignee === '-' ? !r.assignee_id : r.assignee_id === f.assignee))
     .filter((r) => !f.overdue || isOverdue(r))
@@ -69,7 +72,7 @@ export function WfList({ initialOpen = null, dashboard = false }: { initialOpen?
   const assignees = [...new Map(all.filter((r) => r.assignee_id).map((r) => [r.assignee_id!, r.assignee_name ?? '?'])).entries()]
   const m = wfMetrics(all)
   const sel = 'min-h-10 rounded-lg border border-slate-400 bg-white px-2 text-sm'
-  const show = (patch: Partial<Filter>) => setF({ store: '', state: 'all', priority: '', assignee: '', overdue: false, ...patch })
+  const show = (patch: Partial<Filter>) => setF({ store: '', kind: '', state: 'all', priority: '', assignee: '', overdue: false, ...patch })
   return (
     <div className="flex flex-col gap-3">
       {dashboard && isManager && (
@@ -113,6 +116,14 @@ export function WfList({ initialOpen = null, dashboard = false }: { initialOpen?
           {(stores.data ?? []).map((s) => (
             <option key={s.id} value={s.id}>
               {storeName(s, currentLocale())}
+            </option>
+          ))}
+        </select>
+        <select aria-label={t('incident.kind')} className={sel} value={f.kind} onChange={(e) => setF({ ...f, kind: e.target.value as Filter['kind'] })}>
+          <option value="">{t('wf.anyKind')}</option>
+          {INCIDENT_KINDS.filter((k) => k !== 'lost_item').map((k) => (
+            <option key={k} value={k}>
+              {t(`incident.kinds.${k}`)}
             </option>
           ))}
         </select>
@@ -169,7 +180,7 @@ export function WfHandoverCard() {
   const q = useWfIncidents()
   const last = getLastStore()
   const open = (q.data ?? [])
-    .filter((r) => OPEN_STATES.includes(r.wf_state))
+    .filter((r) => r.kind === 'equipment' && isOpen(r.wf_state))
     .sort((a, b) => rank(a) - rank(b) || Number(b.store_id === last) - Number(a.store_id === last) || a.created_at.localeCompare(b.created_at))
   if (!open.length) return null
   const urgent = open.some((r) => r.priority === 'urgent')

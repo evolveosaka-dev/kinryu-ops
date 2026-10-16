@@ -1,7 +1,7 @@
 // クレーム・事故の記録 (migration 20261015000007). Keep the kinds in sync with the SQL check and
 // send-notifications INCIDENT_KIND.
 
-export const INCIDENT_KINDS = ['complaint', 'injury', 'foreign_object', 'equipment', 'food_poisoning', 'lost_item', 'phone_message', 'other'] as const
+export const INCIDENT_KINDS = ['complaint', 'injury', 'foreign_object', 'equipment', 'food_poisoning', 'lost_item', 'phone_message', 'payment', 'other'] as const
 export type IncidentKind = (typeof INCIDENT_KINDS)[number]
 
 export const INCIDENT_ICON: Record<IncidentKind, string> = {
@@ -12,6 +12,7 @@ export const INCIDENT_ICON: Record<IncidentKind, string> = {
   food_poisoning: '🤢',
   lost_item: '👜',
   phone_message: '☎️',
+  payment: '💴',
   other: '✏️',
 }
 

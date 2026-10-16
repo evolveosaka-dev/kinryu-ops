@@ -113,7 +113,7 @@ describe('設備の故障 workflow', () => {
     expect((await row(id))[0]).toMatchObject({ wf_state: 'cancelled', status: 'done' })
   })
 
-  it('11: overdue mails once per due date; old kinds keep the old status handling', async () => {
+  it('11: overdue mails once per due date; other kinds run on their own steps', async () => {
     const id = await report(staff, 'urgent')
     await t.admin(`select set_config('app.incident_act', 'on', false)`)
     await t.admin(`update public.incidents set due_at = now() - interval '1 hour' where id = $1`, [id])
@@ -121,8 +121,9 @@ describe('設備の故障 workflow', () => {
     await t.admin('select public.check_incident_due()')
     await t.admin('select public.check_incident_due()')
     expect(await t.admin(`select count(*)::int as n from public.notify_events where ref_id = $1 and data ->> 'event' = 'overdue'`, [id])).toEqual([{ n: 1 }])
+    // since stage 3 every kind runs on the workflow (its own steps); the old direct status update is refused
     const [c] = await t.as<{ id: string }>(staff, `select public.report_incident($1, current_date, 'early', now(), 'complaint', 'ぬるい') as id`, [store])
-    await t.as(manager, `update public.incidents set status = 'done', prevention = '温度確認' where id = $1`, [c!.id])
-    expect(await t.admin('select wf_state, status from public.incidents where id = $1', [c!.id])).toEqual([{ wf_state: null, status: 'done' }])
+    expect(await t.admin('select wf_state, status from public.incidents where id = $1', [c!.id])).toEqual([{ wf_state: 'received', status: 'open' }])
+    await expect(t.as(manager, `update public.incidents set status = 'done' where id = $1`, [c!.id])).rejects.toThrow(/workflow actions/)
   })
 })

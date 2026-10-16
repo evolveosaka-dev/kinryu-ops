@@ -272,12 +272,12 @@ export function IncidentsAdminPage() {
         value={view}
         onChange={(v) => setParams(v === 'other' ? { view: 'other' } : {})}
         options={[
-          { value: 'wf', label: `🔧 ${tc('incident.kinds.equipment')}` },
+          { value: 'wf', label: `📋 ${t('wf.allKinds')}` },
           { value: 'other', label: t('wf.otherKinds') },
         ]}
       />
       {view === 'wf' ? (
-        <WfList dashboard initialOpen={params.get('open')} />
+        <WfList key={params.get('open') ?? 'list'} dashboard initialOpen={params.get('open')} />
       ) : (
       <>
       <div className="grid grid-cols-3 gap-2 text-center">

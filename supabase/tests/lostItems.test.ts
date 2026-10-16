@@ -40,7 +40,7 @@ describe('忘れ物・落とし物', () => {
   it('returned by another staff member → pending; send back needs a comment; approve; consents only for customers', async () => {
     const [i] = await item(staff)
     const ret = (who: string) =>
-      t.as(who, `select public.record_lost_item_outcome($1, 'returned', now(), '山田', null, null, true, true)`, [i!.id])
+      t.as(who, `select public.record_lost_item_outcome($1, 'returned', now(), '山田', null, null, true, true, null, null, null, 'id_card', true)`, [i!.id])
     await ret(other)
     expect(await t.admin('select status, approval, consent_face, consent_marketing from public.lost_items where id = $1', [i!.id])).toEqual([
       { status: 'returned', approval: 'pending', consent_face: true, consent_marketing: true },
@@ -52,13 +52,13 @@ describe('忘れ物・落とし物', () => {
     await ret(other) // sent back → can be recorded again
     await t.as(manager, `select public.manage_lost_item($1, 'approve')`, [i!.id])
     expect(await t.admin('select approval, decided_by from public.lost_items where id = $1', [i!.id])).toEqual([{ approval: 'approved', decided_by: manager }])
-    expect((await t.as<{ action: string | null }>(other, 'select action from public.lost_item_comments where lost_item_id = $1 order by created_at', [i!.id])).map((c) => c.action)).toEqual([
+    expect((await t.as<{ action: string | null }>(other, `select action from public.lost_item_comments where lost_item_id = $1 and action in ('approve', 'reject') order by created_at`, [i!.id])).map((c) => c.action)).toEqual([
       'reject',
       'approve',
     ])
 
     const [s] = await item(staff, 'staff')
-    await t.as(other, `select public.record_lost_item_outcome($1, 'returned', now(), null, null, null, true, true)`, [s!.id])
+    await t.as(other, `select public.record_lost_item_outcome($1, 'returned', now(), null, null, null, true, true, null, null, null, 'name_features', true)`, [s!.id])
     expect(await t.admin('select consent_face, consent_marketing from public.lost_items where id = $1', [s!.id])).toEqual([{ consent_face: false, consent_marketing: false }])
   })
 
