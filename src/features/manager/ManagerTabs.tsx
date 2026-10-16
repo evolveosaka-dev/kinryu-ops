@@ -4,7 +4,7 @@ import { STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { cx } from '../../lib/cx'
 import { useFillTargets } from './useFillTargets'
 
-const SETTINGS_PATHS = ['/manager/settings', '/manager/users', '/manager/roster', '/manager/sync', '/manager/system', '/manager/targets', '/manager/shift-requests', '/manager/shift-import', '/manager/stock-items', '/manager/notify', '/manager/emergency-contacts']
+const SETTINGS_PATHS = ['/manager/settings', '/manager/users', '/manager/roster', '/manager/sync', '/manager/system', '/manager/targets', '/manager/shift-requests', '/manager/shift-import', '/manager/stock-items', '/manager/notify', '/manager/emergency-contacts', '/manager/equipment']
 
 export function ManagerTabs() {
   const { t } = useTranslation('manager')

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { WfHandoverCard } from '../features/incident/WfList'
 import { Link } from 'react-router'
 import { SpokenPhrase } from '../components/SpokenPhrase'
 import { Card, SectionTitle } from '../components/ui'
@@ -74,6 +75,7 @@ export function HomePage() {
       <RecruitHomeCard />
 
       <DutyCard />
+      <WfHandoverCard />
 
       <NextShiftCard />
 

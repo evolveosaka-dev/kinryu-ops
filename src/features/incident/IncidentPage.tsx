@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { useMe } from '../../app/auth'
 import { useToast } from '../../components/Toast'
 import { Button, Card, Checkbox, ErrorBox, PageTitle, Segmented, SectionTitle, Spinner, TextArea, TextInput } from '../../components/ui'
@@ -20,6 +20,7 @@ import {
   type Incident,
   type IncidentKind,
 } from '../../domain/incident'
+import { PRIORITIES, PRIORITY_STYLE, type Priority } from '../../domain/incidentWorkflow'
 import { currentSlot, formatShortDate } from '../../domain/time'
 import { currentLocale } from '../../i18n'
 import { cx } from '../../lib/cx'
@@ -36,6 +37,8 @@ import { ContactManager } from './ContactManager'
 import { formatWhen } from './data'
 import { InjuredStaffPicker } from './InjuredStaffPicker'
 import { OccurredAt } from './OccurredAt'
+import { useEquipment } from './wfData'
+import { WfList } from './WfList'
 
 /** Name + phone of the customer / the caller of a 電話の伝言 (optional). */
 function PartyFields({
@@ -90,6 +93,9 @@ export function IncidentPage() {
   const uploads = useUploadQueue()
   const gate = useTranslationGate()
   const mine = useMyIncidents(me.id)
+  const equipment = useEquipment()
+  const [params, setParams] = useSearchParams()
+  const tab = params.get('tab') === 'wf' ? 'wf' : 'new'
   const storeIds = (stores.data ?? []).map((s) => s.id)
   const [store, setStore] = useState<string>('')
   const [kind, setKind] = useState<IncidentKind | null>(null)
@@ -109,9 +115,17 @@ export function IncidentPage() {
   const [actionSource, setActionSource] = useState<'ai' | 'own' | null>(null)
   const [action, setAction] = useState('')
   const [media, setMedia] = useState<PreparedMedia[]>([])
+  // 設備の故障 (Workflow V2): equipment, priority, 発生 (unknown → 発見 is the start)
+  const [eqId, setEqId] = useState('')
+  const [eqOther, setEqOther] = useState('')
+  const [priority, setPriority] = useState<Priority>('normal')
+  const [occurredKnown, setOccurredKnown] = useState(false)
+  const [occurredAt, setOccurredAt] = useState(() => new Date().toISOString())
   const storeId = store || initialStore(storeIds)
   const needAction = actionSource === 'own' && !action.trim()
-  const ready = Boolean(kind && kind !== 'lost_item' && storeId && description.trim() && contact && !needAction)
+  const isEq = kind === 'equipment'
+  const eqList = (equipment.data ?? []).filter((e) => e.store_id === storeId)
+  const ready = Boolean(kind && kind !== 'lost_item' && storeId && description.trim() && contact && !needAction && (!isEq || eqId || eqOther.trim()))
   const storeLabel = storeName(stores.data?.find((s) => s.id === storeId), 'ja')
   // name + phone of the other side: customers for most kinds, the caller for 電話の伝言
   const party: 'customer' | CallerType | null =
@@ -137,7 +151,8 @@ export function IncidentPage() {
       ])
       // a description translated with 「AIで翻訳」 keeps the words written first
       const originals = { ...(descOriginal && !g.originals?.description ? { description: descOriginal.text } : {}), ...(g.originals ?? {}) }
-      const occurred = at
+      // 設備の故障: `at` is 発見日時; 発生日時 only when known
+      const occurred = isEq && occurredKnown ? occurredAt : at
       const slot = currentSlot(new Date(occurred))
       const id = unwrap<string>(
         await supabase.rpc('report_incident', {
@@ -159,13 +174,25 @@ export function IncidentPage() {
           p_injured_who: injuredWho.length ? injuredWho : null,
           p_injured_staff: injured.staff ? injuredStaff : null,
           p_caller_type: kind === 'phone_message' ? caller : null,
+          p_equipment_id: isEq && eqId ? eqId : null,
+          p_equipment_name: isEq && !eqId ? eqOther.trim() : null,
+          p_priority: isEq ? priority : 'normal',
+          p_discovered_at: isEq ? at : null,
+          p_occurred_known: isEq ? occurredKnown : true,
         }),
       )
       if (media.length) await uploads.enqueue('incident', id, media)
       setLastStore(storeId)
+      return { id, equipment: isEq }
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
       toast(t('incident.sent'))
+      // a 設備の故障 opens in the list, to follow it
+      if (res.equipment) setParams({ tab: 'wf', open: res.id })
+      setEqId('')
+      setEqOther('')
+      setPriority('normal')
+      setOccurredKnown(false)
       setKind(null)
       setDescription('')
       setDescOriginal(null)
@@ -190,6 +217,23 @@ export function IncidentPage() {
   return (
     <div className="flex flex-col gap-4">
       <PageTitle title={t('incident.title')} subtitle={t('incident.subtitle')} />
+      <div className="grid grid-cols-2 gap-2">
+        {(['new', 'wf'] as const).map((k) => (
+          <button
+            key={k}
+            type="button"
+            aria-pressed={tab === k}
+            onClick={() => setParams(k === 'wf' ? { tab: 'wf' } : {})}
+            className={cx('min-h-12 rounded-xl border-[1.5px] font-bold', tab === k ? 'border-brand bg-brand text-white' : 'border-line bg-white text-ink')}
+          >
+            {k === 'new' ? `📝 ${t('wf.tabNew')}` : `🔧 ${t('wf.tabList')}`}
+          </button>
+        ))}
+      </div>
+      {tab === 'wf' ? (
+        <WfList key={params.get('open') ?? 'list'} initialOpen={params.get('open')} />
+      ) : (
+      <>
       <Card className="flex flex-col gap-4">
         <fieldset className="flex flex-col gap-1.5">
           <legend className="mb-1.5 text-[15px] font-bold">{t('incident.kind')}</legend>
@@ -226,6 +270,7 @@ export function IncidentPage() {
           options={(stores.data ?? []).map((s) => ({ value: s.id, label: storeName(s, currentLocale()) }))}
         />
         <OccurredAt
+          label={isEq ? t('wf.f.discovered') : undefined}
           value={at}
           now={atNow}
           onChange={(iso, now) => {
@@ -233,6 +278,50 @@ export function IncidentPage() {
             setAtNow(now)
           }}
         />
+        {isEq && (
+          <div className="flex flex-col gap-3 rounded-xl border border-slate-300 bg-slate-50 p-3">
+            <label className="flex flex-col gap-1.5 text-[15px] font-bold">
+              {t('wf.f.equipment')} *
+              <select className="min-h-12 rounded-xl border border-slate-400 bg-white px-2 font-normal" value={eqId} onChange={(e) => setEqId(e.target.value)}>
+                <option value="">{t('wf.eqOther')}</option>
+                {eqList.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.name}
+                    {e.code ? `（${e.code}）` : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {!eqId && <TextInput label={t('wf.eqName')} value={eqOther} maxLength={60} onChange={(e) => setEqOther(e.target.value)} />}
+            <Checkbox checked={occurredKnown} onChange={setOccurredKnown}>
+              {t('wf.occurredKnown')}
+            </Checkbox>
+            {occurredKnown ? (
+              <OccurredAt label={t('wf.f.occurred')} value={occurredAt} now={false} onChange={(iso) => setOccurredAt(iso)} />
+            ) : (
+              <p className="text-xs text-muted">{t('wf.occurredUnknown')}</p>
+            )}
+            <fieldset className="flex flex-col gap-1.5">
+              <legend className="mb-1.5 text-[15px] font-bold">{t('wf.f.priority')}</legend>
+              <div className="grid grid-cols-3 gap-2">
+                {PRIORITIES.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    role="radio"
+                    aria-checked={priority === p}
+                    onClick={() => setPriority(p)}
+                    className={cx('min-h-12 rounded-xl border-[1.5px] font-bold', priority === p ? `border-transparent ${PRIORITY_STYLE[p]} ring-2 ring-brand` : 'border-line bg-white text-ink')}
+                  >
+                    {t(`wf.priority.${p}`)}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted">{t('wf.priorityHint')}</p>
+            </fieldset>
+            {priority === 'urgent' && <p className="rounded-lg bg-red-50 p-2 text-sm font-bold whitespace-pre-line text-red-900">⚠️ {t('wf.safety')}</p>}
+          </div>
+        )}
         {kind === 'injury' && (
           <div className="flex flex-col gap-1.5">
             <span className="text-[15px] font-bold">{t('incident.injured.title')}</span>
@@ -307,6 +396,7 @@ export function IncidentPage() {
             {t('incident.action')}
             {actionSource === 'own' ? ' *' : ''}
           </legend>
+          {!isEq && (
           <AiProposal
             kind={kind}
             description={description}
@@ -321,6 +411,7 @@ export function IncidentPage() {
               setAction(src === 'ai' ? (ai?.ja ?? '') : '')
             }}
           />
+          )}
           <TextArea
             label={actionSource === 'ai' ? t('incident.actionFromAi') : t('incident.actionOwn')}
             hint={t('incident.actionHint')}
@@ -359,6 +450,8 @@ export function IncidentPage() {
             ))}
           </ul>
         </section>
+      )}
+      </>
       )}
     </div>
   )

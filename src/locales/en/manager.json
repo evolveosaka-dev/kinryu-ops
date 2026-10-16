@@ -1037,5 +1037,43 @@
     "historyNone": "No contacts yet.",
     "noAnswer": "no answer given",
     "noReport": "report not sent"
+  },
+  "wf": {
+    "actionsTitle": "Manager actions",
+    "works": "I confirmed the equipment works normally",
+    "cause": "Cause",
+    "resolution": "What was done",
+    "cost": "Repair cost (yen)",
+    "vendor": "Vendor",
+    "assignTitle": "In charge · priority · due",
+    "assignHint": "The first assignment moves it to \"Checking\" and stops the first-response clock.",
+    "assignSave": "Save",
+    "dash": "Equipment problems: status",
+    "m": {
+      "total": "Total",
+      "open": "Open",
+      "overdue": "Overdue",
+      "firstResponse": "Avg first response",
+      "repair": "Avg repair",
+      "recur": "Recurring"
+    },
+    "byStore": "By store",
+    "mHowTitle": "How the figures are made",
+    "otherKinds": "Other complaints / accidents",
+    "mHow": "Total = all but cancelled / Open = not done or cancelled / Overdue = past the due date and not repaired yet\nAvg first response = reported → taken by a manager / Avg repair = broken (or found) → repaired\nRecurring = the same equipment was reported within the 90 days before. Tap a figure to filter the list."
+  },
+  "equipment": {
+    "title": "Equipment",
+    "sub": "The equipment staff choose for a breakdown (per store)",
+    "subtitle": "Staff choose it when they report a breakdown. Recurrences are counted per equipment.",
+    "name": "Name",
+    "code": "Equipment ID (if any)",
+    "category": "Type",
+    "note": "Note",
+    "active": "In use (off = cannot be chosen)",
+    "save": "Save",
+    "saved": "Saved",
+    "none": "No equipment yet.",
+    "add": "Add equipment"
   }
 }

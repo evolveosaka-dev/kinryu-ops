@@ -25,6 +25,7 @@ import type { PreparedMedia } from '../../lib/media'
 import { TranslationCancelled, useTranslationGate } from '../translate/useTranslationGate'
 import { getLastStore, setLastStore } from '../../lib/lastStore'
 import { HandoverCard } from './HandoverCard'
+import { WfHandoverCard } from '../incident/WfList'
 import { MissReport } from './MissReport'
 import { choreiSchema, fieldErrors } from './schema'
 
@@ -240,6 +241,7 @@ export function ChoreiFormPage() {
       )}
 
       {slot.isLoading ? <Spinner /> : <HandoverCard handover={slot.data?.previous ?? null} />}
+      <WfHandoverCard />
 
       {!existing && !backfill && !slot.isLoading && effectiveStore && (
         <MissReport

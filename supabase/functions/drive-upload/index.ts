@@ -48,7 +48,7 @@ serve(async (req) => {
     const lost = b.parentType === 'lost_found' || b.parentType === 'lost_return'
     const table = { chorei: 'chorei_records', patrol: 'patrol_checks', miss: 'chorei_misses', stock: 'stock_events', incident: 'incidents', lost_found: 'lost_items', lost_return: 'lost_items' }[b.parentType]
     const ownerCol = { chorei: 'leader_id', patrol: 'patroller_id', miss: 'reporter_id', stock: 'author_id', incident: 'reporter_id', lost_found: 'reporter_id', lost_return: 'reporter_id' }[b.parentType]
-    const extra = b.parentType === 'miss' || b.parentType === 'incident' || lost ? '' : b.parentType === 'stock' ? 'voided_at, kind, ' : 'status, '
+    const extra = b.parentType === 'incident' ? 'kind, ' : b.parentType === 'miss' || lost ? '' : b.parentType === 'stock' ? 'voided_at, kind, ' : 'status, '
     const { data: parent } = await admin
       .from(table)
       .select(`id, ${ownerCol}, business_date, shift, ${extra}store:stores(name_ja)`)
@@ -56,7 +56,9 @@ serve(async (req) => {
       .maybeSingle()
     const p = parent as Record<string, unknown> | null
     if (!p || p.status === 'void' || p.voided_at || (b.parentType === 'stock' && p.kind !== 'loss')) throw new HttpError(404, 'record not found')
-    if (!caller.isManager && !lost && (parent as Record<string, unknown>)[ownerCol] !== caller.id) throw new HttpError(403, 'not your record')
+    // 設備の故障 (Workflow V2) and lost items are shared: anyone who works there adds photos
+    const shared = lost || (b.parentType === 'incident' && p.kind === 'equipment')
+    if (!caller.isManager && !shared && (parent as Record<string, unknown>)[ownerCol] !== caller.id) throw new HttpError(403, 'not your record')
 
     const { data: row, error } = await admin
       .from('attachments')

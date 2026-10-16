@@ -60,6 +60,7 @@ const CHANGE_KIND: Record<string, string> = { absence: '休み', late: '遅刻',
 const CHANGE_REASON: Record<string, string> = { sick: '体調不良', family: '家族の用事', transport: '交通の原因', personal: '私用', paid_leave: '有給休暇', store: '店の都合', other: 'その他' }
 // keep in sync with src/domain/incident.ts
 const INCIDENT_KIND: Record<string, string> = { complaint: 'お客様のクレーム', injury: 'ケガ・事故', foreign_object: '異物混入', equipment: '設備の故障', food_poisoning: '食中毒の疑い', lost_item: '忘れ物・落とし物', phone_message: '電話の伝言', other: 'その他' }
+const WF_STATE: Record<string, string> = { reported: '報告済み', checking: '確認中', in_progress: '対応中', on_hold: '保留・外部待ち', repaired: '修理完了・確認待ち', done: '完了', reopened: '再対応', cancelled: '取消' }
 const STOCK_UNIT: Record<string, string> = { piece: '個', bag: '袋', box: '箱', stick: '本', liter: 'L' }
 const PREV_SHIFT: Record<string, [number, string]> = { early: [-1, 'late'], middle: [0, 'early'], late: [0, 'middle'] }
 const TABLE: Record<string, string> = { chorei_records: '朝礼記録', patrol_checks: '巡回チェック', shift_requests: 'シフト希望' }
@@ -300,6 +301,31 @@ async function renderEvent(admin: Admin, L: Lookup, e: NotifyEvent): Promise<{ s
     if (!r) return null
     const kind = INCIDENT_KIND[r.kind] ?? r.kind
     const { count } = await admin.from('attachments').select('id', { count: 'exact', head: true }).eq('incident_id', r.id).neq('status', 'failed')
+    // Workflow V2 (設備の故障): the event, the state, who is in charge and the due date
+    if (r.wf_state) {
+      const ev = (e.data?.event as string) ?? 'created'
+      const no = `設-${String(r.incident_no).padStart(4, '0')}`
+      const head = { created: '新しい報告', assign: '担当者が決まりました', hold: '保留・外部待ち', repaired: '修理完了・確認待ち（確認してください）', confirm_ok: '完了', confirm_ng: '確認NG・再対応', reopen: '再オープン（再対応）', cancel: '取消', overdue: '対応期限を過ぎています' }[ev] ?? ev
+      const prio = { normal: '通常', high: '高', urgent: '緊急' }[r.priority as string] ?? r.priority
+      return {
+        subject: `${e.urgent ? '⚠ ' : ''}${kind} ${no}【${head}】${r.equipment_name ?? ''} — ${slot(L, r)}`,
+        lines: [
+          `受付番号: ${no}`,
+          `設備: ${r.equipment_name ?? '—'}`,
+          `店舗・勤番: ${slot(L, r)}`,
+          `状態: ${WF_STATE[r.wf_state as string] ?? r.wf_state}・優先度: ${prio}`,
+          `担当者: ${r.assignee_name ?? '未定'}・対応期限: ${r.due_at ? jst(r.due_at) : '—'}`,
+          `故障内容: ${r.description}`,
+          `報告: ${jst(r.created_at)} ${r.reporter_name}（発見 ${r.discovered_at ? jst(r.discovered_at) : '—'}）`,
+          ...(e.data?.by ? [`操作した人: ${e.data.by}`] : []),
+          ...(e.data?.note ? [`メモ: ${e.data.note}`] : []),
+          `写真・動画: ${count ?? 0}件`,
+          '',
+          ev === 'repaired' ? 'アプリの 管理 → クレーム・事故 で、動作を確認して「完了を確認」してください。' : 'アプリの 管理 → クレーム・事故 で、詳細と経過を確認できます。',
+        ],
+        link: appUrl(`/manager/incidents?open=${r.id}`),
+      }
+    }
     return {
       subject: `${e.urgent ? '⚠ ' : ''}${kind}: ${slot(L, r)} — ${r.reporter_name}`,
       lines: [

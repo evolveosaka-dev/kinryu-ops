@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router'
+import { WfList } from '../incident/WfList'
 import { useMe } from '../../app/auth'
 import { Sheet } from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
@@ -250,11 +252,14 @@ export function IncidentsAdminPage() {
   const { t: tc } = useTranslation()
   const stores = useStores()
   const q = useIncidents()
+  const [params, setParams] = useSearchParams()
+  const view = params.get('view') === 'other' ? 'other' : 'wf'
   const [filter, setFilter] = useState<'open' | 'all'>('open')
   const [openId, setOpenId] = useState<string | null>(null)
   if (q.isLoading) return <Spinner />
   if (q.error) return <ErrorBox message={errorMessage(q.error)} />
-  const all = q.data ?? []
+  // 設備の故障 runs on the workflow (V2); the other kinds keep this list until stage 3
+  const all = (q.data ?? []).filter((r) => !(r as { wf_state?: string | null }).wf_state)
   const list = filter === 'open' ? all.filter((r) => r.status !== 'done') : all
   const selected = all.find((r) => r.id === openId) ?? null
   const counts = Object.fromEntries(INCIDENT_STATUSES.map((s) => [s, all.filter((r) => r.status === s).length])) as Record<IncidentStatus, number>
@@ -262,6 +267,19 @@ export function IncidentsAdminPage() {
     <div className="flex flex-col gap-3">
       <ManagerTabs />
       <PageTitle title={t('incidents.title')} subtitle={t('incidents.subtitle')} />
+      <Segmented
+        label=""
+        value={view}
+        onChange={(v) => setParams(v === 'other' ? { view: 'other' } : {})}
+        options={[
+          { value: 'wf', label: `🔧 ${tc('incident.kinds.equipment')}` },
+          { value: 'other', label: t('wf.otherKinds') },
+        ]}
+      />
+      {view === 'wf' ? (
+        <WfList dashboard initialOpen={params.get('open')} />
+      ) : (
+      <>
       <div className="grid grid-cols-3 gap-2 text-center">
         {INCIDENT_STATUSES.map((s) => (
           <div key={s} className={cx('rounded-xl p-2', INCIDENT_STATUS_STYLE[s])}>
@@ -310,6 +328,8 @@ export function IncidentsAdminPage() {
         </ul>
       )}
       {selected && <IncidentSheet key={selected.id} r={selected} onClose={() => setOpenId(null)} />}
+      </>
+      )}
     </div>
   )
 }
