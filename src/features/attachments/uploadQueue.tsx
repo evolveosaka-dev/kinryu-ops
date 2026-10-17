@@ -21,6 +21,8 @@ export interface UploadItem {
   attachmentId?: string
   uploadUrl?: string
   progress: number
+  /** when it was put in the queue (ms); older items have none */
+  queuedAt?: number
   status: 'queued' | 'uploading' | 'error'
   error?: string
 }
@@ -54,6 +56,28 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<UploadItem[]>([])
   const running = useRef(false)
   const itemsRef = useRef<UploadItem[]>([])
+
+  // keep the screen on while files are sending: a locked screen or another app stops the upload (iOS / Android)
+  const uploading = items.some((i) => i.status === 'uploading')
+  useEffect(() => {
+    if (!uploading || !('wakeLock' in navigator)) return
+    let lock: WakeLockSentinel | null = null
+    let done = false
+    const take = () => {
+      if (document.visibilityState !== 'visible') return
+      navigator.wakeLock
+        .request('screen')
+        .then((l) => (done ? void l.release() : (lock = l)))
+        .catch(() => {}) // refused (battery saver…): the banner still asks to keep the app open
+    }
+    take()
+    document.addEventListener('visibilitychange', take)
+    return () => {
+      done = true
+      document.removeEventListener('visibilitychange', take)
+      void lock?.release().catch(() => {})
+    }
+  }, [uploading])
 
   const replace = useCallback((item: UploadItem | null, removeId?: string) => {
     setItems((prev) => {
@@ -151,11 +175,15 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
         void run()
       })
     const onOnline = () => void run()
+    // back in the app after the screen was off / another app: continue at once
+    const onVisible = () => document.visibilityState === 'visible' && void run()
     window.addEventListener('online', onOnline)
+    document.addEventListener('visibilitychange', onVisible)
     const timer = window.setInterval(() => void run(), 60_000)
     return () => {
       cancelled = true
       window.removeEventListener('online', onOnline)
+      document.removeEventListener('visibilitychange', onVisible)
       window.clearInterval(timer)
     }
   }, [userId, run])
@@ -175,6 +203,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
         durationSec: m.durationSec,
         blob: m.blob,
         progress: 0,
+        queuedAt: Date.now(),
         status: 'queued',
       }))
       await Promise.all(added.map(persist))

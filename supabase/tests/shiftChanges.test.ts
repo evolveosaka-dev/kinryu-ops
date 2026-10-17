@@ -345,6 +345,19 @@ describe('システム状態', () => {
     expect(r!.s.mails_by_kind).toEqual({ sales: 3, digest: 2 })
     expect(r!.s.jobs).toEqual([])
   })
+
+  it('lists who has files waiting more than 1 hour', async () => {
+    const [st] = await t.admin<{ id: string }>(`select id from public.stores where code = 'midosuji'`)
+    const [inc] = await t.as<{ id: string }>(minami, `select public.report_incident($1, ${TODAY}, 'middle', now(), 'other', 'x') as id`, [st!.id])
+    await t.admin(
+      `insert into public.attachments (owner_id, incident_id, kind, file_name, mime_type, size_bytes, created_at)
+       values ($1, $2, 'image', 'old.jpg', 'image/jpeg', 2048, now() - interval '2 hours'), ($1, $2, 'image', 'new.jpg', 'image/jpeg', 10, now())`,
+      [minami, inc!.id],
+    )
+    const [r] = await t.as<{ s: { uploads_pending: number; uploads_pending_list: { name: string; kind: string; size: number }[] } }>(manager, `select public.system_status() as s`)
+    expect(r!.s.uploads_pending).toBe(1)
+    expect(r!.s.uploads_pending_list).toEqual([expect.objectContaining({ name: 'ミナミ', kind: 'image', size: 2048 })])
+  })
 })
 
 describe('クレーム・事故', () => {

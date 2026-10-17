@@ -211,7 +211,27 @@
     "waiting": "{{n}} file đang chờ gửi (sẽ gửi khi sóng tốt)",
     "failed": "{{n}} file không tải lên được",
     "retry": "Gửi lại",
-    "discard": "Bỏ"
+    "discard": "Bỏ",
+    "keepOpen": "Hãy để app mở cho đến khi gửi xong. Tắt màn hình hoặc chuyển sang app khác thì việc gửi sẽ dừng lại.",
+    "stuck": "Có file chưa gửi được hơn 1 tiếng. Hãy đến chỗ có Wi-Fi hoặc sóng tốt và để app mở.",
+    "videoGuide": "Cách làm video nhẹ hơn (iPhone / Android)"
+  },
+  "videoGuide": {
+    "title": "Cách làm video nhẹ hơn",
+    "intro": "Video nặng thì gửi rất lâu. Với các cài đặt sau, cùng độ dài nhưng file nhỏ hơn (áp dụng cho video quay từ lần sau).",
+    "iphone": {
+      "s1": "Cài đặt → Camera → Quay video: chọn \"1080p HD ở 30 fps\" (nhỏ hơn nữa: \"720p HD ở 30 fps\"). Không dùng 4K hay 60 fps.",
+      "s2": "Cài đặt → Camera → Định dạng: chọn \"Hiệu suất cao\".",
+      "s3": "Trong Quay video, tắt \"Video HDR\".",
+      "s4": "Video đã quay: mở trong app Ảnh → Sửa → kéo hai đầu thanh khung để chỉ giữ phần cần thiết."
+    },
+    "android": {
+      "s1": "App Camera → ⚙ Cài đặt → \"Kích thước video\" (Galaxy: \"Kích thước video sau\"): chọn \"FHD 1080p 30fps\" hoặc \"HD 720p\". Không dùng 4K / UHD hay 60fps.",
+      "s2": "Galaxy: ⚙ → \"Tùy chọn video nâng cao\" → bật \"Video hiệu quả cao\".",
+      "s3": "Nếu có \"Video HDR10+\", hãy tắt đi.",
+      "s4": "Video đã quay: mở trong Thư viện hoặc Google Photos → Sửa → cắt chỉ giữ phần cần thiết rồi lưu."
+    },
+    "note": "Tên menu hơi khác tùy dòng máy. Mỗi video tối đa 90 giây."
   },
   "fullName": {
     "title": "Đăng ký họ tên",

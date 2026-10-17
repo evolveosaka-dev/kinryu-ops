@@ -19,6 +19,8 @@ export interface SystemStatus {
   notify_waiting: number
   uploads_failed: number
   uploads_pending: number
+  /** the oldest 30 waiting > 1 h: sender, kind, bytes, created (migration 20261017000012) */
+  uploads_pending_list?: { name: string; kind: 'image' | 'video'; size: number; at: string }[]
   jobs: CronJob[]
   sheets_synced_at: string | null
   backup_at?: string | null

@@ -211,7 +211,27 @@
     "waiting": "{{n}} file(s) waiting (will send when the signal is good)",
     "failed": "{{n}} file(s) could not be uploaded",
     "retry": "Send again",
-    "discard": "Cancel"
+    "discard": "Cancel",
+    "keepOpen": "Keep the app open until sending is finished. Turning off the screen or switching to another app stops the upload.",
+    "stuck": "Some files have not been sent for more than 1 hour. Go where Wi-Fi or the signal is good and keep the app open.",
+    "videoGuide": "How to make videos smaller (iPhone / Android)"
+  },
+  "videoGuide": {
+    "title": "How to make videos smaller",
+    "intro": "Large videos take a long time to send. With these settings the same length makes a smaller file (from the next video you take).",
+    "iphone": {
+      "s1": "Settings → Camera → Record Video: choose \"1080p HD at 30 fps\" (smaller: \"720p HD at 30 fps\"). Do not use 4K or 60 fps.",
+      "s2": "Settings → Camera → Formats: choose \"High Efficiency\".",
+      "s3": "In Record Video, turn off \"HDR Video\".",
+      "s4": "For a video already taken: open it in Photos → Edit → drag the ends of the frame bar to keep only the part you need."
+    },
+    "android": {
+      "s1": "Camera app → ⚙ Settings → \"Video size\" (Galaxy: \"Rear video size\"): choose \"FHD 1080p 30fps\" or \"HD 720p\". Do not use 4K / UHD or 60fps.",
+      "s2": "Galaxy: ⚙ → \"Advanced video options\" → turn on \"High efficiency videos\".",
+      "s3": "If there is \"HDR10+ video\", turn it off.",
+      "s4": "For a video already taken: open it in Gallery or Google Photos → Edit → trim to the part you need and save."
+    },
+    "note": "Menu names differ a little by model. Each video can be up to 90 seconds."
   },
   "fullName": {
     "title": "Register your full name",

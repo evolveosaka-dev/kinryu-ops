@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card, ErrorBox } from '../../components/ui'
 import { canAdd, MAX_IMAGES, MAX_VIDEOS, MediaError, prepareMedia, type MediaKind, type PreparedMedia } from '../../lib/media'
+import { VideoSizeGuide } from './VideoSizeGuide'
 
 function Thumb({ media, onRemove }: { media: PreparedMedia; onRemove: () => void }) {
   const { t } = useTranslation()
@@ -65,6 +66,7 @@ export function AttachmentPicker({
   const videoInput = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [guide, setGuide] = useState(false)
 
   const add = async (files: FileList | null, kind: MediaKind) => {
     if (!files?.length) return
@@ -139,6 +141,12 @@ export function AttachmentPicker({
       <input ref={videoInput} type="file" accept="video/*" multiple hidden onChange={(e) => void add(e.target.files, 'video').then(() => (e.target.value = ''))} />
       {busy && <p className="text-sm text-slate-600">{t('attach.processing')}</p>}
       <p className="text-xs text-slate-600">{t('attach.limit')}</p>
+      {(videos > taken.videos || error === t('attach.tooLarge')) && (
+        <button type="button" onClick={() => setGuide((g) => !g)} aria-expanded={guide} className="min-h-10 self-start text-sm font-bold text-blue-800 underline">
+          🎥 {t('upload.videoGuide')} {guide ? '▲' : '▼'}
+        </button>
+      )}
+      {guide && <VideoSizeGuide />}
       {error && <ErrorBox message={error} />}
       {missing && requirePhoto && images === 0 && <ErrorBox message={t('attach.photoRequired')} />}
     </Card>

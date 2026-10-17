@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useMe } from '../../app/auth'
 import { Button, Card, ErrorBox, PageTitle, Spinner } from '../../components/ui'
 import { MAIL_DAY_LIMIT, MAIL_WARN, systemProblems, type SystemStatus } from '../../domain/systemStatus'
+import { VideoSizeGuide } from '../attachments/VideoSizeGuide'
 import { cx } from '../../lib/cx'
 import { errorMessage } from '../../lib/format'
 import { supabase } from '../../lib/supabase'
@@ -114,8 +115,18 @@ export function SystemPage() {
       <Card className="flex flex-col gap-2">
         <h2 className="font-bold">📷 {t('system.uploadTitle')}</h2>
         <Row label={t('system.uploadsFailed')} value={s.uploads_failed} bad={has('uploadsFailed')} />
-        <Row label={t('system.uploadsPending')} value={s.uploads_pending} bad={has('uploadsPending')} />
+        <Row label={t('system.uploadsPending')} value={s.uploads_pending} bad={has('uploadsPending')}>
+          {(s.uploads_pending_list ?? []).map((u, i) => (
+            <span key={i} className="text-xs text-red-800">
+              {jstDateTime(u.at).slice(5)} {u.name} — {u.kind === 'video' ? '🎥' : '📷'} {u.size >= 1048576 ? `${(u.size / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(u.size / 1024))} KB`}
+            </span>
+          ))}
+        </Row>
         <p className="text-xs text-muted">{t('system.uploadNote')}</p>
+        <details className="text-sm">
+          <summary className="min-h-10 cursor-pointer font-bold text-blue-800">🎥 {t('system.videoGuide')}</summary>
+          <VideoSizeGuide />
+        </details>
       </Card>
 
       <Card className="flex flex-col gap-2">
