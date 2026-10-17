@@ -4,6 +4,7 @@
 import { strFromU8, unzipSync } from 'npm:fflate@0.8.2'
 import { kvGet, kvSet } from '../_shared/google.ts'
 import { adminClient, env, HttpError, requireUser, serve } from '../_shared/http.ts'
+import { EXTRA_SHEETS, extractPayrollSource, PAY_SHEETS } from '../_shared/payrollWorkbook.ts'
 import { parseWorkbook, sheetPaths, SHIFT_SHEETS } from '../_shared/shiftWorkbook.ts'
 
 /** A OneDrive / SharePoint share link → the file bytes. The link answers with a redirect that sets the cookie
@@ -37,15 +38,18 @@ async function download(shareUrl: string): Promise<Uint8Array> {
   throw new HttpError(502, 'download failed: too many redirects')
 }
 
+/** The shift sheets (→ shift_assignments) and the sheets the payroll reads (→ payroll_sources). */
 function readWorkbook(bytes: Uint8Array) {
   const base = unzipSync(bytes, { filter: (f) => ['xl/workbook.xml', 'xl/_rels/workbook.xml.rels', 'xl/sharedStrings.xml'].includes(f.name) })
   const text = (name: string, files: Record<string, Uint8Array>) => (files[name] ? strFromU8(files[name]!) : '')
   const paths = sheetPaths(text('xl/workbook.xml', base), text('xl/_rels/workbook.xml.rels', base))
-  const wanted = new Set(Object.values(SHIFT_SHEETS).flatMap((n) => (paths[n] ? [paths[n]!] : [])))
+  const names = [...Object.values(SHIFT_SHEETS), ...Object.values(PAY_SHEETS).map((p) => p.kintai), ...EXTRA_SHEETS]
+  const wanted = new Set(names.flatMap((n) => (paths[n] ? [paths[n]!] : [])))
   const sheetFiles = unzipSync(bytes, { filter: (f) => wanted.has(f.name) })
   const sheets: Record<string, string> = {}
-  for (const name of Object.values(SHIFT_SHEETS)) if (paths[name]) sheets[name] = text(paths[name]!, sheetFiles)
-  return parseWorkbook({ sharedStrings: text('xl/sharedStrings.xml', base), sheets })
+  for (const name of names) if (paths[name]) sheets[name] = text(paths[name]!, sheetFiles)
+  const sharedStrings = text('xl/sharedStrings.xml', base)
+  return { shifts: parseWorkbook({ sharedStrings, sheets }), sharedStrings, sheets }
 }
 
 serve(async (req) => {
@@ -64,7 +68,8 @@ serve(async (req) => {
   try {
     const url = await kvGet(admin, 'shift_workbook_url')
     if (!url) throw new HttpError(400, 'no share link set')
-    const wb = readWorkbook(await download(url))
+    const book = readWorkbook(await download(url))
+    const wb = book.shifts
     if (!wb.month || wb.rows.length === 0) throw new HttpError(422, 'no shifts found in the workbook')
     if (wb.missingSheets.length) throw new HttpError(422, `missing sheets: ${wb.missingSheets.join(', ')}`)
     // refuse a workbook that lost most of the month (half-saved file, wrong sheet)
@@ -73,7 +78,17 @@ serve(async (req) => {
     if (before > 0 && wb.rows.length < before / 2) throw new HttpError(422, `only ${wb.rows.length} shifts (before: ${before}); not imported`)
     const { data, error } = await admin.rpc('apply_shift_import', { p_month: wb.month, p_rows: wb.rows, p_source: 'office365', p_by: by })
     if (error) throw new HttpError(500, error.message)
-    const result = { at, ok: true, month: wb.month, rows: data.rows as number, changes: data.changes as number }
+    // 給与計算の元データ (System Admin only); a problem here does not stop the shift import
+    let payroll: string = 'ok'
+    try {
+      const pay = extractPayrollSource({ sharedStrings: book.sharedStrings, sheets: book.sheets })
+      const { error: pe } = await admin.from('payroll_sources').upsert({ month: pay.month, data: pay, source: 'office365', imported_at: new Date().toISOString() })
+      if (pe) throw new Error(pe.message)
+    } catch (err) {
+      payroll = (err instanceof Error ? err.message : String(err)).slice(0, 200)
+      console.error('payroll source', err)
+    }
+    const result = { at, ok: true, month: wb.month, rows: data.rows as number, changes: data.changes as number, payroll }
     await kvSet(admin, 'shift_sync_status', JSON.stringify(result))
     return result
   } catch (err) {

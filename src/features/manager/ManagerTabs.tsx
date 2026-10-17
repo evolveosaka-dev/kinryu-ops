@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router'
 import { STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { cx } from '../../lib/cx'
 import { useFillTargets } from './useFillTargets'
+import { useIsPayrollAdmin } from './payroll/data'
 
 const SETTINGS_PATHS = ['/manager/settings', '/manager/users', '/manager/roster', '/manager/sync', '/manager/system', '/manager/targets', '/manager/shift-requests', '/manager/shift-import', '/manager/stock-items', '/manager/notify', '/manager/emergency-contacts', '/manager/equipment']
 
@@ -11,6 +12,8 @@ export function ManagerTabs() {
   const { pathname } = useLocation()
   // every 管理 page: 朝礼 records without 目標杯数 get it from the targets
   useFillTargets()
+  // 給与計算: System Admin only
+  const payroll = useIsPayrollAdmin()
   const tabs = [
     { to: '/manager', label: `${t('tabs.dashboard')}`, end: true },
     { to: '/manager/chorei', label: `${t('tabs.chorei')}` },
@@ -23,6 +26,7 @@ export function ManagerTabs() {
     { to: '/manager/sales', label: `${t('tabs.sales')}` },
     { to: '/manager/analysis', label: `${t('tabs.analysis')}` },
     { to: '/manager/reports', label: `${t('tabs.reports')}` },
+    ...(payroll ? [{ to: '/manager/payroll', label: `${t('tabs.payroll')}` }] : []),
     { to: '/manager/settings', label: `${t('tabs.settings')}`, settings: true },
   ]
   return (

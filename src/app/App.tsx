@@ -57,6 +57,7 @@ const IncidentPage = page(() => import('../features/incident/IncidentPage'), 'In
 const LostItemsPage = page(() => import('../features/lost/LostItemsPage'), 'LostItemsPage')
 const LostItemsAdminPage = page(() => import('../features/lost/LostItemsPage'), 'LostItemsAdminPage')
 const ReportsPage = page(() => import('../features/manager/ReportsPage'), 'ReportsPage')
+const PayrollPage = page(() => import('../features/manager/payroll/PayrollPage'), 'PayrollPage')
 
 /** Decides which screen a visitor may see: login → approval → privacy notice → app. */
 function Gate() {
@@ -126,6 +127,7 @@ function Gate() {
             <Route path="incidents" element={<IncidentsAdminPage />} />
             <Route path="lost-items" element={<LostItemsAdminPage />} />
             <Route path="reports" element={<ReportsPage />} />
+            <Route path="payroll" element={<PayrollPage />} />
             <Route path="analysis" element={<AnalysisPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="targets" element={<TargetsPage />} />

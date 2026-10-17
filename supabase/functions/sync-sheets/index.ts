@@ -80,6 +80,7 @@ const BACKUP_TABLES = [
   'attendance_overrides', 'stock_items', 'stock_events', 'sales_reports', 'sales_report_log', 'daily_sales', 'incidents',
   'emergency_contacts', 'emergency_contact_log', 'lost_items', 'lost_item_comments', 'equipment_registry', 'incident_events', 'incident_costs',
   'learn_items', 'notify_recipients', 'ai_reports', 'audit_log',
+  'payroll_rates', 'payroll_staff', 'payroll_inputs', 'payroll_sources', 'payroll_closings', 'payroll_files',
 ]
 const KEEP_DAYS = 84
 
