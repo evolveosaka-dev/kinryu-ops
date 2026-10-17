@@ -357,6 +357,11 @@ describe('システム状態', () => {
     const [r] = await t.as<{ s: { uploads_pending: number; uploads_pending_list: { name: string; kind: string; size: number }[] } }>(manager, `select public.system_status() as s`)
     expect(r!.s.uploads_pending).toBe(1)
     expect(r!.s.uploads_pending_list).toEqual([expect.objectContaining({ name: 'ミナミ', kind: 'image', size: 2048 })])
+    // leave nothing for the クレーム・事故 tests below
+    await t.admin(`delete from public.attachments where incident_id = $1`, [inc!.id])
+    await t.admin(`delete from public.incident_events where incident_id = $1`, [inc!.id])
+    await t.admin(`delete from public.notify_events where ref_id = $1`, [inc!.id])
+    await t.admin(`delete from public.incidents where id = $1`, [inc!.id])
   })
 })
 
