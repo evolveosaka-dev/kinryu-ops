@@ -1162,6 +1162,12 @@
     "pickHint": "🟢 = working the same {{shift}} that day (store, time). Everyone else below.",
     "assign": "Assign to {{name}}",
     "done": "Assigned {{n}} duties to {{name}}",
+    "prevHint": "🕐 = people of the {{shift}} before ({{date}}). Choosing one sets how long they stay.",
+    "extendLabel": "Extend the shift of {{name}} (end time)",
+    "extendOption": "until {{to}} (+{{min}} min)",
+    "extendHint": "Shift-table end {{from}} → extended until {{to}}. Their schedule shows the extension.",
+    "assignExtend": "Assign to {{name}} (extend until {{to}})",
+    "badExtension": "Could not extend (no shift found or the time is not valid).",
     "already": "This person already has the same duty. Choose someone else."
   },
   "payroll": {

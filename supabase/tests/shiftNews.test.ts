@@ -59,3 +59,26 @@ describe('ホーム: shift changes and duties', () => {
     ])
   })
 })
+
+describe('担当の割り当て with 勤務延長', () => {
+  it('the shift before is extended to cover the duties', async () => {
+    const month = `${day.slice(0, 7)}-01`
+    await t.admin(
+      `insert into public.shift_assignments (month, business_date, shift, roster_name, store_mark, store_id, start_min, end_min, raw)
+       values ($1, $2, 'early', 'ヒガシ', '⑤', $3, 420, 1050, '⑤7-17.5')`,
+      [month, day, store],
+    )
+    await t.admin(`insert into public.staff_roster (name) values ('ヒガシ') on conflict do nothing`)
+    const [d] = await t.admin<{ id: string }>(
+      `insert into public.duty_assignments (business_date, shift, store_id, roster_name, kind, time_mode, start_min, end_min, method)
+       values ($1, 'middle', $2, 'だれか', 'chorei', 'at', 1050, 1080, 'move') returning id`,
+      [day, store],
+    )
+    await expect(t.as(manager, `select public.reassign_duties($1::uuid[], 'ヒガシ', $2::date, 'early', 1020)`, [[d!.id], day])).rejects.toThrow(/bad_extension/)
+    await expect(t.as(manager, `select public.reassign_duties($1::uuid[], 'ヒガシ', $2::date, 'middle', 1080)`, [[d!.id], day])).rejects.toThrow(/no_shift/)
+    await t.as(manager, `select public.reassign_duties($1::uuid[], 'ヒガシ', $2::date, 'early', 1080)`, [[d!.id], day])
+    expect(await t.admin(`select end_min, original_end_min from public.shift_assignments where roster_name = 'ヒガシ'`)).toEqual([{ end_min: 1080, original_end_min: 1050 }])
+    expect(await t.admin(`select roster_name from public.duty_assignments where id = $1`, [d!.id])).toEqual([{ roster_name: 'ヒガシ' }])
+    expect((await t.as<{ id: string }>(manager, `select id from public.orphan_duties()`)).map((r) => r.id)).not.toContain(d!.id)
+  })
+})

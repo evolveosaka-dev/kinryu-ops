@@ -7,7 +7,8 @@ import { useToast } from '../../components/Toast'
 import { Button, ErrorBox } from '../../components/ui'
 import { WheelPicker } from '../../components/WheelPicker'
 import type { DutyKind, DutyMethod, DutyTimeMode } from '../../domain/duty'
-import { formatRange, STORE_BY_MARK } from '../../domain/schedule'
+import { formatMin, formatRange, STORE_BY_MARK } from '../../domain/schedule'
+import { addDays } from '../../domain/time'
 import type { Shift } from '../../domain/types'
 import { errorMessage } from '../../lib/format'
 import { unwrap, useStores } from '../../lib/queries'
@@ -42,6 +43,17 @@ interface Group {
   duties: OrphanDuty[]
 }
 
+/** The shift just before: its people can stay longer (勤務延長) to take the duties. */
+const PREV_SLOT: Record<Shift, { shift: Shift; days: number }> = { early: { shift: 'late', days: -1 }, middle: { shift: 'early', days: 0 }, late: { shift: 'middle', days: 0 } }
+
+interface SlotPerson {
+  roster_name: string
+  store_mark: string
+  start_min: number
+  end_min: number
+  original_end_min: number | null
+}
+
 const MARK_BY_CODE = Object.fromEntries(Object.entries(STORE_BY_MARK).flatMap(([mark, s]) => (s.code ? [[s.code, mark]] : [])))
 
 function useOrphanDuties() {
@@ -69,28 +81,67 @@ function ReassignSheet({ group, logs, onClose }: { group: Group; logs: ShiftImpo
   const dayLabel = useDayLabel()
   const stores = useStores()
   const [name, setName] = useState<string | null>(null)
-  const sameShift = useQuery({
-    queryKey: ['shift_assignments', 'slot-all', group.date, group.shift],
+  const [extendTo, setExtendTo] = useState<number | null>(null)
+  const slot = (date: string, shift: Shift) => ({
+    queryKey: ['shift_assignments', 'slot-all', date, shift],
     queryFn: async () =>
-      unwrap<{ roster_name: string; store_mark: string; start_min: number; end_min: number }[]>(
-        await supabase.from('shift_assignments').select('roster_name, store_mark, start_min, end_min').eq('business_date', group.date).eq('shift', group.shift).order('start_min'),
+      unwrap<SlotPerson[]>(
+        await supabase.from('shift_assignments').select('roster_name, store_mark, start_min, end_min, original_end_min').eq('business_date', date).eq('shift', shift).order('start_min'),
       ),
   })
+  const sameShift = useQuery(slot(group.date, group.shift))
+  const prev = PREV_SLOT[group.shift]
+  const prevDate = addDays(group.date, prev.days)
+  const prevShift = useQuery(slot(prevDate, prev.shift))
   const roster = useQuery({
     queryKey: ['staff_roster', 'active-names'],
     staleTime: 5 * 60_000,
     queryFn: async () => unwrap<{ name: string }[]>(await supabase.from('staff_roster').select('name').eq('active', true).order('name')).map((r) => r.name),
   })
+  const here = useMemo(() => (sameShift.data ?? []).filter((s) => s.roster_name !== group.name), [sameShift.data, group.name])
+  const before = useMemo(
+    () => (prevShift.data ?? []).filter((s) => s.roster_name !== group.name && !here.some((h) => h.roster_name === s.roster_name)),
+    [prevShift.data, here, group.name],
+  )
   const options = useMemo(() => {
-    const here = (sameShift.data ?? []).filter((s) => s.roster_name !== group.name)
-    const hereNames = new Set(here.map((s) => s.roster_name))
+    const listed = new Set([...here, ...before].map((s) => s.roster_name))
+    const place = (s: SlotPerson) => `${STORE_BY_MARK[s.store_mark]?.short ?? s.store_mark} ${formatRange(s)}`
     return [
-      ...here.map((s) => ({ value: s.roster_name, label: `🟢 ${s.roster_name}  ${STORE_BY_MARK[s.store_mark]?.short ?? s.store_mark} ${formatRange(s)}` })),
-      ...(roster.data ?? []).filter((n) => !hereNames.has(n) && n !== group.name).map((n) => ({ value: n, label: n })),
+      ...here.map((s) => ({ value: s.roster_name, label: `🟢 ${s.roster_name}  ${place(s)}` })),
+      ...before.map((s) => ({ value: s.roster_name, label: `🕐 ${s.roster_name}  ${place(s)}` })),
+      ...(roster.data ?? []).filter((n) => !listed.has(n) && n !== group.name).map((n) => ({ value: n, label: n })),
     ]
-  }, [sameShift.data, roster.data, group.name])
+  }, [here, before, roster.data, group.name])
+  // someone of the shift before: their shift is extended to cover the 朝礼 (or 30 min of the first duty)
+  const chosenBefore = before.find((s) => s.roster_name === name) ?? null
+  const offset = prev.days * -1440 // duty minutes → minutes of the earlier shift's business date
+  const tableEnd = chosenBefore ? (chosenBefore.original_end_min ?? chosenBefore.end_min) : 0
+  const extendOptions = useMemo(() => {
+    if (!chosenBefore) return []
+    const out: { value: number; label: string }[] = []
+    for (let m = Math.ceil((tableEnd + 15) / 15) * 15; m <= tableEnd + 360; m += 15) out.push({ value: m, label: t('dutyAlert.extendOption', { to: formatMin(m), min: m - tableEnd }) })
+    return out
+  }, [chosenBefore, tableEnd, t])
+  const needed = useMemo(() => {
+    const chorei = group.duties.filter((d) => d.kind === 'chorei').map((d) => d.end_min + offset)
+    const want = chorei.length ? Math.max(...chorei) : Math.min(...group.duties.map((d) => d.start_min + offset)) + 30
+    return Math.min(tableEnd + 360, Math.max(Math.ceil((tableEnd + 15) / 15) * 15, Math.ceil(want / 15) * 15))
+  }, [group.duties, offset, tableEnd])
+  const pick = (v: string) => {
+    if (v === name) return
+    setName(v)
+    setExtendTo(null)
+  }
+  const extendValue = chosenBefore ? (extendTo ?? needed) : null
   const save = useMutation({
-    mutationFn: async (to: string) => unwrap<number>(await supabase.rpc('reassign_duties', { p_ids: group.duties.map((d) => d.id), p_roster: to })),
+    mutationFn: async (to: string) =>
+      unwrap<number>(
+        await supabase.rpc('reassign_duties', {
+          p_ids: group.duties.map((d) => d.id),
+          p_roster: to,
+          ...(chosenBefore && extendValue ? { p_extend_date: prevDate, p_extend_shift: prev.shift, p_extend_end: extendValue } : {}),
+        }),
+      ),
     onSuccess: (n, to) => {
       toast(t('dutyAlert.done', { n, name: to }))
       for (const k of [['admin', 'orphan_duties'], ['my_duties']]) void queryClient.invalidateQueries({ queryKey: k })
@@ -120,17 +171,31 @@ function ReassignSheet({ group, logs, onClose }: { group: Group; logs: ShiftImpo
           </li>
         ))}
       </ul>
-      {sameShift.isLoading || roster.isLoading ? (
+      {sameShift.isLoading || prevShift.isLoading || roster.isLoading ? (
         <p className="text-sm text-muted">…</p>
       ) : (
         <>
-          <WheelPicker label={t('dutyAlert.pick')} options={options} value={name} onChange={setName} />
-          <p className="text-xs text-muted">{t('dutyAlert.pickHint', { shift: t(`common:shift.${group.shift}`) })}</p>
+          <WheelPicker label={t('dutyAlert.pick')} options={options} value={name} onChange={pick} />
+          <p className="text-xs text-muted">
+            {t('dutyAlert.pickHint', { shift: t(`common:shift.${group.shift}`) })}
+            <br />
+            {t('dutyAlert.prevHint', { shift: t(`common:shift.${prev.shift}`), date: dayLabel(prevDate) })}
+          </p>
         </>
       )}
-      {err && <ErrorBox message={err.includes('already_has_duty') ? t('dutyAlert.already') : err} />}
+      {chosenBefore && extendValue !== null && (
+        <div className="flex flex-col gap-1 rounded-xl bg-violet-50 p-3 ring-1 ring-violet-200">
+          <WheelPicker label={`⏱ ${t('dutyAlert.extendLabel', { name: chosenBefore.roster_name })}`} options={extendOptions} value={extendValue} onChange={setExtendTo} />
+          <p className="text-sm font-bold text-violet-900">{t('dutyAlert.extendHint', { from: formatMin(tableEnd), to: formatMin(extendValue) })}</p>
+        </div>
+      )}
+      {err && (
+        <ErrorBox
+          message={err.includes('already_has_duty') ? t('dutyAlert.already') : err.includes('bad_extension') || err.includes('no_shift') ? t('dutyAlert.badExtension') : err}
+        />
+      )}
       <Button disabled={!name || save.isPending} onClick={() => name && save.mutate(name)}>
-        {t('dutyAlert.assign', { name: name ?? '' })}
+        {chosenBefore && extendValue !== null ? t('dutyAlert.assignExtend', { name, to: formatMin(extendValue) }) : t('dutyAlert.assign', { name: name ?? '' })}
       </Button>
     </Sheet>
   )
