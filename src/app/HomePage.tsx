@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { WfHandoverCard } from '../features/incident/WfList'
+import { PhoneGuide } from '../features/attachments/VideoSizeGuide'
 import { Link } from 'react-router'
 import { SpokenPhrase } from '../components/SpokenPhrase'
 import { Card, SectionTitle } from '../components/ui'
@@ -162,7 +163,18 @@ export function HomePage() {
         </ul>
       </section>
 
-      <p className="text-sm text-muted">📱 {t('home.installHint')}</p>
+      <details className="rounded-2xl border border-line bg-white">
+        <summary className="flex min-h-12 cursor-pointer items-center gap-2 px-4 py-3 font-bold text-brand-dark">
+          <span aria-hidden>📱</span>
+          <span className="flex-1">{t('installGuide.title')}</span>
+          <span aria-hidden className="text-sm text-muted">
+            ▼
+          </span>
+        </summary>
+        <div className="px-3 pb-3">
+          <PhoneGuide k="installGuide" />
+        </div>
+      </details>
     </div>
   )
 }

@@ -233,6 +233,30 @@
     },
     "note": "Menu names differ a little by model. Each video can be up to 90 seconds."
   },
+  "installGuide": {
+    "title": "How to add the app to your home screen",
+    "intro": "With an icon on your home screen, the app opens with one tap like a normal app, with a bigger screen.",
+    "iphone": {
+      "s1": "Open this app in Safari (it does not work from the browser inside LINE etc.).",
+      "s2": "Open the Share menu. It depends on the iOS version:",
+      "s2v": {
+        "ios27": "iOS 27: tap the button on the left of the address bar (page menu), or press and hold the address bar → \"Share\". The bottom-right button now opens tabs.",
+        "ios26": "iOS 26: tap \"…\" at the bottom right → \"Share\".",
+        "older": "iOS 18 or earlier: tap the Share button □↑ at the bottom of the screen."
+      },
+      "s3": "Tap \"More\" or scroll down, then tap \"Add to Home Screen\".",
+      "s4": "iOS 26 and later: check that \"Open as Web App\" is on. Then tap \"Add\" at the top right."
+    },
+    "android": {
+      "s1": "Open this app in Chrome.",
+      "s2": "Tap \"⋮\" at the top right.",
+      "s3": "Tap \"Add to Home screen\" (or \"Install app\").",
+      "s4": "Tap \"Install\". The icon appears on the home screen."
+    },
+    "note": "From next time, open it from the \"金龍ラーメン専用アプリ\" icon on your home screen. The first time, you may need to log in again.",
+    "version": "Check your iOS version in Settings → General → About.",
+    "thisPhone": "this iPhone"
+  },
   "fullName": {
     "title": "Register your full name",
     "body": "Used for weekly and monthly reports. Enter your full name exactly as on your residence card or passport.",

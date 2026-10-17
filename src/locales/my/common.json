@@ -233,6 +233,30 @@
     },
     "note": "မော်ဒယ်အလိုက် မီနူးအမည် အနည်းငယ် ကွဲပြားပါသည်။ ဗီဒီယိုတစ်ခုလျှင် စက္ကန့် ၉၀ အထိ။"
   },
+  "installGuide": {
+    "title": "အက်ပ်ကို Home Screen သို့ ထည့်နည်း",
+    "intro": "Home Screen တွင် အိုင်ကွန်ထားလျှင် သာမန်အက်ပ်ကဲ့သို့ တစ်ချက်နှိပ်ရုံဖြင့် ဖွင့်နိုင်ပြီး မျက်နှာပြင်လည်း ပိုကျယ်ပါသည်။",
+    "iphone": {
+      "s1": "Open this app in Safari (it does not work from the browser inside LINE etc.).",
+      "s2": "Open the Share menu. It depends on the iOS version:",
+      "s2v": {
+        "ios27": "iOS 27: tap the button on the left of the address bar (page menu), or press and hold the address bar → \"Share\". The bottom-right button now opens tabs.",
+        "ios26": "iOS 26: tap \"…\" at the bottom right → \"Share\".",
+        "older": "iOS 18 or earlier: tap the Share button □↑ at the bottom of the screen."
+      },
+      "s3": "Tap \"More\" or scroll down, then tap \"Add to Home Screen\".",
+      "s4": "iOS 26 and later: check that \"Open as Web App\" is on. Then tap \"Add\" at the top right."
+    },
+    "android": {
+      "s1": "Open this app in Chrome.",
+      "s2": "Tap \"⋮\" at the top right.",
+      "s3": "Tap \"Add to Home screen\" (or \"Install app\").",
+      "s4": "Tap \"Install\". The icon appears on the home screen."
+    },
+    "note": "နောက်တစ်ကြိမ်မှစ၍ Home Screen ရှိ \"金龍ラーメン専用アプリ\" အိုင်ကွန်မှ ဖွင့်ပါ။ ပထမအကြိမ်တွင် ထပ်မံ login ဝင်ရန် လိုနိုင်ပါသည်။",
+    "version": "Check your iOS version in Settings → General → About.",
+    "thisPhone": "ဤ iPhone"
+  },
   "fullName": {
     "title": "သင့် အမည်အပြည့်အစုံကို မှတ်ပုံတင်ပါ",
     "body": "အပတ်စဉ်နှင့် လစဉ် အစီရင်ခံစာများအတွက် သုံးသည်။ နေထိုင်ခွင့်ကတ် သို့မဟုတ် နိုင်ငံကူးလက်မှတ်ပါ အတိုင်း အမည်အပြည့်အစုံကို ထည့်ပါ။",

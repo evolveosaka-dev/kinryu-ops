@@ -233,6 +233,30 @@
     },
     "note": "Tên menu hơi khác tùy dòng máy. Mỗi video tối đa 90 giây."
   },
+  "installGuide": {
+    "title": "Cách thêm app vào màn hình chính",
+    "intro": "Khi đặt biểu tượng ở màn hình chính, app mở bằng 1 lần chạm như app bình thường và màn hình rộng hơn.",
+    "iphone": {
+      "s1": "Mở app này bằng Safari (không làm được từ trình duyệt bên trong LINE v.v.).",
+      "s2": "Mở menu Chia sẻ. Cách làm khác nhau theo phiên bản iOS:",
+      "s2v": {
+        "ios27": "iOS 27: chạm nút bên trái thanh địa chỉ (menu trang), hoặc nhấn giữ thanh địa chỉ → \"Chia sẻ\". Nút góc dưới bên phải giờ là nút mở các tab.",
+        "ios26": "iOS 26: chạm \"…\" ở góc dưới bên phải → \"Chia sẻ\".",
+        "older": "iOS 18 trở về trước: chạm nút Chia sẻ □↑ ở dưới màn hình."
+      },
+      "s3": "Chạm \"Thêm\" hoặc kéo xuống, rồi chạm \"Thêm vào MH chính\".",
+      "s4": "Từ iOS 26 trở đi, kiểm tra \"Mở dưới dạng ứng dụng web\" đang bật. Chạm \"Thêm\" ở góc trên bên phải."
+    },
+    "android": {
+      "s1": "Mở app này bằng Chrome.",
+      "s2": "Chạm \"⋮\" ở góc trên bên phải.",
+      "s3": "Chạm \"Thêm vào màn hình chính\" (hoặc \"Cài đặt ứng dụng\").",
+      "s4": "Chạm \"Cài đặt\". Biểu tượng sẽ hiện ở màn hình chính."
+    },
+    "note": "Từ lần sau, hãy mở bằng biểu tượng \"金龍ラーメン専用アプリ\" ở màn hình chính. Lần đầu mở có thể cần đăng nhập lại.",
+    "version": "Xem phiên bản iOS ở Cài đặt → Cài đặt chung → Giới thiệu.",
+    "thisPhone": "iPhone này"
+  },
   "fullName": {
     "title": "Đăng ký họ tên",
     "body": "Dùng để tổng hợp kết quả theo tuần và tháng. Hãy nhập họ tên đầy đủ giống trên thẻ cư trú hoặc hộ chiếu.",

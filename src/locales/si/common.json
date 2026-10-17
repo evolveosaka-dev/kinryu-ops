@@ -233,6 +233,30 @@
     },
     "note": "මාදිලිය අනුව මෙනු නම් මඳක් වෙනස් වේ. එක් වීඩියෝවක් තත්පර 90 දක්වා."
   },
+  "installGuide": {
+    "title": "ඇප් එක Home Screen එකට එක් කරන ආකාරය",
+    "intro": "Home Screen එකේ අයිකනයක් තැබූ විට, සාමාන්‍ය ඇප් එකක් මෙන් එක් වරක් තට්ටු කිරීමෙන් විවෘත වන අතර තිරයද විශාල වේ.",
+    "iphone": {
+      "s1": "Open this app in Safari (it does not work from the browser inside LINE etc.).",
+      "s2": "Open the Share menu. It depends on the iOS version:",
+      "s2v": {
+        "ios27": "iOS 27: tap the button on the left of the address bar (page menu), or press and hold the address bar → \"Share\". The bottom-right button now opens tabs.",
+        "ios26": "iOS 26: tap \"…\" at the bottom right → \"Share\".",
+        "older": "iOS 18 or earlier: tap the Share button □↑ at the bottom of the screen."
+      },
+      "s3": "Tap \"More\" or scroll down, then tap \"Add to Home Screen\".",
+      "s4": "iOS 26 and later: check that \"Open as Web App\" is on. Then tap \"Add\" at the top right."
+    },
+    "android": {
+      "s1": "Open this app in Chrome.",
+      "s2": "Tap \"⋮\" at the top right.",
+      "s3": "Tap \"Add to Home screen\" (or \"Install app\").",
+      "s4": "Tap \"Install\". The icon appears on the home screen."
+    },
+    "note": "ඊළඟ වතාවේ සිට Home Screen එකේ \"金龍ラーメン専用アプリ\" අයිකනයෙන් විවෘත කරන්න. පළමු වරට නැවත ලොග් වීමට සිදු විය හැක.",
+    "version": "Check your iOS version in Settings → General → About.",
+    "thisPhone": "මෙම iPhone"
+  },
   "fullName": {
     "title": "සම්පූර්ණ නම ලියාපදිංචි කරන්න",
     "body": "සතිපතා සහ මාසික වාර්තා සඳහා භාවිතා කරයි. ඔබගේ නේවාසික කාඩ්පතේ හෝ විදේශ ගමන් බලපත්‍රයේ ඇති ආකාරයටම සම්පූර්ණ නම ඇතුළත් කරන්න.",
