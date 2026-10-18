@@ -214,11 +214,14 @@ describe('web push', () => {
     await clear()
   })
 
-  it('シフト希望: on the 15th / 18th / 20th, people who have not sent next month', async () => {
-    const [{ day }] = (await t.admin<{ day: number }>(`select extract(day from ${TODAY})::int as day`)) as [{ day: number }]
+  it('シフト希望: from 2026-11-15, on the 15th / 18th / 20th, people who have not sent next month', async () => {
+    const [{ day, started }] = (await t.admin<{ day: number; started: boolean }>(
+      `select extract(day from ${TODAY})::int as day, ${TODAY} >= date '2026-11-15' as started`,
+    )) as [{ day: number; started: boolean }]
     await t.admin(`select public.queue_shift_request_reminders()`)
     const rows = await queue()
-    if (![15, 18, 20].includes(day)) expect(rows).toEqual([])
+    // the first reminder is on 2026-11-15 (none for the October deadline)
+    if (!started || ![15, 18, 20].includes(day)) expect(rows).toEqual([])
     // テスト用 (test account) and the manager (no shift-table name) are never reminded
     else expect(rows.map((r) => r.user_id).sort()).toEqual([minami, kita, higashi].sort())
     await clear()
