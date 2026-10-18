@@ -6,6 +6,7 @@ import { useToast } from '../../components/Toast'
 import { Button, Card, ErrorBox, TextInput, PageTitle } from '../../components/ui'
 import type { Locale } from '../../domain/types'
 import { supabase } from '../../lib/supabase'
+import { PushSettings } from './PushSettings'
 
 export function ProfilePage() {
   const { t } = useTranslation()
@@ -31,6 +32,7 @@ export function ProfilePage() {
           {t('action.save')}
         </Button>
       </Card>
+      <PushSettings />
       <Card className="flex flex-col gap-2">
         <LanguageSelect onChange={(locale) => update({ locale })} />
       </Card>

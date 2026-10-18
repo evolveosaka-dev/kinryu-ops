@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { WfHandoverCard } from '../features/incident/WfList'
 import { PhoneGuide } from '../features/attachments/VideoSizeGuide'
+import { PushHomeCard } from '../features/profile/PushSettings'
 import { Link } from 'react-router'
 import { SpokenPhrase } from '../components/SpokenPhrase'
 import { Card, SectionTitle } from '../components/ui'
@@ -74,6 +75,8 @@ export function HomePage() {
           </span>
         </Link>
       )}
+
+      <PushHomeCard />
 
       {isManager && <HomeShiftAlerts />}
       <ShiftNewsCard />

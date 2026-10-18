@@ -29,6 +29,8 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: `${base}index.html`,
+        // web push: show the notification and open the app on tap (public/push-sw.js)
+        importScripts: ['push-sw.js'],
         // never cache Supabase API responses in the service worker
         runtimeCaching: [],
       },

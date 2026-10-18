@@ -257,6 +257,29 @@
     "version": "Xem phiên bản iOS ở Cài đặt → Cài đặt chung → Giới thiệu.",
     "thisPhone": "iPhone này"
   },
+  "push": {
+    "title": "Thông báo (điện thoại này)",
+    "what": {
+      "recruit": "Tìm người làm thay, khi có người chọn bạn làm thay",
+      "result": "Kết quả liên lạc nghỉ / đi muộn / về sớm, khi bạn được chọn làm thay",
+      "upload": "Khi ảnh / video chưa gửi được",
+      "manager": "Quản lý: liên lạc nghỉ, người làm thay được, khiếu nại / sự cố, đăng ký mới"
+    },
+    "unsupported": "Điện thoại / trình duyệt này không nhận được thông báo. Hãy dùng Safari trên iPhone, Chrome trên Android.",
+    "needInstall": "Để nhận thông báo trên iPhone, trước hết hãy thêm app vào màn hình chính và mở bằng biểu tượng đó (iOS 16.4 trở lên).",
+    "denied": "Thông báo đang bị chặn. iPhone: Cài đặt → Thông báo → 金龍ラーメン専用アプリ → Cho phép thông báo. Android: Chrome ⋮ → Cài đặt → Cài đặt trang web → Thông báo → cho phép.",
+    "turnOn": "Bật thông báo",
+    "turnedOn": "Đã bật thông báo",
+    "notAllowed": "Thông báo chưa được cho phép.",
+    "on": "Điện thoại này đang nhận thông báo.",
+    "test": "Gửi thử",
+    "testSent": "Đã gửi thông báo thử",
+    "turnOff": "Tắt",
+    "turnedOff": "Đã tắt thông báo",
+    "homeCard": "Bật thông báo để nhận ngay tin tìm người làm thay",
+    "homeInstall": "Để nhận thông báo, hãy thêm app vào màn hình chính",
+    "later": "Để sau"
+  },
   "fullName": {
     "title": "Đăng ký họ tên",
     "body": "Dùng để tổng hợp kết quả theo tuần và tháng. Hãy nhập họ tên đầy đủ giống trên thẻ cư trú hoặc hộ chiếu.",

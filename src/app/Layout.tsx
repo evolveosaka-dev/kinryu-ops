@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet } from 'react-router'
 import { UploadStatus } from '../features/attachments/UploadStatus'
 import { useUnreadComments } from '../features/comments/Comments'
 import { cx } from '../lib/cx'
+import { syncPush } from '../lib/push'
 import { familyName } from '../lib/format'
 import { useAuth } from './auth'
 
@@ -10,6 +12,12 @@ export function Layout() {
   const { t } = useTranslation()
   const { canPatrol, isManager, profile } = useAuth()
   const unread = useUnreadComments().data?.total ?? 0
+  const userId = profile?.id
+
+  // web push: keep this phone saved under the signed-in person (failures only mean no notifications)
+  useEffect(() => {
+    if (userId) syncPush().catch(() => undefined)
+  }, [userId])
 
   // Coloured icons + text: recognisable at a glance for staff who read Japanese slowly.
   const items = [

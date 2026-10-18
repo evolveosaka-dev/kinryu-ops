@@ -257,6 +257,29 @@
     "version": "Check your iOS version in Settings → General → About.",
     "thisPhone": "this iPhone"
   },
+  "push": {
+    "title": "Notifications (this phone)",
+    "what": {
+      "recruit": "Shift cover requests, and when someone names you",
+      "result": "The result of your absence / late / early-leave report, and when you are set to cover a shift",
+      "upload": "Photos / videos that could not be sent",
+      "manager": "Managers: absence reports, cover offers, complaints / accidents, new sign-ups"
+    },
+    "unsupported": "This phone / browser cannot receive notifications. Use Safari on iPhone or Chrome on Android.",
+    "needInstall": "To get notifications on iPhone, first add the app to your home screen and open it from the icon (iOS 16.4 or later).",
+    "denied": "Notifications are blocked. iPhone: Settings → Notifications → 金龍ラーメン専用アプリ → Allow Notifications. Android: Chrome ⋮ → Settings → Site settings → Notifications → allow.",
+    "turnOn": "Turn on notifications",
+    "turnedOn": "Notifications are on",
+    "notAllowed": "Notifications were not allowed.",
+    "on": "This phone receives notifications.",
+    "test": "Test notification",
+    "testSent": "Test notification sent",
+    "turnOff": "Turn off",
+    "turnedOff": "Notifications are off",
+    "homeCard": "Turn on notifications to get shift cover requests right away",
+    "homeInstall": "To get notifications, add the app to your home screen",
+    "later": "Later"
+  },
   "fullName": {
     "title": "Register your full name",
     "body": "Used for weekly and monthly reports. Enter your full name exactly as on your residence card or passport.",

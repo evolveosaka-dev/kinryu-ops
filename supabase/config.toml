@@ -34,3 +34,6 @@ verify_jwt = false
 
 [functions.shift-sync]
 verify_jwt = false
+
+[functions.send-push]
+verify_jwt = false
