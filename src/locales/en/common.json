@@ -263,7 +263,11 @@
       "recruit": "Shift cover requests, and when someone names you",
       "result": "The result of your absence / late / early-leave report, and when you are set to cover a shift",
       "upload": "Photos / videos that could not be sent",
-      "manager": "Managers: absence reports, cover offers, complaints / accidents, new sign-ups"
+      "manager": "Managers: absence reports, cover offers, complaints / accidents, new sign-ups",
+      "schedule": "When your shifts change (shift table update, after an approval)",
+      "comment": "When a manager comments on your meeting / patrol",
+      "request": "When you have not sent your shift wishes yet (15th, 18th, 20th)",
+      "reports": "When your complaint / accident record or lost item moves forward"
     },
     "unsupported": "This phone / browser cannot receive notifications. Use Safari on iPhone or Chrome on Android.",
     "needInstall": "To get notifications on iPhone, first add the app to your home screen and open it from the icon (iOS 16.4 or later).",
@@ -565,7 +569,20 @@
       "other": "Other"
     },
     "idConfirmed": "I confirmed this is the owner",
-    "idHint": "Ask them to describe the colour, shape or contents first; hand it over when it matches."
+    "idHint": "Ask them to describe the colour, shape or contents first; hand it over when it matches.",
+    "flow": {
+      "stored": "Kept",
+      "awaiting": "Waiting",
+      "recorded": "Returned / police",
+      "approved": "Manager check"
+    },
+    "flowNext": {
+      "stored": "When the owner contacts us, set it to \"waiting\". When the owner comes, record the return.",
+      "awaiting": "When the owner comes, check their ID and record the return.",
+      "recorded": "Sent back. Read the manager's comment and correct the record.",
+      "approved": "A manager is checking the record.",
+      "done": "Handling is finished."
+    }
   },
   "wf": {
     "overdue": "Overdue",
@@ -721,6 +738,11 @@
       "safety": "The injured person is safe (first aid, ambulance…)",
       "reported_mgr": "Reported to a manager (phone…)",
       "isolated": "The same product / ingredient is not used; serving stopped"
-    }
+    },
+    "nextFor": "Next step: {{state}} ({{who}})",
+    "whoStaff": "staff on site or a manager",
+    "whoManager": "a manager",
+    "finished": "Handling is finished",
+    "seeSteps": "See the steps"
   }
 }

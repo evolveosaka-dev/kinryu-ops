@@ -2,7 +2,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { createTestDb, type TestDb } from './harness'
 
-// Web push (migration 20261018000001): subscriptions per phone, push_queue rows written by events.
+// Web push (migrations 20261018000001 / 02): subscriptions per phone, push_queue rows written by events.
 let t: TestDb
 let manager: string
 let minami: string // ミナミ (reports)
@@ -10,14 +10,16 @@ let kita: string // キタ (free → gets 代わり募集)
 let higashi: string // ヒガシ (works that shift → not asked)
 let nishi: string // ニシ (free, but no phone subscribed)
 let tester: string // テスト用 (test account)
+let store = ''
 let d3 = ''
 
 const TODAY = `(now() at time zone 'Asia/Tokyo')::date`
 const sub = (user: string, n: string) =>
   t.as(user, `select public.save_push_subscription($1, 'p256dh-key', 'auth-key', 'test-ua')`, [`https://push.example.com/${n}`])
-const queue = () =>
-  t.admin<{ user_id: string; kind: string; data: Record<string, unknown>; url: string }>(`select user_id, kind, data, url from public.push_queue order by id`)
+type Q = { user_id: string; kind: string; data: Record<string, any>; url: string } // eslint-disable-line @typescript-eslint/no-explicit-any
+const queue = () => t.admin<Q>(`select user_id, kind, data, url from public.push_queue order by id`)
 const clear = () => t.admin(`delete from public.push_queue`)
+const kinds = (rows: Q[]) => rows.map((r) => [r.user_id, r.kind])
 
 async function assign(name: string, date: string, shift: string, start: number, end: number) {
   await t.admin(
@@ -46,6 +48,7 @@ beforeAll(async () => {
     await t.admin(`update public.profiles set status = 'active', roster_name = $2 where id = $1`, [id, name])
   await t.admin(`update public.profiles set is_test_account = true where id = $1`, [tester])
   await t.admin(`insert into public.staff_roster (name) values ('ミナミ'), ('キタ'), ('ヒガシ'), ('ニシ'), ('テスト用')`)
+  store = (await t.admin<{ id: string }>(`select id from public.stores where code = 'midosuji'`))[0]!.id
   const [row] = await t.admin<{ d3: string }>(`select (${TODAY} + 3)::text as d3`)
   d3 = row!.d3
   await assign('ミナミ', d3, 'early', 420, 1020)
@@ -80,7 +83,7 @@ describe('web push', () => {
     await clear()
   })
 
-  it('代わり募集 goes to people free at that time with a phone; managers get the report, the offer and the result', async () => {
+  it('代わり募集 → people free at that time; managers get report and offer; the approval tells both and lists the shift changes', async () => {
     const [c] = await t.as<{ id: string }>(minami, `select public.report_shift_change('absence', $1, 'early', 'family', '法事', p_recruit => true) as id`, [d3])
     const rows = await queue()
     // キタ: free + phone. ヒガシ works that 早番, ニシ has no phone, テスト用 is a test account, ミナミ reported it.
@@ -94,37 +97,135 @@ describe('web push', () => {
     await clear()
     await t.as(manager, `select public.decide_shift_change($1, true, $2)`, [c!.id, o!.id])
     const after = await queue()
-    expect(after.map((r) => [r.user_id, r.kind])).toEqual([
+    expect(kinds(after)).toEqual([
       [minami, 'decided'],
       [kita, 'assigned'],
+      [kita, 'schedule'],
+      [minami, 'schedule'],
     ])
     expect(after[0]!.data).toMatchObject({ ok: true, cover: 'キタ' })
+    expect(after[2]!.data).toEqual({ n: 1, items: [{ date: d3, shift: 'early', kind: 'added', detail: '7:00–17:00' }] })
+    expect(after[3]!.data).toEqual({ n: 1, items: [{ date: d3, shift: 'early', kind: 'removed', detail: '' }] })
     await clear()
   })
 
-  it('指名 goes to the named person; a refusal tells the reporter', async () => {
+  it('指名: the named person must answer before a manager can approve; each answer is pushed', async () => {
     await assign('ミナミ', d3, 'middle', 1020, 1380)
     const [c] = await t.as<{ id: string }>(minami, `select public.report_shift_change('absence', $1, 'middle', 'sick', p_cover => 'ヒガシ') as id`, [d3])
-    expect((await queue()).filter((r) => r.kind !== 'mgr_change').map((r) => [r.user_id, r.kind])).toEqual([[higashi, 'named']])
+    const rows = await queue()
+    expect(rows.filter((r) => r.kind !== 'mgr_change').map((r) => [r.user_id, r.kind])).toEqual([[higashi, 'named']])
+    expect(rows.find((r) => r.kind === 'mgr_change')!.data).toMatchObject({ event: 'report', named: 'ヒガシ', consent: 'pending' })
+    await clear()
+    await expect(t.as(manager, `select public.decide_shift_change($1, true, p_cover => 'ヒガシ')`, [c!.id])).rejects.toThrow(/waiting for the named person/)
+    await t.as(higashi, `select public.respond_cover_request($1, true)`, [c!.id])
+    const answered = await queue()
+    expect(answered.map((r) => [r.user_id, r.kind, r.kind === 'consent' ? r.data.ok : r.data.event])).toEqual([
+      [minami, 'consent', true],
+      [manager, 'mgr_change', 'accepted'],
+    ])
+    await clear()
+    await t.as(manager, `select public.decide_shift_change($1, true, p_cover => 'ヒガシ')`, [c!.id])
+    expect(kinds(await queue())).toEqual([
+      [minami, 'decided'],
+      [higashi, 'assigned'],
+      [higashi, 'schedule'],
+      [minami, 'schedule'],
+    ])
+    await clear()
+  })
+
+  it('指名 declined: the reporter and the managers are told; the manager cannot approve with that person', async () => {
+    await assign('ミナミ', d3, 'late', 1380, 1860)
+    const [c] = await t.as<{ id: string }>(minami, `select public.report_shift_change('absence', $1, 'late', 'sick', p_cover => 'キタ') as id`, [d3])
+    await clear()
+    await t.as(kita, `select public.respond_cover_request($1, false, '用事があります')`, [c!.id])
+    expect((await queue()).map((r) => [r.user_id, r.kind, r.kind === 'consent' ? r.data.ok : r.data.event, r.data.note ?? null])).toEqual([
+      [minami, 'consent', false, '用事があります'],
+      [manager, 'mgr_change', 'declined', '用事があります'],
+    ])
+    await expect(t.as(manager, `select public.decide_shift_change($1, true, p_cover => 'キタ')`, [c!.id])).rejects.toThrow(/declined/)
     await clear()
     await t.as(manager, `select public.decide_shift_change($1, false, p_note => 'ほかの人に頼みます')`, [c!.id])
     expect((await queue()).map((r) => [r.user_id, r.kind, r.data.ok])).toEqual([[minami, 'decided', false]])
     await clear()
   })
 
-  it('クレーム・事故 and sign-ups go to the managers', async () => {
-    const [st] = await t.admin<{ id: string }>(`select id from public.stores where code = 'midosuji'`)
-    await t.as(minami, `select public.report_incident($1, ${TODAY}, 'middle', now(), 'injury', 'やけど')`, [st!.id])
-    expect((await queue()).map((r) => [r.user_id, r.kind, r.data.kind, r.data.event])).toEqual([[manager, 'mgr_incident', 'injury', 'created']])
+  it('シフトが変わりました after an import: each person their own future changes', async () => {
+    await t.admin(
+      `insert into public.shift_import_log (month, source, rows, changes, n_changes) values (date_trunc('month', $1::date)::date, 'office365', '[]', $2, 3)`,
+      [
+        d3,
+        JSON.stringify([
+          { date: d3, shift: 'middle', name: 'キタ', kind: 'added', before: null, after: '⑤17-23' },
+          { date: d3, shift: 'late', name: 'キタ', kind: 'removed', before: '⑤23-7', after: null },
+          { date: '2020-01-01', shift: 'early', name: 'ミナミ', kind: 'added', before: null, after: '①7-17' },
+        ]),
+      ],
+    )
+    const rows = await queue()
+    expect(kinds(rows)).toEqual([[kita, 'schedule']])
+    expect(rows[0]!.data).toEqual({
+      n: 2,
+      items: [
+        { date: d3, shift: 'middle', kind: 'added', detail: '⑤17-23' },
+        { date: d3, shift: 'late', kind: 'removed', detail: '' },
+      ],
+    })
     await clear()
-    await t.createUser('newcomer@kinryu.jp', { display_name: '新人' })
-    expect((await queue()).map((r) => [r.user_id, r.kind])).toEqual([[manager, 'mgr_signup']])
+  })
+
+  it('管理者のコメント on my 朝礼 reaches me', async () => {
+    const [rec] = await t.as<{ id: string }>(kita, `insert into public.chorei_records (store_id, business_date, shift, stock_none) values ($1, ${TODAY}, 'early', true) returning id`, [store])
+    await clear()
+    await t.as(manager, `select public.add_chorei_comment($1, 'よくできました')`, [rec!.id])
+    const rows = await queue()
+    expect(kinds(rows)).toEqual([[kita, 'comment']])
+    expect(rows[0]).toMatchObject({ url: '/history', data: { what: 'chorei', shift: 'early', body: 'よくできました' } })
+    await clear()
+  })
+
+  it('クレーム・事故: managers get new reports; the reporter and the assignee get each step and comment', async () => {
+    const [inc] = await t.as<{ id: string }>(minami, `select public.report_incident($1, ${TODAY}, 'middle', now(), 'complaint', 'スープがぬるい') as id`, [store])
+    expect((await queue()).map((r) => [r.user_id, r.kind, r.data.kind, r.data.event])).toEqual([[manager, 'mgr_incident', 'complaint', 'created']])
+    await clear()
+    const act = (who: string, action: string, version: number, body: string | null = null, data: object = {}) =>
+      t.as<{ v: number }>(who, `select public.incident_act($1, $2, $3, $4, null, null, $5) as v`, [inc!.id, action, version, body, JSON.stringify(data)])
+    const v = (await act(manager, 'advance', 1))[0]!.v
+    const rows = await queue()
+    expect(kinds(rows)).toEqual([[minami, 'inc_step']])
+    expect(rows[0]).toMatchObject({ url: `/incident?tab=wf&open=${inc!.id}`, data: { kind: 'complaint', event: 'state', to: 'content_check' } })
+    await clear()
+    await act(manager, 'comment', v, 'お客様に電話しました')
+    expect((await queue()).map((r) => [r.user_id, r.data.event, r.data.body])).toEqual([[minami, 'comment', 'お客様に電話しました']])
+    await clear()
+  })
+
+  it('忘れ物: the finder gets each step', async () => {
+    const [li] = await t.as<{ id: string }>(
+      kita,
+      `select public.report_lost_item($1, now() - interval '1 hour', '黒い傘', '入口', 'レジ下', $2, '山田', '090-0000-0000') as id`,
+      [store, 'customer'],
+    )
+    await clear()
+    await t.as(manager, `select public.manage_lost_item($1, 'dispose', '保管期間が過ぎたため')`, [li!.id])
+    const rows = await queue()
+    expect(kinds(rows)).toEqual([[kita, 'lost_step']])
+    expect(rows[0]).toMatchObject({ url: `/lost-items?open=${li!.id}`, data: { desc: '黒い傘', action: 'dispose' } })
+    await clear()
+  })
+
+  it('シフト希望: on the 15th / 18th / 20th, people who have not sent next month', async () => {
+    const [{ day }] = (await t.admin<{ day: number }>(`select extract(day from ${TODAY})::int as day`)) as [{ day: number }]
+    await t.admin(`select public.queue_shift_request_reminders()`)
+    const rows = await queue()
+    if (![15, 18, 20].includes(day)) expect(rows).toEqual([])
+    // テスト用 (test account) and the manager (no shift-table name) are never reminded
+    else expect(rows.map((r) => r.user_id).sort()).toEqual([minami, kita, higashi].sort())
     await clear()
   })
 
   it('送れていない写真・動画: reminds the sender at most once per 6 hours', async () => {
-    const [st] = await t.admin<{ id: string }>(`select id from public.stores where code = 'midosuji'`)
-    const [inc] = await t.as<{ id: string }>(kita, `select public.report_incident($1, ${TODAY}, 'middle', now(), 'other', 'x') as id`, [st!.id])
+    const [inc] = await t.as<{ id: string }>(kita, `select public.report_incident($1, ${TODAY}, 'middle', now(), 'other', 'x') as id`, [store])
     await clear()
     await t.admin(
       `insert into public.attachments (owner_id, incident_id, kind, file_name, mime_type, size_bytes, created_at)

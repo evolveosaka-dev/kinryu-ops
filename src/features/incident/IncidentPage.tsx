@@ -435,6 +435,11 @@ export function IncidentPage() {
           <ul className="flex flex-col gap-2">
             {mine.data!.map((r) => (
               <li key={r.id} className="flex flex-col gap-1 rounded-xl border border-line bg-white p-3">
+                {(r as { wf_state?: string | null }).wf_state && (
+                  <Link to={`/incident?tab=wf&open=${r.id}`} className="self-end text-sm font-bold text-brand underline">
+                    {t('wf.seeSteps')} ›
+                  </Link>
+                )}
                 <span className="flex items-center justify-between gap-2">
                   <b>
                     {INCIDENT_ICON[r.kind]} {t(`incident.kinds.${r.kind}`)}

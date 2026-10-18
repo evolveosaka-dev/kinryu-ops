@@ -58,7 +58,16 @@ function MyChange({ c }: { c: ChangeWithOffers }) {
         {label(c)} ・ {REASON_ICON[c.reason]} {reasonLabel(c.kind, c.reason)}
       </span>
       {c.note && <span className="text-sm text-muted">{c.note_original ?? c.note}</span>}
-      {c.status === 'open' && c.proposed_cover && <span className="text-sm font-bold text-brand-dark">🤝 {t('change.namedPending', { name: c.proposed_cover })}</span>}
+      {c.status === 'open' && c.proposed_cover && (
+        <span className={cx('text-sm font-bold', c.cover_consent === 'declined' ? 'text-red-700' : 'text-brand-dark')}>
+          🤝{' '}
+          {c.cover_consent === 'pending'
+            ? t('change.namedWaitAnswer', { name: c.proposed_cover })
+            : c.cover_consent === 'declined'
+              ? t('change.namedDeclined', { name: c.proposed_cover }) + (c.cover_consent_note ? `（${c.cover_consent_note}）` : '')
+              : t('change.namedPending', { name: c.proposed_cover })}
+        </span>
+      )}
       {c.status === 'open' && c.recruit && <span className="text-sm">🙋 {offers ? t('change.offersN', { n: offers }) : t('change.waiting')}</span>}
       {c.status === 'approved' && c.kind !== 'late' && (
         <span className="text-sm font-bold text-green-800">{c.cover_name ? `✅ ${t('change.coveredBy', { name: c.cover_name })}` : `✅ ${t('change.approvedNoCover')}`}</span>
@@ -175,6 +184,16 @@ function RecruitCardItem({ r, mySchedule }: { r: Recruit; mySchedule: (Assignmen
     mutationFn: async () => unwrap(await supabase.rpc('withdraw_shift_offer', { p_offer: r.my_offer_id! })),
     onSuccess: done,
   })
+  const [declining, setDeclining] = useState(false)
+  const [why, setWhy] = useState('')
+  const answer = useMutation({
+    mutationFn: async (accept: boolean) =>
+      unwrap(await supabase.rpc('respond_cover_request', { p_change: r.id, p_accept: accept, p_note: accept ? null : why.trim() || null })),
+    onSuccess: (_, accept) => {
+      toast(t(accept ? 'change.acceptedToast' : 'change.declinedToast'))
+      done()
+    },
+  })
   const state = r.assigned
     ? 'assigned'
     : r.designated && r.status === 'open'
@@ -199,7 +218,44 @@ function RecruitCardItem({ r, mySchedule }: { r: Recruit; mySchedule: (Assignmen
       </span>
       {chain >= LONG_CHAIN_MIN && <p className="rounded-lg bg-amber-50 px-2 py-1 text-sm font-bold text-amber-900">⚠️ {t('schedule.long', { h: hours(chain) })}</p>}
       {state === 'assigned' && <p className="font-bold text-green-800">✅ {t('change.youCover')}</p>}
-      {state === 'designated' && <p className="font-bold text-brand-dark">🤝 {t('change.designatedYou', { name: r.roster_name })}</p>}
+      {state === 'designated' && r.my_consent !== 'pending' && (
+        <p className="font-bold text-brand-dark">
+          🤝 {r.my_consent === 'declined' ? t('change.youDeclined') : r.my_consent === 'accepted' ? t('change.youAccepted') : t('change.designatedYou', { name: r.roster_name })}
+        </p>
+      )}
+      {state === 'designated' && r.my_consent === 'pending' && (
+        <div className="flex flex-col gap-2 rounded-lg bg-brand-soft p-2">
+          <p className="font-bold text-brand-dark">🤝 {t('change.namedAsk', { name: r.roster_name })}</p>
+          {declining ? (
+            <>
+              <input
+                className="min-h-11 rounded-xl border border-slate-400 bg-white px-3"
+                placeholder={t('change.declineWhy')}
+                value={why}
+                maxLength={300}
+                onChange={(e) => setWhy(e.target.value)}
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <Button variant="secondary" className="min-h-10 py-1 text-sm" onClick={() => setDeclining(false)}>
+                  {t('common:action.cancel')}
+                </Button>
+                <Button variant="danger" className="min-h-10 py-1 text-sm" onClick={() => answer.mutate(false)} disabled={answer.isPending}>
+                  {t('change.decline')}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <Button onClick={() => answer.mutate(true)} disabled={answer.isPending}>
+                ✅ {t('change.accept')}
+              </Button>
+              <Button variant="danger" onClick={() => setDeclining(true)} disabled={answer.isPending}>
+                {t('change.decline')}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
       {over && <p className="rounded-lg bg-red-50 px-2 py-1.5 text-sm font-bold text-red-800">✗ {t('change.visaBlockedYou', { h: Math.round((r.my_over_min! / 60) * 10) / 10 })}</p>}
       {state === 'declined' && <p className="text-sm text-muted">{t('change.otherChosen')}</p>}
       {state === 'offered' && (
@@ -233,8 +289,14 @@ function RecruitCardItem({ r, mySchedule }: { r: Recruit; mySchedule: (Assignmen
           </Button>
         </>
       )}
-      {(offer.error ?? withdraw.error) && (
-        <ErrorBox message={coverProblemOf(offer.error) ? problemText(coverProblemOf(offer.error)!) : errorMessage(offer.error ?? withdraw.error)} />
+      {(offer.error ?? withdraw.error ?? answer.error) && (
+        <ErrorBox
+          message={
+            coverProblemOf(offer.error ?? answer.error)
+              ? problemText(coverProblemOf(offer.error ?? answer.error)!)
+              : errorMessage(offer.error ?? withdraw.error ?? answer.error)
+          }
+        />
       )}
     </li>
   )

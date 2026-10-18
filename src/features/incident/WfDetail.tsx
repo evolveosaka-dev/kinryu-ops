@@ -22,6 +22,7 @@ import {
   type WfState,
   type Priority,
   type WfAction,
+  STAFF_STEPS,
 } from '../../domain/incidentWorkflow'
 import { currentLocale } from '../../i18n'
 import { cx } from '../../lib/cx'
@@ -200,6 +201,12 @@ export function WfDetail({ r, onClose }: { r: WfIncident; onClose: () => void })
           <WfChips r={r} />
         </div>
         <Progress r={r} />
+        {next && (
+          <p className="rounded-lg bg-sky-50 px-2 py-1 text-sm text-sky-950">
+            ➡️ {t('wf.nextFor', { state: t(`wf.state.${next}`), who: t(STAFF_STEPS[r.kind]?.includes(next) ? 'wf.whoStaff' : 'wf.whoManager') })}
+          </p>
+        )}
+        {r.wf_state === 'done' && <p className="rounded-lg bg-green-50 px-2 py-1 text-sm font-bold text-green-900">✅ {t('wf.finished')}</p>}
         <p className="whitespace-pre-wrap text-base">{r.description}</p>
         {r.original_texts?.description && <p className="text-xs text-muted">{t('comment.original')}: {r.original_texts.description}</p>}
         <Row label={t('wf.f.assignee')}>{r.assignee_name ?? <span className="text-amber-800">{t('wf.unassigned')}</span>}</Row>

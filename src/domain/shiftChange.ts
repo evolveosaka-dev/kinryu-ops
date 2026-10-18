@@ -61,6 +61,9 @@ export interface ShiftChange {
   by_manager: boolean
   /** named by the reporter (代わりの人を指名), waiting for a manager */
   proposed_cover: string | null
+  /** the named person's answer (null on reports before 2026-10-18: no answer needed) */
+  cover_consent: 'pending' | 'accepted' | 'declined' | null
+  cover_consent_note: string | null
 }
 
 /** Why someone cannot take a shift (SQL cover_problem / visa_over). */
@@ -117,6 +120,8 @@ export interface Recruit {
   designated: boolean
   /** minutes in the worst 7 days if I took it, when over 28 h (留学 / 家族滞在) */
   my_over_min: number | null
+  /** my answer when I am named */
+  my_consent: 'pending' | 'accepted' | 'declined' | null
 }
 
 /** The part of the shift a replacement would work (from the leave time for 早退). */

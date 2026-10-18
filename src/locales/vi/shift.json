@@ -222,7 +222,17 @@
     "availableChoice": "có thể làm {{time}}",
     "coverPickOther": "Chọn người khác",
     "lateLong": "Nếu đến trễ hơn {{h}} tiếng, hãy báo là \"Nghỉ\".",
-    "switchToAbsence": "Chuyển sang \"Nghỉ\""
+    "switchToAbsence": "Chuyển sang \"Nghỉ\"",
+    "accept": "Nhận làm thay",
+    "decline": "Từ chối",
+    "declineWhy": "Lý do (không bắt buộc)",
+    "namedAsk": "{{name}} đã chọn bạn làm thay. Bạn có nhận không?",
+    "youAccepted": "Bạn đã nhận. Đang chờ quản lý duyệt.",
+    "youDeclined": "Bạn đã từ chối.",
+    "acceptedToast": "Đã nhận làm thay",
+    "declinedToast": "Đã từ chối",
+    "namedWaitAnswer": "Đang chờ {{name}} trả lời",
+    "namedDeclined": "{{name}} không làm thay được"
   },
   "score": {
     "title": "Điểm đi làm ({{n}} ngày gần nhất)",

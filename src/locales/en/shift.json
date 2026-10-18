@@ -222,7 +222,17 @@
     "availableChoice": "available {{time}}",
     "coverPickOther": "Choose someone else",
     "lateLong": "If you will be more than {{h}} hours late, please report it as \"Day off\" instead.",
-    "switchToAbsence": "Switch to \"Day off\""
+    "switchToAbsence": "Switch to \"Day off\"",
+    "accept": "Accept",
+    "decline": "Decline",
+    "declineWhy": "Reason (optional)",
+    "namedAsk": "{{name}} named you to cover. Will you take it?",
+    "youAccepted": "You accepted. Waiting for a manager to approve.",
+    "youDeclined": "You declined.",
+    "acceptedToast": "Accepted",
+    "declinedToast": "Declined",
+    "namedWaitAnswer": "Waiting for {{name}} to answer",
+    "namedDeclined": "{{name}} cannot cover"
   },
   "score": {
     "title": "Attendance score (last {{n}} days)",

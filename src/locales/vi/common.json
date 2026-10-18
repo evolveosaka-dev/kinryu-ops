@@ -263,7 +263,11 @@
       "recruit": "Tìm người làm thay, khi có người chọn bạn làm thay",
       "result": "Kết quả liên lạc nghỉ / đi muộn / về sớm, khi bạn được chọn làm thay",
       "upload": "Khi ảnh / video chưa gửi được",
-      "manager": "Quản lý: liên lạc nghỉ, người làm thay được, khiếu nại / sự cố, đăng ký mới"
+      "manager": "Quản lý: liên lạc nghỉ, người làm thay được, khiếu nại / sự cố, đăng ký mới",
+      "schedule": "Khi lịch ca thay đổi (cập nhật bảng ca, sau khi được duyệt)",
+      "comment": "Khi quản lý bình luận vào họp ca / tuần tra của bạn",
+      "request": "Khi bạn chưa nộp nguyện vọng ca (ngày 15, 18, 20)",
+      "reports": "Khi khiếu nại / sự cố hoặc đồ thất lạc bạn ghi được xử lý tiếp"
     },
     "unsupported": "Điện thoại / trình duyệt này không nhận được thông báo. Hãy dùng Safari trên iPhone, Chrome trên Android.",
     "needInstall": "Để nhận thông báo trên iPhone, trước hết hãy thêm app vào màn hình chính và mở bằng biểu tượng đó (iOS 16.4 trở lên).",
@@ -565,7 +569,20 @@
       "other": "Khác"
     },
     "idConfirmed": "Đã xác nhận đúng là chủ đồ",
-    "idHint": "Nhờ người đó tả màu, hình dạng, đồ bên trong trước; khớp thì mới đưa."
+    "idHint": "Nhờ người đó tả màu, hình dạng, đồ bên trong trước; khớp thì mới đưa.",
+    "flow": {
+      "stored": "Đang giữ",
+      "awaiting": "Chờ trả",
+      "recorded": "Trả / cảnh sát",
+      "approved": "Quản lý xác nhận"
+    },
+    "flowNext": {
+      "stored": "Khi chủ đồ liên lạc thì chuyển sang \"Chờ trả lại\". Khi chủ đồ đến thì ghi nhận trả lại.",
+      "awaiting": "Khi chủ đồ đến, kiểm tra giấy tờ rồi ghi nhận trả lại.",
+      "recorded": "Bị trả lại để sửa. Hãy xem ghi chú của quản lý và sửa lại.",
+      "approved": "Quản lý đang kiểm tra.",
+      "done": "Đã xử lý xong."
+    }
   },
   "wf": {
     "overdue": "Quá hạn",
@@ -721,6 +738,11 @@
       "safety": "Đã đảm bảo an toàn cho người bị thương (sơ cứu, gọi cấp cứu…)",
       "reported_mgr": "Đã báo cho quản lý (gọi điện…)",
       "isolated": "Không dùng sản phẩm / nguyên liệu đó nữa, đã ngừng phục vụ"
-    }
+    },
+    "nextFor": "Bước tiếp theo: {{state}} ({{who}})",
+    "whoStaff": "nhân viên tại chỗ hoặc quản lý",
+    "whoManager": "quản lý",
+    "finished": "Đã xử lý xong",
+    "seeSteps": "Xem các bước xử lý"
   }
 }

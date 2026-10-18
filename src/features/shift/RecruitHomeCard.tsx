@@ -9,7 +9,7 @@ export function RecruitHomeCard() {
   const me = useMe()
   const recruits = useRecruits(Boolean(me.roster_name))
   const open = (recruits.data ?? []).filter((r) => r.status === 'open' && !r.my_offer_id && !r.designated && r.my_over_min === null)
-  const named = (recruits.data ?? []).filter((r) => r.status === 'open' && r.designated)
+  const named = (recruits.data ?? []).filter((r) => r.status === 'open' && r.designated && r.my_consent === 'pending')
   const covering = (recruits.data ?? []).filter((r) => r.assigned && r.business_date >= today())
   if (!open.length && !covering.length && !named.length) return null
   return (

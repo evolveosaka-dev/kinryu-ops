@@ -30,6 +30,31 @@ function StageChip({ r }: { r: LostRow }) {
   return <span className={cx('shrink-0 rounded-full px-2 py-0.5 text-xs font-bold', STAGE_STYLE[stage])}>{label}</span>
 }
 
+const FLOW = ['stored', 'awaiting', 'recorded', 'approved'] as const
+
+/** The steps of a lost item, so the finder knows what happens next: 保管中 → 返却待ち → 返却・警察 → 管理者の確認. */
+function LostFlow({ r }: { r: LostRow }) {
+  const { t } = useTranslation()
+  const stage = lostStage(r)
+  if (r.status === 'disposed') return null
+  const at: number = r.status === 'stored' ? 0 : r.status === 'awaiting' ? 1 : stage === 'rejected' ? 2 : stage === 'pending' ? 3 : 4
+  return (
+    <div className="flex flex-col gap-1">
+      <ol className="grid grid-cols-4 gap-1">
+        {FLOW.map((s, i) => (
+          <li key={s} className={cx('h-1.5 rounded-full', i < at ? 'bg-brand' : i === at ? 'bg-amber-400' : 'bg-slate-200')} />
+        ))}
+      </ol>
+      <ol className="grid grid-cols-4 gap-1 text-center text-[10px] leading-tight text-muted">
+        {FLOW.map((s) => (
+          <li key={s}>{t(`lost.flow.${s}`)}</li>
+        ))}
+      </ol>
+      <p className="rounded-lg bg-sky-50 px-2 py-1 text-sm text-sky-950">➡️ {t(`lost.flowNext.${FLOW[at] ?? 'done'}`)}</p>
+    </div>
+  )
+}
+
 /** 管理者: comment, approve / send back the recorded outcome, dispose a stored item. Text is saved in Japanese. */
 function ManagerActions({ r }: { r: LostRow }) {
   const { t } = useTranslation()
@@ -110,6 +135,7 @@ function LostSheet({ r, onClose }: { r: LostRow; onClose: () => void }) {
           </span>
           <StageChip r={r} />
         </p>
+        <LostFlow r={r} />
         <p>
           <b>{t('lost.foundAt')}:</b> {formatWhen(r.found_at)}
           {r.found_place && `・${r.found_place}`}
@@ -230,14 +256,14 @@ function LostSheet({ r, onClose }: { r: LostRow; onClose: () => void }) {
 const FILTERS: LostFilter[] = ['stored', 'pending', 'done', 'marketing', 'all']
 
 /** The shared list: staff (メニュー → 忘れ物・落とし物) and managers (管理 → 忘れ物). */
-export function LostItemsList({ initialFilter = 'stored', canAdd = true }: { initialFilter?: LostFilter; canAdd?: boolean }) {
+export function LostItemsList({ initialFilter = 'stored', canAdd = true, initialOpen = null }: { initialFilter?: LostFilter; canAdd?: boolean; initialOpen?: string | null }) {
   const { t } = useTranslation()
   const { isManager } = useAuth()
   const stores = useStores()
   const items = useLostItems()
   const [filter, setFilter] = useState<LostFilter>(initialFilter)
   const [adding, setAdding] = useState(false)
-  const [openId, setOpenId] = useState<string | null>(null)
+  const [openId, setOpenId] = useState<string | null>(initialOpen)
   if (items.isLoading) return <Spinner />
   const all = items.data ?? []
   const list = all.filter((r) => matchesLostFilter(r, filter))

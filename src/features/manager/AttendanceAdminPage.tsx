@@ -82,7 +82,9 @@ function DecideSheet({ c, onClose }: { c: ChangeWithOffers; onClose: () => void 
   const names = useRosterNames()
   const limits = useLimits()
   const rows = useAssignments(addDays(c.business_date, -7), addDays(c.business_date, 7), c.status === 'open' && c.kind !== 'late')
-  const [pick, setPick] = useState<{ offer?: string; cover?: string } | null>(c.status === 'open' && c.proposed_cover ? { cover: c.proposed_cover } : null)
+  const [pick, setPick] = useState<{ offer?: string; cover?: string } | null>(
+    c.status === 'open' && c.proposed_cover && (c.cover_consent ?? 'accepted') === 'accepted' ? { cover: c.proposed_cover } : null,
+  )
   const problemText = useProblemText()
   const reasonLabel = useReasonLabel()
   const [note, setNote] = useState('')
@@ -128,6 +130,8 @@ function DecideSheet({ c, onClose }: { c: ChangeWithOffers; onClose: () => void 
     )
   }
   const pickedName = pick?.cover ?? offers.find((o) => o.id === pick?.offer)?.roster_name ?? null
+  // 指名: approve only after the named person said 引き受ける (reject stays possible)
+  const waiting = c.status === 'open' && c.cover_consent === 'pending'
   return (
     <Sheet title={`${c.roster_name} ・ ${label(c)}`} onClose={onClose}>
       {translation.review}
@@ -161,9 +165,19 @@ function DecideSheet({ c, onClose }: { c: ChangeWithOffers; onClose: () => void 
         <Card className="flex flex-col gap-1 border-2 border-brand">
           <h3 className="font-bold">🤝 {t('attendance.proposed', { name: c.proposed_cover })}</h3>
           {checks(c.proposed_cover)}
-          <Button variant={pick?.cover === c.proposed_cover ? 'primary' : 'secondary'} className="min-h-10 py-1 text-sm" onClick={() => setPick({ cover: c.proposed_cover! })}>
-            {t('attendance.chooseProposed')}
-          </Button>
+          {c.cover_consent === 'pending' && <p className="rounded-lg bg-amber-50 px-2 py-1 text-sm font-bold text-amber-900">⏳ {t('attendance.consentPending', { name: c.proposed_cover })}</p>}
+          {c.cover_consent === 'accepted' && <p className="text-sm font-bold text-green-800">✅ {t('attendance.consentAccepted', { name: c.proposed_cover })}</p>}
+          {c.cover_consent === 'declined' && (
+            <p className="rounded-lg bg-red-50 px-2 py-1 text-sm font-bold text-red-800">
+              ❌ {t('attendance.consentDeclined', { name: c.proposed_cover })}
+              {c.cover_consent_note && `（${c.cover_consent_note}）`}
+            </p>
+          )}
+          {(c.cover_consent ?? 'accepted') === 'accepted' && (
+            <Button variant={pick?.cover === c.proposed_cover ? 'primary' : 'secondary'} className="min-h-10 py-1 text-sm" onClick={() => setPick({ cover: c.proposed_cover! })}>
+              {t('attendance.chooseProposed')}
+            </Button>
+          )}
         </Card>
       )}
       {c.status === 'open' && c.kind !== 'late' && (
@@ -226,11 +240,12 @@ function DecideSheet({ c, onClose }: { c: ChangeWithOffers; onClose: () => void 
             <ErrorBox message={coverProblemOf(decide.error) ? problemText(coverProblemOf(decide.error)!) : errorMessage(decide.error)} />
           )}
           {pickedName && (
-            <Button onClick={() => decide.mutate({ approve: true, offer: pick?.offer, cover: pick?.cover })} disabled={decide.isPending}>
+            <Button onClick={() => decide.mutate({ approve: true, offer: pick?.offer, cover: pick?.cover })} disabled={decide.isPending || waiting}>
               ✅ {t('attendance.approveWith', { name: pickedName })}
             </Button>
           )}
-          <Button variant={pickedName ? 'secondary' : 'primary'} onClick={() => decide.mutate({ approve: true })} disabled={decide.isPending}>
+          {waiting && <p className="rounded-lg bg-amber-50 px-2 py-1 text-sm font-bold text-amber-900">⏳ {t('attendance.consentPending', { name: c.proposed_cover })}</p>}
+          <Button variant={pickedName ? 'secondary' : 'primary'} onClick={() => decide.mutate({ approve: true })} disabled={decide.isPending || waiting}>
             {c.kind === 'late' ? `✅ ${t('attendance.confirm')}` : `✅ ${t('attendance.approveWithout')}`}
           </Button>
           <Button variant="danger" onClick={() => decide.mutate({ approve: false })} disabled={decide.isPending}>
@@ -407,6 +422,9 @@ function ReportsTab() {
           📞 {noticeText(ts, c.notice_min)}
           {c.status === 'open' && c.recruit && ` ・ 🙋 ${t('attendance.offers', { n: c.offers.filter((o) => o.status === 'offered').length })}`}
           {c.status === 'open' && c.proposed_cover && ` ・ 🤝 ${t('attendance.proposed', { name: c.proposed_cover })}`}
+          {c.status === 'open' && c.cover_consent === 'pending' && `（⏳ ${t('attendance.consentWait')}）`}
+          {c.status === 'open' && c.cover_consent === 'accepted' && `（✅ ${t('attendance.consentOk')}）`}
+          {c.status === 'open' && c.cover_consent === 'declined' && `（❌ ${t('attendance.consentNg')}）`}
           {c.cover_name && ` ・ ${ts('change.coveredBy', { name: c.cover_name })}`}
         </span>
       </button>

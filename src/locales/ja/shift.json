@@ -222,7 +222,17 @@
     "availableChoice": "{{time}} 出勤可",
     "coverPickOther": "ほかの人から選ぶ",
     "lateLong": "{{h}}時間より長く遅れる場合は、「休む」で連絡してください。",
-    "switchToAbsence": "「休む」に切り替える"
+    "switchToAbsence": "「休む」に切り替える",
+    "accept": "引き受ける",
+    "decline": "断る",
+    "declineWhy": "断る理由（なくてもよい）",
+    "namedAsk": "{{name}}さんがあなたを代わりに指名しました。引き受けますか？",
+    "youAccepted": "引き受けました。管理者の承認を待っています。",
+    "youDeclined": "断りました。",
+    "acceptedToast": "引き受けました",
+    "declinedToast": "断りました",
+    "namedWaitAnswer": "{{name}}さんの返事を待っています",
+    "namedDeclined": "{{name}}さんは代われません"
   },
   "score": {
     "title": "出勤の評価（直近{{n}}日）",

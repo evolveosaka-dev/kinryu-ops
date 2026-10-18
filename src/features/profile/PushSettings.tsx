@@ -64,6 +64,10 @@ export function PushSettings() {
       <ul className="flex list-disc flex-col gap-0.5 pl-5 text-sm text-slate-700">
         <li>{t('push.what.recruit')}</li>
         <li>{t('push.what.result')}</li>
+        <li>{t('push.what.schedule')}</li>
+        <li>{t('push.what.comment')}</li>
+        <li>{t('push.what.request')}</li>
+        <li>{t('push.what.reports')}</li>
         <li>{t('push.what.upload')}</li>
         {isManager && <li>{t('push.what.manager')}</li>}
       </ul>

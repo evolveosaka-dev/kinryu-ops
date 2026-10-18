@@ -758,7 +758,7 @@
     "limitHelp": "Student / dependent visas: check them on 管理 → 設定 → ユーザー (28 h in 7 days in a row). For other limits enter the hours here. Empty = no limit.",
     "limitHours": "hours / week",
     "visaLimit": "at most 28 h in 7 days in a row (set on the user screen)",
-    "proposed": "Named by the reporter: {{name}} (agreed)",
+    "proposed": "Named by the reporter: {{name}}",
     "chooseProposed": "Approve with this person (confirm below)",
     "afterLong": "right after {{time}} ({{h}} h)",
     "editReport": "Correct the report",
@@ -766,7 +766,13 @@
     "lateMin": "Minutes late",
     "leaveAt": "Leaving at",
     "leaveFixed": "The leaving time ({{time}}) is approved and already in the shift table, so it cannot change here. Correct it in the shift table.",
-    "editHelp": "A manager corrects what the staff member sent. Who corrected it and the previous content are kept. No mail."
+    "editHelp": "A manager corrects what the staff member sent. Who corrected it and the previous content are kept. No mail.",
+    "consentPending": "Waiting for {{name}} to answer. You can approve after they accept (you can still reject).",
+    "consentAccepted": "{{name}} accepted",
+    "consentDeclined": "{{name}} declined",
+    "consentWait": "waiting for an answer",
+    "consentOk": "accepted",
+    "consentNg": "declined"
   },
   "system": {
     "title": "System status",
