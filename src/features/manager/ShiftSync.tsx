@@ -119,7 +119,7 @@ export function ShiftSyncCard() {
   const [url, setUrl] = useState('')
   const [shown, setShown] = useState<ShiftImportLog | null>(null)
   const refresh = () => {
-    for (const k of [['admin', 'shift_sync_status'], ['admin', 'shift_import_log'], ['shift_assignments'], ['shift_coworkers'], ['staff_roster'], ['admin', 'shift-month-count']])
+    for (const k of [['admin', 'shift_sync_status'], ['admin', 'shift_import_log'], ['shift_assignments'], ['shift_coworkers'], ['staff_roster'], ['admin', 'shift-month-count'], ['admin', 'sales_sync_status'], ['analysis']])
       void queryClient.invalidateQueries({ queryKey: k })
   }
   const save = useMutation({

@@ -663,7 +663,7 @@
     },
     "src": {
       "title": "Data source",
-      "sales": "Bowls: sent daily sales reports (tickets ramen + chashu-men); until 2026/10/11 the Excel 「金龍売り上げ杯数」. Coupons not included.",
+      "sales": "Bowls: sent daily sales reports (tickets ramen + chashu-men); shifts without a report: the Office 365 workbook 「金龍売り上げ杯数」 (read every day at 6:00). Coupons not included.",
       "target": "Target: Manager → Settings → Target bowls (store × shift × day type × month).",
       "events": "Events: the % of the events (ON only) on the same page.",
       "lastYear": "Last year: the same data 364 days before (same weekday).",
@@ -1321,6 +1321,52 @@
       "commute": "Commute",
       "referral": "Referral",
       "hourly": "Hourly pay"
+    }
+  },
+  "salesSync": {
+    "title": "Bowl counts from Office 365",
+    "note": "The shared workbook 「金龍売り上げ杯数」 (sheet ★拝数入力シート) is read every day at 6:00 with the shift workbook. The file is only read, never changed. A sent daily sales report wins over the file.",
+    "lastOk": "Last import {{at}}: figures up to {{last}}, {{added}} new, {{changed}} changed",
+    "runHint": "「Import now」 above reads it together with the shift workbook.",
+    "changes": "Figures added or changed by the last import ({{n}})",
+    "kind": {
+      "added": "New",
+      "changed": "Changed"
+    },
+    "store": {
+      "sennichimae": "Sennichimae",
+      "midosuji": "Midosuji"
+    }
+  },
+  "compare": {
+    "title": "Actual vs forecast",
+    "prev": "Previous day",
+    "next": "Next day",
+    "lyLabel": "Last year = {{date}} (364 days before, same weekday)",
+    "colWhere": "Store / shift",
+    "colActual": "Actual",
+    "colForecast": "Forecast",
+    "colLastYear": "Last year",
+    "total": "Total",
+    "all": "Both stores",
+    "noActual": "No actual figures for this day yet (the bowl-count file is read every day at 6:00).",
+    "syncFail": "Bowl-count import failed: {{error}}",
+    "legend": "% under the actual = actual ÷ forecast. The forecast uses only figures from before the day.",
+    "tapHint": "Tap a number to see its source and calculation.",
+    "x": {
+      "actualTitle": "{{date}} {{where}}: actual",
+      "actualFormula": "Actual = ramen + chashu-men (coupons not included)\n= {{n}} bowls",
+      "lyTitle": "{{date}} {{where}}: last year",
+      "lyFormula": "Last year = actual of {{ly}}\n= {{n}} bowls",
+      "lyNote": "Last year is 364 days (52 weeks) before, so the weekday is the same.",
+      "none": "No figure for {{date}} yet.",
+      "fromReport": "Source: daily sales report (sent).",
+      "fromExcel": "Source: Office 365 workbook 「金龍売り上げ杯数」 (★拝数入力シート), read every day at 6:00.",
+      "openReport": "Open this daily sales report ›",
+      "sumTitle": "{{date}} {{where}}: {{col}}",
+      "sumFormula": "{{col}} = {{parts}}\n= {{n}} bowls",
+      "sumMissing": "Some shifts have no figure yet, so there is no total.",
+      "forecastNote": "The forecast is calculated only from figures before {{date}} (the same calculation as the forecast made the day before). The weather is the day's actual weather."
     }
   }
 }

@@ -10,6 +10,7 @@ import { errorMessage } from '../../lib/format'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import { ManagerTabs } from './ManagerTabs'
+import { SalesSyncCard } from './SalesSync'
 import { ShiftSyncCard } from './ShiftSync'
 
 interface Parsed {
@@ -95,6 +96,7 @@ export function ShiftImportPage() {
       <ManagerTabs />
       <PageTitle title={t('shiftImport.title')} />
       <ShiftSyncCard />
+      <SalesSyncCard />
       <p className="text-sm text-muted">{t('shiftImport.note')}</p>
       <label className="flex min-h-13 cursor-pointer items-center justify-center rounded-xl border-[1.5px] border-dashed border-brand bg-white font-bold text-brand-dark hover:bg-brand-soft">
         📂 {t('shiftImport.pick')}

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card, Spinner } from '../../../components/ui'
-import { backtest, dayTypeCache, forecastSlot, rainFactors, rainOf, RAINY_MM, weatherFactors, WX_ICON, wxKind, type WeatherMap } from '../../../domain/forecast'
+import { dayTypeCache, forecastModel, forecastSlot, RAINY_MM, WX_ICON, wxKind, type WeatherMap } from '../../../domain/forecast'
 import { dayView, DATA_FROM, indexSales, type Ctx } from '../../../domain/salesAnalysis'
 import { addDays, formatShortDate, weekdayOf } from '../../../domain/time'
 import { SHIFTS } from '../../../domain/types'
@@ -66,7 +66,6 @@ export function ForecastCard({ days, compact = false }: { days: number; compact?
   const result = useMemo(() => {
     if (!stores.data || !holidays.data || !targets.data || !events.data || !sales.data || !weather.data) return null
     const wx = weather.data
-    const rain = rainOf(wx)
     const ctx: Ctx = {
       sales: indexSales(sales.data),
       targets: targets.data,
@@ -76,12 +75,7 @@ export function ForecastCard({ days, compact = false }: { days: number; compact?
       shifts: [...SHIFTS],
     }
     const typeOf = dayTypeCache(holidays.data)
-    // the factors are measured before the 28 backtest days, so the backtest is a fair test of them
-    const fitTo = addDays(now, -29)
-    const factors = rainFactors(ctx, typeOf, rain, DATA_FROM, fitTo)
-    const wf = weatherFactors(ctx, typeOf, wx, DATA_FROM, fitTo)
-    const check = backtest(ctx, typeOf, rain, factors, now, 28, { wx, factors: wf })
-    const wIn = { wx, rain: factors, factors: wf, mode: check.weatherChosen }
+    const { rain, factors, wf, check, wIn } = forecastModel(ctx, typeOf, wx, now, DATA_FROM)
     const dates = Array.from({ length: days }, (_, i) => addDays(now, i))
     const rows = dates.map((date) => {
       const view = dayView(ctx, date)

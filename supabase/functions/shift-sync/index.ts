@@ -1,11 +1,14 @@
 // シフト表の自動取り込み: downloads the workbook shared from Office 365 (app_kv shift_workbook_url), reads the
 // 早番 / 中番 / 遅番 sheets and imports the month through apply_shift_import (which keeps the list of changes).
+// The 販売杯数 workbook (app_kv sales_workbook_url) is read in the same run → apply_sales_import (daily_sales);
+// each part has its own status, so one failing does not stop the other. Files are only downloaded, never changed.
 // Daily at 6:00 JST via pg_cron (x-cron-secret), or by a manager (今すぐ取り込む).
 import { strFromU8, unzipSync } from 'npm:fflate@0.8.2'
 import { kvGet, kvSet } from '../_shared/google.ts'
 import { adminClient, env, HttpError, requireUser, serve } from '../_shared/http.ts'
 import { EXTRA_SHEETS, extractPayrollSource, PAY_SHEETS } from '../_shared/payrollWorkbook.ts'
-import { parseWorkbook, sheetPaths, SHIFT_SHEETS } from '../_shared/shiftWorkbook.ts'
+import { parseSalesSheet, SALES_SHEET } from '../_shared/salesWorkbook.ts'
+import { parseSharedStrings, parseWorkbook, sheetPaths, SHIFT_SHEETS } from '../_shared/shiftWorkbook.ts'
 
 /** A OneDrive / SharePoint share link → the file bytes. The link answers with a redirect that sets the cookie
  *  (FedAuth) the download needs, so redirects are followed by hand, carrying the cookies. */
@@ -52,6 +55,34 @@ function readWorkbook(bytes: Uint8Array) {
   return { shifts: parseWorkbook({ sharedStrings, sheets }), sharedStrings, sheets }
 }
 
+/** 販売杯数: the ★拝数入力シート figures since 2025 → daily_sales; result in app_kv sales_sync_status. */
+async function syncSales(admin: ReturnType<typeof adminClient>, at: string) {
+  try {
+    const url = await kvGet(admin, 'sales_workbook_url')
+    if (!url) return null
+    const bytes = await download(url)
+    const base = unzipSync(bytes, { filter: (f) => ['xl/workbook.xml', 'xl/_rels/workbook.xml.rels', 'xl/sharedStrings.xml'].includes(f.name) })
+    const text = (name: string, files: Record<string, Uint8Array>) => (files[name] ? strFromU8(files[name]!) : '')
+    const path = sheetPaths(text('xl/workbook.xml', base), text('xl/_rels/workbook.xml.rels', base))[SALES_SHEET]
+    if (!path) throw new HttpError(422, `missing sheet: ${SALES_SHEET}`)
+    const sheet = text(path, unzipSync(bytes, { filter: (f) => f.name === path }))
+    const today = new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10)
+    const parsed = parseSalesSheet(sheet, parseSharedStrings(text('xl/sharedStrings.xml', base)), '2025-01-01', today)
+    if (parsed.columns !== 6) throw new HttpError(422, `the sheet has ${parsed.columns} of the 6 columns ⑤早番…①遅番`)
+    const { data, error } = await admin.rpc('apply_sales_import', { p_rows: parsed.rows })
+    if (error) throw new HttpError(500, error.message)
+    const last = parsed.rows.at(-1)?.date ?? null
+    const result = { at, ok: true, last, ...(data as Record<string, unknown>) }
+    await kvSet(admin, 'sales_sync_status', JSON.stringify(result))
+    return result
+  } catch (err) {
+    const message = (err instanceof Error ? err.message : String(err)).slice(0, 300)
+    console.error('sales sync', err)
+    await kvSet(admin, 'sales_sync_status', JSON.stringify({ at, ok: false, error: message }))
+    return { ok: false, error: message }
+  }
+}
+
 serve(async (req) => {
   const admin = adminClient()
   const cronSecret = req.headers.get('x-cron-secret')
@@ -65,6 +96,7 @@ serve(async (req) => {
     by = caller.id
   }
   const at = new Date().toISOString()
+  const sales = await syncSales(admin, at)
   try {
     const url = await kvGet(admin, 'shift_workbook_url')
     if (!url) throw new HttpError(400, 'no share link set')
@@ -90,7 +122,7 @@ serve(async (req) => {
     }
     const result = { at, ok: true, month: wb.month, rows: data.rows as number, changes: data.changes as number, payroll }
     await kvSet(admin, 'shift_sync_status', JSON.stringify(result))
-    return result
+    return { ...result, sales }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
     await kvSet(admin, 'shift_sync_status', JSON.stringify({ at, ok: false, error: message.slice(0, 300) }))

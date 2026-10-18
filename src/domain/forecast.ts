@@ -536,3 +536,23 @@ export function backtest(
   const error = shown.length ? Math.round((shown.reduce((a, r) => a + r.errorPct, 0) / shown.length) * 10) / 10 : null
   return { error, slots: shown.length, rows: shown, from: addDays(today, -days), methods, chosen, weather: weatherErr, weatherChosen }
 }
+
+/** Everything a forecast made on `asOf` uses: rain / weather factors measured before its 28 backtest days, the backtest, the chosen models. */
+export interface ForecastModel {
+  rain: RainMap
+  factors: RainFactors
+  wf: WeatherFactors
+  check: Backtest
+  wIn: WeatherInput
+}
+
+/** The forecast as it is made on `asOf`: only figures before that day are used (the forecast card uses today). */
+export function forecastModel(ctx: Ctx, typeOf: (d: string) => TargetDayType, wx: WeatherMap, asOf: string, dataFrom: string): ForecastModel {
+  const rain = rainOf(wx)
+  // the factors are measured before the 28 backtest days, so the backtest is a fair test of them
+  const fitTo = addDays(asOf, -29)
+  const factors = rainFactors(ctx, typeOf, rain, dataFrom, fitTo)
+  const wf = weatherFactors(ctx, typeOf, wx, dataFrom, fitTo)
+  const check = backtest(ctx, typeOf, rain, factors, asOf, 28, { wx, factors: wf })
+  return { rain, factors, wf, check, wIn: { wx, rain: factors, factors: wf, mode: check.weatherChosen } }
+}
