@@ -185,6 +185,62 @@ export function visaRuns(ws: VisaWindow[], limit = VISA_LIMIT_MIN) {
   return out
 }
 
+export interface VisaWeek {
+  from: string
+  to: string
+  minutes: number
+}
+
+export interface VisaFix {
+  /** every 7 days in a row over the limit (by first day) */
+  over: VisaWeek[]
+  /** suggested shifts to take off (not started yet), by date */
+  remove: Assignment[]
+  /** still over after taking them off: the excess is on past days, which cannot be changed */
+  after: VisaWeek[]
+}
+
+/**
+ * Which 7-day windows starting between `from` and `to` are over the limit, and which shifts not started yet (after
+ * `today` + `nowMin` minutes) to take
+ * off so that none is: greedy — each time the shift that removes the most excess (Σ over the windows it is in of
+ * min(excess, its length)), ties → in more windows, then the later day (more notice). Hours = end − start by shift date,
+ * as visa_hour_windows.
+ */
+export function visaFix(shifts: Assignment[], from: string, to: string, today: string, nowMin = -1, limit = VISA_LIMIT_MIN): VisaFix {
+  const len = (a: Assignment) => a.end_min - a.start_min
+  const weeks = (xs: Assignment[]) => {
+    const out: (VisaWeek & { shifts: Assignment[] })[] = []
+    for (let d = from; d <= to; d = addDays(d, 1)) {
+      const end = addDays(d, 6)
+      const inside = xs.filter((a) => a.business_date >= d && a.business_date <= end)
+      const minutes = inside.reduce((m, a) => m + len(a), 0)
+      if (minutes > limit) out.push({ from: d, to: end, minutes, shifts: inside })
+    }
+    return out
+  }
+  const byDate = (xs: Assignment[]) => [...xs].sort((x, y) => x.business_date.localeCompare(y.business_date) || x.start_min - y.start_min)
+  const strip = ({ from: f, to: t, minutes }: VisaWeek) => ({ from: f, to: t, minutes })
+  const over = weeks(shifts)
+  let left = [...shifts]
+  const remove: Assignment[] = []
+  for (let cur = over; cur.length; cur = weeks(left)) {
+    const scored = left
+      .filter((a) => a.business_date > today || (a.business_date === today && a.start_min > nowMin))
+      .map((a) => {
+        const ws = cur.filter((w) => w.shifts.includes(a))
+        return { a, gain: ws.reduce((g, w) => g + Math.min(w.minutes - limit, len(a)), 0), n: ws.length }
+      })
+      .filter((x) => x.gain > 0)
+      .sort((x, y) => y.gain - x.gain || y.n - x.n || y.a.business_date.localeCompare(x.a.business_date))
+    const best = scored[0]
+    if (!best) return { over: over.map(strip), remove: byDate(remove), after: cur.map(strip) }
+    remove.push(best.a)
+    left = left.filter((a) => a !== best.a)
+  }
+  return { over: over.map(strip), remove: byDate(remove), after: [] }
+}
+
 const overlaps = (a: Assignment, b: Assignment) => startAt(a) < endAt(b) && startAt(b) < endAt(a)
 
 /** A cover right after a shift of 8 h or more (ending ≤ 1 h before) gets a warning. */

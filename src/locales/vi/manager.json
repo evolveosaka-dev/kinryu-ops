@@ -116,7 +116,14 @@
     "pendingChanges": "Báo nghỉ・đi muộn (chờ xác nhận)",
     "pendingSoon": "{{n}} trong vòng 12 giờ",
     "openIncidents": "Khiếu nại・Sự cố (chưa xong)",
-    "lostItems": "Đồ thất lạc: chờ duyệt ({{long}} món giữ từ {{days}} ngày trở lên)"
+    "lostItems": "Đồ thất lạc: chờ duyệt ({{long}} món giữ từ {{days}} ngày trở lên)",
+    "visaLabel": "visa du học / gia đình",
+    "visaWeeks": "Các cụm 7 ngày liên tiếp vượt 28 giờ ({{n}})",
+    "visaWeekLine": "{{from}}–{{to}}  {{h}} giờ (vượt {{over}} giờ)",
+    "visaFix": "Đề xuất: bỏ {{n}} ca sau ({{h}} giờ) thì mọi cụm 7 ngày liên tiếp từ hôm nay đều trong 28 giờ",
+    "visaHourUnit": " giờ",
+    "visaFixNote": "Thay vì bỏ ca, có thể nhờ người khác làm thay hoặc rút ngắn giờ làm. Các ngày trước hôm nay không sửa được nên không đưa vào đề xuất.",
+    "visaPast": "Do phần lớn là ngày đã làm, các cụm 7 ngày sau không sửa được nữa: {{list}}"
   },
   "filter": {
     "store": "Cửa hàng",

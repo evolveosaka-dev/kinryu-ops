@@ -116,7 +116,14 @@
     "pendingChanges": "休み・遅刻の連絡（確認待ち）",
     "pendingSoon": "12時間以内 {{n}}件",
     "openIncidents": "クレーム・事故（未完了）",
-    "lostItems": "忘れ物：承認待ち（{{days}}日以上の保管 {{long}}件）"
+    "lostItems": "忘れ物：承認待ち（{{days}}日以上の保管 {{long}}件）",
+    "visaLabel": "留学/家族滞在ビザ",
+    "visaWeeks": "28時間を超える連続7日間（{{n}}件）",
+    "visaWeekLine": "{{from}}〜{{to}}　{{h}}時間（{{over}}時間超え）",
+    "visaFix": "提案：次の{{n}}件（{{h}}時間）を外すと、今日からの連続7日間はすべて28時間以内になります",
+    "visaHourUnit": "時間",
+    "visaFixNote": "外す代わりに、代わりの人に入ってもらう・勤務時間を短くする方法もあります。今日より前の日は直せないので、提案に入れていません。",
+    "visaPast": "今日より前の勤務が多いため、今からは直せない7日間：{{list}}"
   },
   "filter": {
     "store": "店舗",

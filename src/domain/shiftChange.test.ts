@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { attendanceScores, gradeOf, labelOf, type AttendanceEvent } from './attendance'
-import { coverCandidates, coverProblemOf, lateOptions, leaveOptions, maxRollingWeek, noticeMinutes, reasonsFor, reportable, visaRuns } from './shiftChange'
+import { coverCandidates, coverProblemOf, lateOptions, leaveOptions, maxRollingWeek, noticeMinutes, reasonsFor, reportable, VISA_LIMIT_MIN, visaFix, visaRuns } from './shiftChange'
+import type { Assignment } from './schedule'
+import { addDays } from './time'
 
 const a = (roster_name: string, business_date: string, shift: 'early' | 'middle' | 'late', start_min: number, end_min: number) => ({
   roster_name,
@@ -142,5 +144,33 @@ describe('cover problems from the server', () => {
     expect(coverProblemOf(err)).toEqual({ name: 'キタ', problem: 'visa', minutes: 2040, from: '2026-10-20', to: '2026-10-26' })
     expect(coverProblemOf({ message: 'cover_problem:{"name":"A","problem":"busy"}' })).toEqual({ name: 'A', problem: 'busy' })
     expect(coverProblemOf(new Error('not open'))).toBeNull()
+  })
+})
+
+describe('visaFix (28 h in any 7 days)', () => {
+  // 6 h every day 10/13〜10/31 (like the 42 h case on 2026-10-19), today = 10/20
+  const shifts: Assignment[] = []
+  for (let d = '2026-10-13'; d <= '2026-10-31'; d = addDays(d, 1)) shifts.push({ business_date: d, shift: 'middle', store_mark: '⑤', start_min: 1020, end_min: 1380 })
+  const fix = visaFix(shifts, '2026-10-13', '2026-10-31', '2026-10-20')
+  it('lists every 7 days over 28 h', () => {
+    expect(fix.over[0]).toEqual({ from: '2026-10-13', to: '2026-10-19', minutes: 42 * 60 })
+    expect(fix.over.every((w) => w.minutes > VISA_LIMIT_MIN)).toBe(true)
+  })
+  it('suggests only today or later, and every 7 days from today are within 28 h after', () => {
+    expect(fix.remove.length).toBeGreaterThan(0)
+    expect(fix.remove.every((a) => a.business_date >= '2026-10-20')).toBe(true)
+    const left = shifts.filter((a) => !fix.remove.includes(a))
+    for (let d = '2026-10-20'; d <= '2026-10-31'; d = addDays(d, 1))
+      expect(left.filter((a) => a.business_date >= d && a.business_date <= addDays(d, 6)).reduce((m, a) => m + a.end_min - a.start_min, 0)).toBeLessThanOrEqual(VISA_LIMIT_MIN)
+    // weeks that are mostly in the past stay over: they are reported, not hidden
+    expect(fix.after.length).toBeGreaterThan(0)
+    expect(fix.after.every((w) => w.from < '2026-10-20')).toBe(true)
+  })
+  it('nothing to do when within 28 h', () => {
+    expect(visaFix(shifts.slice(0, 4), '2026-10-13', '2026-10-31', '2026-10-13')).toEqual({ over: [], remove: [], after: [] })
+  })
+  it('a shift of today that has started is not suggested', () => {
+    const late = visaFix(shifts, '2026-10-13', '2026-10-31', '2026-10-20', 20 * 60) // 20:00, the 17:00 shift runs
+    expect(late.remove.some((a) => a.business_date === '2026-10-20')).toBe(false)
   })
 })

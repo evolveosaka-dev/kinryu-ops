@@ -20,7 +20,6 @@ import { avgHow, score25Line, useDrill } from './drillState'
 import { visaRuns } from '../../domain/shiftChange'
 import { useChanges, useVisaWindows } from '../shift/changeData'
 import { startAt } from '../../domain/schedule'
-import { Sheet } from '../../components/Sheet'
 import { today, useIncidents, useIssueStatus, usePeople, useRecords, useSystemStatus, weekOf, type AdminPatrol } from './data'
 import { URGENT_INCIDENTS } from '../../domain/incident'
 import { LOST_KEEP_DAYS, lostStage, pastKeep } from '../../domain/lostItem'
@@ -30,6 +29,7 @@ import { STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { PatrolDetail } from './details'
 import { ManagerTabs } from './ManagerTabs'
 import { ShiftChangesSheet } from './ShiftSync'
+import { VisaSheet } from './VisaSheet'
 import { pastChanges, useShiftImportLog, useShiftSyncStatus } from './shiftSyncData'
 
 /** 面談が必要 / 面談後の再発 (スタッフ別), shown only when there is something to do. */
@@ -359,26 +359,7 @@ export function DashboardPage() {
       </div>
 
       {shiftOpen && <ShiftChangesSheet logs={shiftLogs.data ?? []} onClose={() => setShiftOpen(false)} />}
-      {visaOpen && (
-        <Sheet title={t('dashboard.visaOver')} onClose={() => setVisaOpen(false)}>
-          <p className="rounded-xl bg-sky-50 p-3 text-sm font-bold whitespace-pre-line text-sky-900">{t('dashboard.visaHow')}</p>
-          <ul className="flex flex-col gap-1.5">
-            {visaRuns(visa.data ?? []).map((r) => (
-              <li key={`${r.name}${r.from}`} className="rounded-xl border border-red-200 bg-white p-3">
-                <b>
-                  {r.name}（{t(`users.visa.${r.visa}`)}）
-                </b>
-                <span className="block text-sm text-red-800">
-                  {t('users.visa.over', { from: formatShortDate(r.from), to: formatShortDate(r.to), h: Math.round((r.maxMin / 60) * 10) / 10 })}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <Link to="/all-shifts" className="text-center font-bold text-brand underline">
-            🗓️ {t('dashboard.visaShifts')}
-          </Link>
-        </Sheet>
-      )}
+      {visaOpen && <VisaSheet windows={visa.data ?? []} onClose={() => setVisaOpen(false)} />}
       <DrillSheet drill={drill} slots={choreiSlots(chorei, dateRange(addDays(day, -13), day), storeIds, now, misses)} patrols={patrols} />
       {openSlot && <ChoreiSlotSheets key={slotKey} slot={openSlot} onClose={() => setSlotKey(null)} />}
       {selected && <PatrolDetail patrol={selected} patrollerName={people.name(selected.patroller_id)} onClose={() => setSelected(null)} />}

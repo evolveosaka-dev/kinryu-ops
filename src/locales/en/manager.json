@@ -116,7 +116,14 @@
     "pendingChanges": "Absence / late reports waiting",
     "pendingSoon": "{{n}} within 12 h",
     "openIncidents": "Complaints / accidents (open)",
-    "lostItems": "Lost & found: waiting for approval ({{long}} kept {{days}}+ days)"
+    "lostItems": "Lost & found: waiting for approval ({{long}} kept {{days}}+ days)",
+    "visaLabel": "student / dependent visa",
+    "visaWeeks": "7 days in a row over 28 h ({{n}})",
+    "visaWeekLine": "{{from}}–{{to}}  {{h}} h ({{over}} h over)",
+    "visaFix": "Suggestion: take off these {{n}} shifts ({{h}} h) and every 7 days from today are within 28 h",
+    "visaHourUnit": " h",
+    "visaFixNote": "Instead of taking a shift off, a cover can take it or the hours can be shortened. Days before today cannot be changed, so they are not suggested.",
+    "visaPast": "Mostly past work, so these 7 days cannot be fixed now: {{list}}"
   },
   "filter": {
     "store": "Store",
