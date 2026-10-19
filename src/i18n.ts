@@ -53,14 +53,18 @@ import myShift from './locales/my/shift.json'
 import myLearn from './locales/my/learn.json'
 import myStock from './locales/my/stock.json'
 import mySales from './locales/my/sales.json'
+import viManager from './locales/vi/manager.json'
+import siManager from './locales/si/manager.json'
+import neManager from './locales/ne/manager.json'
+import myManager from './locales/my/manager.json'
 
 export const resources = {
   ja: { common: jaCommon, chorei: jaChorei, patrol: jaPatrol, manager: jaManager, genko: jaGenko, shift: jaShift, learn: jaLearn, stock: jaStock, sales: jaSales },
   en: { common: enCommon, chorei: enChorei, patrol: enPatrol, manager: enManager, genko: enGenko, shift: enShift, learn: enLearn, stock: enStock, sales: enSales },
-  vi: { common: viCommon, chorei: viChorei, patrol: viPatrol, genko: viGenko, shift: viShift, learn: viLearn, stock: viStock, sales: viSales },
-  si: { common: siCommon, chorei: siChorei, patrol: siPatrol, genko: siGenko, shift: siShift, learn: siLearn, stock: siStock, sales: siSales },
-  ne: { common: neCommon, chorei: neChorei, patrol: nePatrol, genko: neGenko, shift: neShift, learn: neLearn, stock: neStock, sales: neSales },
-  my: { common: myCommon, chorei: myChorei, patrol: myPatrol, genko: myGenko, shift: myShift, learn: myLearn, stock: myStock, sales: mySales },
+  vi: { common: viCommon, chorei: viChorei, patrol: viPatrol, manager: viManager, genko: viGenko, shift: viShift, learn: viLearn, stock: viStock, sales: viSales },
+  si: { common: siCommon, chorei: siChorei, patrol: siPatrol, manager: siManager, genko: siGenko, shift: siShift, learn: siLearn, stock: siStock, sales: siSales },
+  ne: { common: neCommon, chorei: neChorei, patrol: nePatrol, manager: neManager, genko: neGenko, shift: neShift, learn: neLearn, stock: neStock, sales: neSales },
+  my: { common: myCommon, chorei: myChorei, patrol: myPatrol, manager: myManager, genko: myGenko, shift: myShift, learn: myLearn, stock: myStock, sales: mySales },
 } as const
 
 // Load only the font a locale needs (slow mobile data).
