@@ -5,6 +5,7 @@
 //   → { attachmentId, uploadUrl }
 // POST { action: 'finish', attachmentId, fileId } → { driveUrl }
 // POST { action: 'fail', attachmentId } → { ok }
+// POST { action: 'drop', attachmentId } → { ok }   the sender gave up this file (やめる): not an error for システム
 import { clearFolderCache, ensureFolder, google, googleToken } from '../_shared/google.ts'
 import { adminClient, appOrigin, HttpError, requireUser, serve } from '../_shared/http.ts'
 
@@ -125,11 +126,15 @@ serve(async (req) => {
     return { attachmentId: row.id, uploadUrl }
   }
 
-  if (body.action === 'finish' || body.action === 'fail') {
+  if (body.action === 'finish' || body.action === 'fail' || body.action === 'drop') {
     const { data: att } = await admin.from('attachments').select('*').eq('id', body.attachmentId).maybeSingle()
     if (!att || (att.owner_id !== caller.id && !caller.isManager)) throw new HttpError(404, 'attachment not found')
     if (body.action === 'fail') {
       if (att.status === 'pending') await admin.from('attachments').update({ status: 'failed' }).eq('id', att.id)
+      return { ok: true }
+    }
+    if (body.action === 'drop') {
+      if (att.status === 'pending' || att.status === 'failed') await admin.from('attachments').update({ status: 'deleted' }).eq('id', att.id)
       return { ok: true }
     }
     // Trust nothing from the client: the file must exist in the expected folder.

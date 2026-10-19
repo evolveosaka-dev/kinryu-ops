@@ -339,7 +339,32 @@
     "patrol": "Phiếu tuần tra",
     "shiftRequest": "Đăng ký ca",
     "month": "Tháng {{m}}/{{y}}",
-    "miss": "Báo cáo không làm được 朝礼"
+    "miss": "Báo cáo không làm được 朝礼",
+    "titleSending": "Đang gửi…",
+    "titleFailed": "Có ảnh/video chưa gửi được",
+    "recordArrived": "Báo cáo (phần chữ) đã đến quản lý. App đang tiếp tục gửi ảnh/video.",
+    "filesSending": "Ảnh/video: đã gửi {{done}}/{{n}} ({{pct}}%)",
+    "filesWaiting": "Ảnh/video: đã gửi {{done}}/{{n}} — sóng tốt lên sẽ gửi tiếp",
+    "filesDone": "Cả {{n}} ảnh/video cũng đã đến nơi.",
+    "filesFailed": "{{n}} file không gửi được. Với từng file, hãy chọn file khác hoặc bỏ file đó. Ảnh/video đã đến nơi vẫn được giữ lại.",
+    "keepOpen": "Đừng đóng app cho đến khi gửi xong. Tắt màn hình hoặc chuyển sang app khác thì việc gửi sẽ dừng.",
+    "closeWarn": "Vẫn đang gửi. Nếu đóng app, ảnh/video sẽ không đến nơi. Có thể đóng cửa sổ này — nếu app vẫn mở thì việc gửi vẫn tiếp tục.",
+    "close": "Đóng",
+    "closeAnyway": "Đã hiểu (tôi sẽ để app mở)",
+    "titleNone": "Chưa có ảnh hay video nào được đính kèm",
+    "noneYet": "Chưa có file nào đến nơi.",
+    "noneBody": "Báo cáo (phần chữ) đã đến nơi. Hãy kết thúc như vậy, hoặc chọn ảnh/video để đính kèm.",
+    "pickFiles": "Chọn ảnh/video",
+    "finishWithout": "Kết thúc không có ảnh/video",
+    "pickOther": "Chọn file khác",
+    "dropOne": "Bỏ file này",
+    "later": "Để sau",
+    "filesDropped": "({{n}} file đã bỏ)",
+    "reason": {
+      "tooLarge": "File quá lớn, không gửi được (video tối đa 90 giây, 150MB). Hãy chọn video ngắn hơn hoặc file khác.",
+      "missing": "Không tìm thấy file (có thể đã bị xoá khỏi điện thoại). Hãy chọn file khác hoặc bỏ file này.",
+      "other": "Không gửi được. Hãy ra chỗ sóng tốt và bấm “Gửi lại”."
+    }
   },
   "comment": {
     "title": "Nhận xét của quản lý",

@@ -454,7 +454,8 @@
     "uploading": "uploading {{pct}}%",
     "waiting": "waiting on this device",
     "localFailed": "could not be sent from this device",
-    "now": "Photos and videos now"
+    "now": "Photos and videos now",
+    "dropped": "{{n}} file(s) given up by the sender (could not be sent)"
   },
   "learn": {
     "add": "Add",

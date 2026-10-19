@@ -32,9 +32,22 @@ interface QueueApi {
   enqueue: (parentType: UploadItem['parentType'], parentId: string, media: PreparedMedia[]) => Promise<void>
   retry: () => void
   discard: (id: string) => Promise<void>
+  /** the queue right now (also just after enqueue, before React re-renders) */
+  current: () => UploadItem[]
+  /** files that left the queue in this session: arrived, or given up by the sender (やめる) */
+  outcome: Record<string, 'done' | 'dropped'>
 }
 
-const QueueContext = createContext<QueueApi>({ items: [], enqueue: async () => {}, retry: () => {}, discard: async () => {} })
+/** Why a file failed, for the sender (the raw error stays in the banner's detail). */
+// eslint-disable-next-line react-refresh/only-export-components
+export function failReason(error: string | undefined): 'tooLarge' | 'missing' | 'other' {
+  if (/too large|too long|413/i.test(error ?? '')) return 'tooLarge'
+  if (error === MISSING || /NotFound|NotReadable|could not be found|can ?not be found/i.test(error ?? '')) return 'missing'
+  return 'other'
+}
+const MISSING = 'file missing on this phone'
+
+const QueueContext = createContext<QueueApi>({ items: [], enqueue: async () => {}, retry: () => {}, discard: async () => {}, current: () => [], outcome: {} })
 
 let idbStore: ReturnType<typeof createStore> | null = null
 const store = () => (idbStore ??= createStore('kinryu-uploads', 'queue'))
@@ -54,6 +67,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
   const isTestAccount = Boolean(profile?.is_test_account)
   const queryClient = useQueryClient()
   const [items, setItems] = useState<UploadItem[]>([])
+  const [outcome, setOutcome] = useState<Record<string, 'done' | 'dropped'>>({})
   const running = useRef(false)
   const itemsRef = useRef<UploadItem[]>([])
 
@@ -79,13 +93,48 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
     }
   }, [uploading])
 
+  // itemsRef changes at once (run() reads it right after), the state follows
   const replace = useCallback((item: UploadItem | null, removeId?: string) => {
-    setItems((prev) => {
-      const next = removeId ? prev.filter((i) => i.id !== removeId) : prev.map((i) => (i.id === item!.id ? item! : i))
-      itemsRef.current = next
-      return next
-    })
+    const prev = itemsRef.current
+    itemsRef.current = removeId ? prev.filter((i) => i.id !== removeId) : prev.map((i) => (i.id === item!.id ? item! : i))
+    setItems(itemsRef.current)
   }, [])
+
+  /** Creates the attachment row and the Drive session (no bytes yet). */
+  const register = useCallback(async (cur: UploadItem): Promise<UploadItem> => {
+    const started = await callDriveFunction<{ attachmentId: string; uploadUrl: string }>({
+      action: 'start',
+      parentType: cur.parentType,
+      parentId: cur.parentId,
+      kind: cur.kind,
+      fileName: cur.fileName,
+      mimeType: cur.mimeType,
+      size: cur.size,
+      durationSec: cur.durationSec,
+    })
+    const next = { ...cur, ...started }
+    await persist(next)
+    return next
+  }, [])
+
+  const settle = useCallback(
+    async (item: UploadItem, err: unknown) => {
+      // Expired/invalid session → start a new one next time.
+      const sessionGone = err instanceof UploadHttpError && (err.status === 404 || err.status === 410)
+      const permanent = err instanceof UploadHttpError && [400, 403, 409, 413].includes(err.status)
+      // signed out / token not refreshable now: keep it queued, the next run (every minute, after sign-in) retries
+      const authLater = err instanceof UploadHttpError && err.status === 401
+      const cur: UploadItem = {
+        ...item,
+        status: (isNetworkError(err) && !permanent) || authLater ? 'queued' : 'error',
+        error: err instanceof Error ? err.message : String(err),
+        ...(sessionGone ? { attachmentId: undefined, uploadUrl: undefined, status: 'queued' as const } : {}),
+      }
+      await persist(cur)
+      replace(cur)
+    },
+    [replace],
+  )
 
   const processOne = useCallback(
     async (item: UploadItem) => {
@@ -94,19 +143,14 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
       try {
         let resume = Boolean(cur.uploadUrl)
         if (!cur.attachmentId || !cur.uploadUrl) {
-          const started = await callDriveFunction<{ attachmentId: string; uploadUrl: string }>({
-            action: 'start',
-            parentType: cur.parentType,
-            parentId: cur.parentId,
-            kind: cur.kind,
-            fileName: cur.fileName,
-            mimeType: cur.mimeType,
-            size: cur.size,
-            durationSec: cur.durationSec,
-          })
-          cur = { ...cur, ...started }
+          cur = await register(cur)
           resume = false
-          await persist(cur)
+        }
+        // the copy kept by the app can be gone (storage cleared by the phone): say so instead of retrying forever
+        try {
+          await cur.blob.slice(0, 1).arrayBuffer()
+        } catch {
+          throw new Error(MISSING)
         }
         let lastPaint = 0
         const file = await uploadToSession(
@@ -124,42 +168,47 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
         await callDriveFunction({ action: 'finish', attachmentId: cur.attachmentId, fileId: file.id })
         await del(cur.id, store()).catch(() => {})
         replace(null, cur.id)
+        setOutcome((o) => ({ ...o, [cur.id]: 'done' }))
         void queryClient.invalidateQueries({ queryKey: ['my_chorei'] })
         void queryClient.invalidateQueries({ queryKey: ['my_patrols'] })
         void queryClient.invalidateQueries({ queryKey: ['admin'] })
       } catch (err) {
-        // Expired/invalid session → start a new one next time.
-        const sessionGone = err instanceof UploadHttpError && (err.status === 404 || err.status === 410)
-        const permanent = err instanceof UploadHttpError && [400, 403, 409, 413].includes(err.status)
-        // signed out / token not refreshable now: keep it queued, the next run (every minute, after sign-in) retries
-        const authLater = err instanceof UploadHttpError && err.status === 401
-        cur = {
-          ...cur,
-          status: (isNetworkError(err) && !permanent) || authLater ? 'queued' : 'error',
-          error: err instanceof Error ? err.message : String(err),
-          ...(sessionGone ? { attachmentId: undefined, uploadUrl: undefined, status: 'queued' as const } : {}),
-        }
-        await persist(cur)
-        replace(cur)
+        await settle(cur, err)
       }
     },
-    [queryClient, replace],
+    [queryClient, replace, register, settle],
   )
 
   const run = useCallback(async () => {
     if (running.current || !navigator.onLine) return
     running.current = true
+    // each file is tried once per run; a file that fails again waits for the next run (online / back in the app / every minute)
+    const tried = new Set<string>()
     try {
       for (;;) {
-        const next = itemsRef.current.find((i) => i.status === 'queued')
+        // 1) register every waiting file first (a few small requests): the server knows all files of the report at
+        //    once, so a file is never lost without システム knowing, even when the app is closed during the first upload
+        for (const i of itemsRef.current.filter((x) => x.status === 'queued' && !x.attachmentId && !tried.has(x.id))) {
+          if (!navigator.onLine) break
+          try {
+            replace(await register(i))
+          } catch (err) {
+            tried.add(i.id)
+            await settle(i, err)
+          }
+        }
+        // 2) send the bytes: photos before videos (a photo arrives in seconds, a video can take minutes)
+        const waiting = itemsRef.current.filter((x) => x.status === 'queued' && !tried.has(x.id))
+        const next = waiting.find((x) => x.kind === 'image') ?? waiting[0]
         if (!next) break
+        tried.add(next.id)
         await processOne(next)
         if (!navigator.onLine) break
       }
     } finally {
       running.current = false
     }
-  }, [processOne])
+  }, [processOne, register, replace, settle])
 
   // Load this user's pending uploads after sign-in, then process them.
   useEffect(() => {
@@ -170,8 +219,10 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
       .then((rows) => {
         if (cancelled) return
         const mine = rows.map(([, v]) => ({ ...v, status: v.status === 'uploading' ? ('queued' as const) : v.status })).filter((v) => v.ownerId === userId)
-        itemsRef.current = mine
-        setItems(mine)
+        // a report sent before this load finished is already in memory (and newer): keep that copy
+        const live = itemsRef.current.filter((i) => i.ownerId === userId)
+        itemsRef.current = [...mine.filter((m) => !live.some((i) => i.id === m.id)), ...live]
+        setItems(itemsRef.current)
         void run()
       })
     const onOnline = () => void run()
@@ -206,6 +257,8 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
         queuedAt: Date.now(),
         status: 'queued',
       }))
+      // ask the browser not to clear the app's storage when the phone runs low: the queued files live there
+      void navigator.storage?.persist?.().catch(() => false)
       await Promise.all(added.map(persist))
       itemsRef.current = [...itemsRef.current, ...added]
       setItems(itemsRef.current)
@@ -223,14 +276,18 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
   const discard = useCallback(
     async (id: string) => {
       const item = itemsRef.current.find((i) => i.id === id)
-      if (item?.attachmentId) await callDriveFunction({ action: 'fail', attachmentId: item.attachmentId }).catch(() => {})
+      // the sender gives this file up: the record keeps the files that arrived, and システム does not report it
+      if (item?.attachmentId) await callDriveFunction({ action: 'drop', attachmentId: item.attachmentId }).catch(() => {})
       await del(id, store()).catch(() => {})
       replace(null, id)
+      setOutcome((o) => ({ ...o, [id]: 'dropped' }))
     },
     [replace],
   )
 
-  return <QueueContext.Provider value={{ items, enqueue, retry, discard }}>{children}</QueueContext.Provider>
+  const current = useCallback(() => itemsRef.current, [])
+
+  return <QueueContext.Provider value={{ items, enqueue, retry, discard, current, outcome }}>{children}</QueueContext.Provider>
 }
 
 // eslint-disable-next-line react-refresh/only-export-components

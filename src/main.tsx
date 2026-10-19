@@ -18,14 +18,15 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <SentNoticeProvider>
         <AuthProvider>
           <UploadQueueProvider>
-            <App />
-            <UpdateBanner />
+            {/* inside the queue: the 送信しました dialog follows the photos/videos of the report */}
+            <SentNoticeProvider>
+              <App />
+              <UpdateBanner />
+            </SentNoticeProvider>
           </UploadQueueProvider>
         </AuthProvider>
-        </SentNoticeProvider>
       </ToastProvider>
     </QueryClientProvider>
   </StrictMode>,

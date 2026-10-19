@@ -339,7 +339,32 @@
     "patrol": "Patrol check",
     "shiftRequest": "Shift request",
     "month": "{{m}}/{{y}}",
-    "miss": "Report: 朝礼 not held"
+    "miss": "Report: 朝礼 not held",
+    "titleSending": "Sending…",
+    "titleFailed": "Some photos/videos did not arrive",
+    "recordArrived": "The record (text) has reached the managers. The photos/videos are now being sent.",
+    "filesSending": "Photos/videos: {{done}}/{{n}} sent ({{pct}}%)",
+    "filesWaiting": "Photos/videos: {{done}}/{{n}} sent — the rest will go when the signal is good",
+    "filesDone": "All {{n}} photos/videos have arrived too.",
+    "filesFailed": "{{n}} could not be sent. For each file, choose another file or give it up. The photos/videos that arrived are kept.",
+    "keepOpen": "Do not close the app until sending is finished. Turning off the screen or switching apps stops it.",
+    "closeWarn": "Still sending. If you close the app, the photos/videos will not arrive. You may close this window — sending goes on while the app stays open.",
+    "close": "Close",
+    "closeAnyway": "OK (I will keep the app open)",
+    "titleNone": "No photo or video is attached",
+    "noneYet": "Nothing has arrived yet.",
+    "noneBody": "The record (text) has arrived. Finish as it is, or choose photos/videos to attach.",
+    "pickFiles": "Choose photos/videos",
+    "finishWithout": "Finish without photos/videos",
+    "pickOther": "Choose another file",
+    "dropOne": "Give up this file",
+    "later": "Later",
+    "filesDropped": "({{n}} given up)",
+    "reason": {
+      "tooLarge": "Too large to send (videos: up to 90 s and 150 MB). Choose a shorter video or another file.",
+      "missing": "The file cannot be found (it may have been removed from the phone). Choose another file or give it up.",
+      "other": "Could not be sent. Go where the signal is good and tap “Send again”."
+    }
   },
   "comment": {
     "title": "Manager comments",
