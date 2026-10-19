@@ -123,7 +123,12 @@
     "visaFix": "Suggestion: take off these {{n}} shifts ({{h}} h) and every 7 days from today are within 28 h",
     "visaHourUnit": " h",
     "visaFixNote": "Instead of taking a shift off, a cover can take it or the hours can be shortened. Days before today cannot be changed, so they are not suggested.",
-    "visaPast": "Mostly past work, so these 7 days cannot be fixed now: {{list}}"
+    "visaPast": "Mostly past work, so these 7 days cannot be fixed now: {{list}}",
+    "visaHide": "Checked (do not show again)",
+    "visaHideNote": "“Checked” hides it only on your screen on this phone. It shows again if the days or hours over get worse. E-mails still come.",
+    "visaAllHidden": "No notices shown (all checked).",
+    "visaHidden": "Hidden ({{n}})",
+    "visaShow": "Show again"
   },
   "filter": {
     "store": "Store",

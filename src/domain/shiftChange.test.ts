@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { attendanceScores, gradeOf, labelOf, type AttendanceEvent } from './attendance'
-import { coverCandidates, coverProblemOf, lateOptions, leaveOptions, maxRollingWeek, noticeMinutes, reasonsFor, reportable, VISA_LIMIT_MIN, visaFix, visaRuns } from './shiftChange'
+import { coverCandidates, coverProblemOf, lateOptions, leaveOptions, maxRollingWeek, noticeMinutes, reasonsFor, reportable, VISA_LIMIT_MIN, visaFix, visaHidden, visaRuns } from './shiftChange'
 import type { Assignment } from './schedule'
 import { addDays } from './time'
 
@@ -172,5 +172,16 @@ describe('visaFix (28 h in any 7 days)', () => {
   it('a shift of today that has started is not suggested', () => {
     const late = visaFix(shifts, '2026-10-13', '2026-10-31', '2026-10-20', 20 * 60) // 20:00, the 17:00 shift runs
     expect(late.remove.some((a) => a.business_date === '2026-10-20')).toBe(false)
+  })
+})
+
+describe('visaHidden (a manager hides the 28 h notice)', () => {
+  const d = { ヤミーラ: { to: '2026-10-31', maxMin: 42 * 60 } }
+  it('stays hidden while the run is the same or better, shows again when it gets worse', () => {
+    expect(visaHidden({ name: 'ヤミーラ', to: '2026-10-31', maxMin: 42 * 60 }, d)).toBe(true)
+    expect(visaHidden({ name: 'ヤミーラ', to: '2026-10-29', maxMin: 36 * 60 }, d)).toBe(true)
+    expect(visaHidden({ name: 'ヤミーラ', to: '2026-11-02', maxMin: 36 * 60 }, d)).toBe(false)
+    expect(visaHidden({ name: 'ヤミーラ', to: '2026-10-31', maxMin: 44 * 60 }, d)).toBe(false)
+    expect(visaHidden({ name: 'ソン', to: '2026-10-31', maxMin: 30 * 60 }, d)).toBe(false)
   })
 })

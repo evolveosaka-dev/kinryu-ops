@@ -241,6 +241,15 @@ export function visaFix(shifts: Assignment[], from: string, to: string, today: s
   return { over: over.map(strip), remove: byDate(remove), after: [] }
 }
 
+/** What a manager hid (per person): the run's last day and its highest minutes at that moment. */
+export type VisaDismissed = Record<string, { to: string; maxMin: number }>
+
+/** A hidden run stays hidden until it gets worse: a later last day or more hours than when it was hidden. */
+export const visaHidden = (run: { name: string; to: string; maxMin: number }, d: VisaDismissed) => {
+  const x = d[run.name]
+  return Boolean(x && run.to <= x.to && run.maxMin <= x.maxMin)
+}
+
 const overlaps = (a: Assignment, b: Assignment) => startAt(a) < endAt(b) && startAt(b) < endAt(a)
 
 /** A cover right after a shift of 8 h or more (ending ≤ 1 h before) gets a warning. */

@@ -123,7 +123,12 @@
     "visaFix": "Đề xuất: bỏ {{n}} ca sau ({{h}} giờ) thì mọi cụm 7 ngày liên tiếp từ hôm nay đều trong 28 giờ",
     "visaHourUnit": " giờ",
     "visaFixNote": "Thay vì bỏ ca, có thể nhờ người khác làm thay hoặc rút ngắn giờ làm. Các ngày trước hôm nay không sửa được nên không đưa vào đề xuất.",
-    "visaPast": "Do phần lớn là ngày đã làm, các cụm 7 ngày sau không sửa được nữa: {{list}}"
+    "visaPast": "Do phần lớn là ngày đã làm, các cụm 7 ngày sau không sửa được nữa: {{list}}",
+    "visaHide": "Đã xem (không hiện lại)",
+    "visaHideNote": "“Đã xem” chỉ ẩn trên màn hình của bạn ở điện thoại này. Nếu số ngày hoặc số giờ vượt tăng thêm thì sẽ hiện lại. Email vẫn được gửi.",
+    "visaAllHidden": "Không còn thông báo nào (đã xem hết).",
+    "visaHidden": "Đã ẩn ({{n}})",
+    "visaShow": "Hiện lại"
   },
   "filter": {
     "store": "Cửa hàng",

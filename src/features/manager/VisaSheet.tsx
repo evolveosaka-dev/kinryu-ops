@@ -5,6 +5,7 @@ import { Sheet } from '../../components/Sheet'
 import { Spinner } from '../../components/ui'
 import { formatMin, STORE_BY_MARK, type Assignment } from '../../domain/schedule'
 import { VISA_LIMIT_MIN, visaFix, visaRuns, type VisaWeek, type VisaWindow } from '../../domain/shiftChange'
+import type { VisaDismiss } from './visaDismiss'
 import { addDays, formatShortDate, tokyoParts, weekdayOf } from '../../domain/time'
 import { unwrap } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
@@ -12,16 +13,19 @@ import { today } from './data'
 
 const hours = (min: number) => Math.round((min / 60) * 10) / 10
 
+
 /**
  * 週28時間超え (留学・家族滞在): per person the run of days over 28 h, every 7 days in a row over the limit, and the
  * shifts (today or later) to take off so that every 7 days are within 28 h again (owner, 2026-10-19).
  */
-export function VisaSheet({ windows, onClose }: { windows: VisaWindow[]; onClose: () => void }) {
+export function VisaSheet({ windows, dismiss, onClose }: { windows: VisaWindow[]; dismiss: VisaDismiss; onClose: () => void }) {
   const { t } = useTranslation('manager')
-  const runs = visaRuns(windows)
-  const names = [...new Set(runs.map((r) => r.name))]
-  const from = runs.reduce((m, r) => (r.from < m ? r.from : m), runs[0]?.from ?? today())
-  const to = runs.reduce((m, r) => (r.to > m ? r.to : m), runs[0]?.to ?? today())
+  const all = visaRuns(windows)
+  const runs = all.filter((r) => !dismiss.isHidden(r))
+  const hiddenRuns = all.filter((r) => dismiss.isHidden(r))
+  const names = [...new Set(all.map((r) => r.name))]
+  const from = all.reduce((m, r) => (r.from < m ? r.from : m), all[0]?.from ?? today())
+  const to = all.reduce((m, r) => (r.to > m ? r.to : m), all[0]?.to ?? today())
   const shifts = useQuery({
     queryKey: ['admin', 'visa_shifts', names.join(','), from, to],
     enabled: names.length > 0,
@@ -85,10 +89,36 @@ export function VisaSheet({ windows, onClose }: { windows: VisaWindow[]; onClose
                   )}
                 </>
               )}
+              <button
+                type="button"
+                onClick={() => dismiss.hide(r)}
+                className="mt-1 min-h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold text-slate-700"
+              >
+                ✓ {t('dashboard.visaHide')}
+              </button>
             </li>
           )
         })}
       </ul>
+      {runs.length === 0 && <p className="rounded-xl bg-green-50 p-3 text-sm font-bold text-green-900">{t('dashboard.visaAllHidden')}</p>}
+      <p className="text-xs text-slate-600">{t('dashboard.visaHideNote')}</p>
+      {hiddenRuns.length > 0 && (
+        <details className="rounded-xl border border-line p-2">
+          <summary className="min-h-10 cursor-pointer py-2 text-sm font-bold text-slate-700">{t('dashboard.visaHidden', { n: hiddenRuns.length })}</summary>
+          <ul className="flex flex-col gap-1 text-sm">
+            {hiddenRuns.map((r) => (
+              <li key={`${r.name}${r.from}`} className="flex items-center justify-between gap-2 border-t border-line py-1">
+                <span>
+                  {r.name}：{t('users.visa.over', { from: formatShortDate(r.from), to: formatShortDate(r.to), h: hours(r.maxMin) })}
+                </span>
+                <button type="button" onClick={() => dismiss.show(r.name)} className="min-h-9 shrink-0 rounded-lg border border-slate-300 px-2 text-xs font-bold text-brand">
+                  {t('dashboard.visaShow')}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
       <Link to="/all-shifts" className="text-center font-bold text-brand underline">
         🗓️ {t('dashboard.visaShifts')}
       </Link>

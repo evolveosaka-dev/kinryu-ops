@@ -30,6 +30,8 @@ import { PatrolDetail } from './details'
 import { ManagerTabs } from './ManagerTabs'
 import { ShiftChangesSheet } from './ShiftSync'
 import { VisaSheet } from './VisaSheet'
+import { useVisaDismissed } from './visaDismiss'
+import { useMe } from '../../app/auth'
 import { pastChanges, useShiftImportLog, useShiftSyncStatus } from './shiftSyncData'
 
 /** 面談が必要 / 面談後の再発 (スタッフ別), shown only when there is something to do. */
@@ -95,7 +97,10 @@ export function DashboardPage() {
   // today's slot opened from the grid (date|store|shift)
   const [slotKey, setSlotKey] = useState<string | null>(null)
   const drill = useDrill()
+  const me = useMe()
   const visa = useVisaWindows()
+  const visaDismiss = useVisaDismissed(me.id)
+  const visaShown = visaRuns(visa.data ?? []).filter((r) => !visaDismiss.isHidden(r))
   const system = useSystemStatus()
   const incidents = useIncidents()
   const openIncidents = (incidents.data ?? []).filter((r) => r.status !== 'done')
@@ -270,13 +275,13 @@ export function DashboardPage() {
               </Link>
             </li>
           )}
-          {visaRuns(visa.data ?? []).length > 0 && (
+          {visaShown.length > 0 && (
             <li>
               <button type="button" onClick={() => setVisaOpen(true)} className="flex min-h-11 w-full items-center justify-between gap-2 rounded-xl bg-red-50 px-3 text-left font-semibold text-red-900">
                 <span className="flex items-center gap-2">
                   <Dot tone="red" /> {t('dashboard.visaOver')}
                 </span>
-                <span>{new Set(visaRuns(visa.data ?? []).map((r) => r.name)).size} ›</span>
+                <span>{new Set(visaShown.map((r) => r.name)).size} ›</span>
               </button>
             </li>
           )}
@@ -359,7 +364,7 @@ export function DashboardPage() {
       </div>
 
       {shiftOpen && <ShiftChangesSheet logs={shiftLogs.data ?? []} onClose={() => setShiftOpen(false)} />}
-      {visaOpen && <VisaSheet windows={visa.data ?? []} onClose={() => setVisaOpen(false)} />}
+      {visaOpen && <VisaSheet windows={visa.data ?? []} dismiss={visaDismiss} onClose={() => setVisaOpen(false)} />}
       <DrillSheet drill={drill} slots={choreiSlots(chorei, dateRange(addDays(day, -13), day), storeIds, now, misses)} patrols={patrols} />
       {openSlot && <ChoreiSlotSheets key={slotKey} slot={openSlot} onClose={() => setSlotKey(null)} />}
       {selected && <PatrolDetail patrol={selected} patrollerName={people.name(selected.patroller_id)} onClose={() => setSelected(null)} />}
