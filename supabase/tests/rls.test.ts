@@ -829,4 +829,10 @@ describe('目標杯数 v2 (six day types, events)', () => {
     const seeded = await t.admin<{ n: number }>(`select count(*)::int as n from public.target_events where name like '阪神%'`)
     expect(seeded[0]!.n).toBeGreaterThan(0)
   })
+  it('前年の特殊期間: managers write, active users read, the Expo is seeded', async () => {
+    await expect(t.as(staffM, `insert into public.sales_periods (name, date_from, date_to) values ('x', '2026-01-01', '2026-01-02')`)).rejects.toThrow(/row-level security/)
+    await expect(t.as(manager, `insert into public.sales_periods (name, date_from, date_to) values ('x', '2026-01-02', '2026-01-01')`)).rejects.toThrow(/check/)
+    await t.as(manager, `insert into public.sales_periods (name, date_from, date_to) values ('工事', '2026-02-01', '2026-03-31')`)
+    expect((await t.as<{ name: string }>(staffM, `select name from public.sales_periods order by date_from`)).map((r) => r.name)).toEqual(['大阪・関西万博', '工事'])
+  })
 })

@@ -983,7 +983,7 @@
     "bowls": " bát",
     "vsTarget": "{{n}}% mục tiêu",
     "how": "Dự báo = trung bình ({{m}}) × sự kiện × thời tiết ({{w}}).",
-    "error": "Sai số khi thử trên 4 tuần qua ±{{n}}%.",
+    "error": "Sai số khi thử trên 4 tuần qua ±{{n}}%, thiên lệch {{bias}}%.",
     "weatherError": "Không lấy được dự báo thời tiết. Hãy mở lại sau ít phút.",
     "tapHint": "Bấm vào con số để xem cách tính và dữ liệu đã dùng.",
     "rainHead": "Ảnh hưởng của mưa (theo thực tế): ",
@@ -1027,24 +1027,21 @@
       "rainResultFew": "= chỉ có {{n}} ngày mưa (dưới {{min}} ngày) → ×1.00 (không áp dụng)",
       "rainNote": "Từ {{from}} đến hôm qua, tìm các ngày mưa từ 1mm trở lên trong {{hours}} ({{days}} ngày・{{n}} dòng), rồi chia số bát thực tế của ngày đó cho “dự kiến không tính mưa (trung bình cùng loại ngày × sự kiện)”.\nDùng trung vị (giá trị ở giữa) để không bị kéo bởi một ngày lệch lớn. Giới hạn trong khoảng {{lo}}–{{hi}} để không quá cực đoan. Nếu ngày mưa dưới {{min}} ngày thì ×1.00.",
       "errorTitle": "Sai số dự báo (4 tuần qua)",
-      "errorFormula": "Sai số = trung bình của “|dự báo − thực tế| ÷ thực tế”\n= trung bình của {{n}} dòng\n= ±{{err}}%",
+      "errorFormula": "Sai số = trung bình của “|dự báo − thực tế| ÷ thực tế”\n= trung bình của {{n}} dòng\n= ±{{err}}%\nThiên lệch = tổng dự báo ÷ tổng thực tế − 1\n= {{bias}} (− là dự báo quá thấp)",
       "errorNote": "Trong 28 ngày từ {{from}} đến hôm qua, mỗi ngày・mỗi ca được dự báo theo cùng phương pháp (chỉ dùng dữ liệu trước ngày đó và lượng mưa thực tế đã rơi), rồi so với số bát thật. Bảng dưới là toàn bộ.",
-      "usedMethod": "Cách tính trung bình: {{m}} (phương pháp có sai số nhỏ nhất khi thử trên 4 tuần qua)",
-      "fallback": "Không đủ dữ liệu cho {{m}} nên ca này tính theo “A 6 tuần gần nhất”.",
-      "seasonalFormula": "Trung bình = trung bình cùng tháng năm trước × mức năm nay\n= {{ly}} bát × {{r}}\n= {{base}} bát",
-      "lastYear": "Cùng tháng năm trước: trung bình của {{where}} vào các ngày “{{type}}” trong {{month}}. {{n}} ngày → {{avg}} bát. Để đưa vào sự khác biệt bán hàng theo mùa (tháng).",
-      "lastYearFew": "Cùng tháng năm trước: {{month}} chỉ có {{n}} ngày “{{type}}” (cần từ {{min}} ngày).",
-      "lastYearSkipped": "Đã loại các ngày có sự kiện hằng năm: {{list}} (vì sự kiện được nhân riêng ở ②).",
-      "yoy": "Mức năm nay: tổng thực tế các ngày “{{type}}” từ {{from}}–{{to}} ({{n}} ngày) ÷ tổng 364 ngày trước (cùng thứ) = {{sum}} ÷ {{sumLy}} = {{raw}}. Giới hạn trong {{lo}}–{{hi}} để không quá cực đoan → ×{{r}}. Để đưa vào việc năm nay bán được bao nhiêu so với năm trước.",
-      "yoyAll": "Cùng loại ngày có dưới {{min}} ngày nên đã tính bằng tất cả các ngày trong 6 tuần.",
-      "allTypes": "tất cả loại ngày",
-      "lyTable": "Các ngày dùng tính trung bình cùng tháng năm trước ({{month}}, {{n}} ngày)",
-      "yoyTable": "Các ngày dùng tính mức năm nay ({{n}} ngày)",
+      "usedMethod": "Cách tính trung bình: {{m}}",
+      "fallback": {
+        "level": "Không đủ số liệu cùng thời điểm năm trước (tháng 5–7/2025 không được nhập), nên chỉ tính theo “6 tuần gần nhất × độ lệch gần đây”.",
+        "yoy": "Không có ngày cùng loại trong 12 tuần gần nhất, nên chỉ tính theo “cùng thời điểm năm trước × mức năm nay”.",
+        "recent": "Các cách khác không có số liệu để dùng."
+      },
+      "yoy": "Mức năm nay: tổng thực tế {{from}}–{{to}} ({{n}} ngày) {{sum}} bát ÷ tổng các ngày 364 ngày trước (cùng thứ) {{sumLy}} bát = {{raw}}. Giới hạn trong {{lo}}–{{hi}} → ×{{r}}. Để đưa vào việc năm nay bán được bao nhiêu so với năm trước.",
+      "yoyTable": "Các ngày dùng cho mức năm nay ({{n}} ngày)",
       "colLastYear": "364 ngày trước",
       "colMethod": "Phương pháp",
       "chosen": "đang dùng",
-      "methodsTitle": "Sai số của 3 phương pháp ({{n}} ô, so sánh ở các ô cả 3 đều dự báo được)",
-      "methodsNote": "A 6 tuần gần nhất = trung bình cùng loại ngày trong 6 tuần gần nhất\nB Cùng tháng năm trước = trung bình cùng loại ngày của cùng tháng năm ngoái\nC = B × mức năm nay (6 tuần gần nhất ÷ cùng các tuần năm ngoái)\nPhương pháp có sai số nhỏ nhất được dùng để dự báo (bằng nhau thì C).",
+      "methodsTitle": "Sai số và thiên lệch của từng cách ({{n}} ô, so ở các ô mọi cách đều dự báo được)",
+      "methodsNote": "v3 = trung bình của “6 tuần gần nhất × độ lệch gần đây” và “cùng thời điểm năm trước × mức năm nay” (từ 19/10/2026)\nGần đây = trung bình 6 tuần gần nhất × độ lệch gần đây (14 ngày)\nNăm trước = cùng thời điểm năm trước (±2 tuần) × mức năm nay (4 tuần), đã bỏ ảnh hưởng của giai đoạn đặc biệt năm trước (Expo…)\nCũ = chỉ trung bình 6 tuần gần nhất (cách cũ)\nTrước đây app chọn cách có sai số nhỏ nhất trong 4 tuần qua; như vậy chỉ chọn cách đúng tháng trước và lệch khi xu hướng đổi, nên nay cố định trung bình của 2 cách.",
       "rowsTitle": "Toàn bộ (chữ đậm = phương pháp đang dùng: {{m}})",
       "tempLine": "③ Thời tiết・nhiệt độ: ca này ({{hours}}) {{temp}}℃. So với nhiệt độ trung bình 6 tuần gần nhất của ca này {{mean}}℃ ({{days}} ngày) là {{diff}}℃ → “{{band}}” → ×{{f}}. Ngày lạnh hơn thường bán chạy, ngày nóng thì khó bán.",
       "tempUnknown": "③ Thời tiết・nhiệt độ: chưa có nhiệt độ của ngày này nên ×1.00.",
@@ -1062,12 +1059,26 @@
       "colFactor": "Hệ số",
       "weatherModesTitle": "Sai số theo cách tính thời tiết (trung bình: {{m}})",
       "weatherModesNote": "Chỉ mưa = vào ngày mưa từ 1mm trở lên, nhân hệ số ngày mưa (cách cũ)\nLượng mưa × nhiệt độ = hệ số nhóm nhiệt độ × nhóm lượng mưa\nDùng cách có sai số nhỏ hơn (bằng nhau thì chỉ mưa).",
-      "rainNoShort": "Mưa: {{mm}}mm. Dưới 1mm nên ×1.00."
+      "rainNoShort": "Mưa: {{mm}}mm. Dưới 1mm nên ×1.00.",
+      "blendFormula": "Trung bình = (① × ② + ③ × mức năm nay) ÷ 2\n= ({{a}} × {{l}} + {{ly}} × {{r}}) ÷ 2\n= ({{k}} + {{y}}) ÷ 2\n= {{base}} bát",
+      "levelFormula": "Trung bình = ① × ②\n= {{a}} × {{l}}\n= {{base}} bát",
+      "yoyFormula": "Trung bình = ③ × mức năm nay\n= {{ly}} × {{r}}\n= {{base}} bát",
+      "level": "② Độ lệch gần đây: tổng thực tế {{n}} ngày {{from}}–{{to}} (mọi loại ngày) {{sum}} bát ÷ tổng dự kiến (① × sự kiện × thời tiết) {{exp}} bát = {{raw}}. Giới hạn trong {{lo}}–{{hi}} → ×{{f}}. Để đưa ngay thay đổi gần đây (khách du lịch tăng/giảm…) vào dự báo.",
+      "levelFew": "② Độ lệch gần đây: 14 ngày gần nhất chỉ có {{n}} ngày có số liệu (cần ít nhất {{min}} ngày) → ×1.00.",
+      "near": "③ Cùng thời điểm năm trước: trung bình các ngày “{{type}}” trong vòng ±2 tuần quanh {{center}} (364 ngày trước, cùng thứ), {{n}} ngày → {{avg}} bát. Để đưa yếu tố mùa vào dự báo.",
+      "periodAdj": "Các ngày “{{name}}” năm trước được dùng sau khi chia cho ảnh hưởng của nó (×{{u}}) (管理 → 設定 → 目標杯数 → 前年の特殊期間).",
+      "nearSkipped": "Ngày bị loại: {{list}} (ngày sự kiện hằng năm, hoặc ngày thuộc giai đoạn đặc biệt không đo được ảnh hưởng).",
+      "nearMissing": "③ Cùng thời điểm năm trước: quanh {{center}} có {{n}} ngày (cần {{min}}), mức năm nay có {{pairs}} cặp (cần {{minPairs}}), nên không dùng được.",
+      "levelTable": "Các ngày dùng cho ② độ lệch gần đây ({{n}} ngày)",
+      "nearTable": "Các ngày dùng cho ③ cùng thời điểm năm trước ({{n}} ngày)",
+      "colAdjusted": "Đã bỏ ảnh hưởng",
+      "colBias": "Thiên lệch"
     },
     "method": {
-      "recent": "A 6 tuần gần nhất",
-      "lastYear": "B Cùng tháng năm trước",
-      "seasonal": "C Cùng tháng năm trước × mức năm nay"
+      "recent": "Chỉ 6 tuần gần nhất (cách cũ)",
+      "blend": "Trung bình của “gần đây × độ lệch gần đây” và “năm trước × mức năm nay” (v3)",
+      "level": "6 tuần gần nhất × độ lệch gần đây",
+      "yoy": "Cùng thời điểm năm trước × mức năm nay"
     },
     "weatherHead": "Ảnh hưởng thời tiết (theo thực tế):",
     "weatherMode": {
@@ -1096,6 +1107,12 @@
       "snow": "Tuyết",
       "showers": "Mưa rào",
       "thunder": "Mưa dông"
+    },
+    "methodShort": {
+      "blend": "v3",
+      "level": "Gần đây",
+      "yoy": "Năm trước",
+      "recent": "Cũ"
     }
   },
   "emergency": {
@@ -1404,6 +1421,19 @@
       "sumFormula": "{{col}} = {{parts}}\n= {{n}} bát",
       "sumMissing": "Có ca chưa có số nên không tính được tổng.",
       "forecastNote": "Dự báo chỉ tính từ số liệu đến ngày trước {{date}} (cùng cách tính với dự báo đưa ra hôm trước). Thời tiết dùng thời tiết thực tế của ngày đó."
-    }
+    },
+    "check": "Dự báo 4 tuần gần nhất: sai số ±{{err}}%, thiên lệch {{bias}}% (− là dự báo quá thấp)"
+  },
+  "periods": {
+    "title": "Giai đoạn đặc biệt của năm trước (cho dự báo)",
+    "help": "Các giai đoạn bán khác thường, như Expo. Khi dự báo dùng số năm trước, các ngày trong giai đoạn này được chia cho ảnh hưởng của nó.\nẢnh hưởng = tỉ lệ so với năm trước ngoài giai đoạn ÷ trong giai đoạn (theo cửa hàng × ca, {{lo}}–{{hi}}). Nếu ít hơn {{min}} ngày trong giai đoạn thì các ngày đó bị loại khỏi số năm trước.",
+    "none": "Chưa có giai đoạn nào.",
+    "measured": "Ảnh hưởng đo được",
+    "few": "{{n}} ngày (chưa đủ)",
+    "ratio": "trong {{in}}% / ngoài {{out}}%",
+    "add": "Thêm giai đoạn",
+    "name": "Tên (ví dụ: Expo)",
+    "invalid": "Hãy nhập tên và ngày bắt đầu.",
+    "deleteConfirm": "Xóa giai đoạn này?"
   }
 }

@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card, Spinner } from '../../../components/ui'
-import { dayTypeCache, forecastModel, forecastSlot, RAINY_MM, WX_ICON, wxKind, type WeatherMap } from '../../../domain/forecast'
+import { dayTypeCache, forecastModel, modelSlot, RAINY_MM, WX_ICON, wxKind, type WeatherMap } from '../../../domain/forecast'
 import { dayView, DATA_FROM, indexSales, type Ctx } from '../../../domain/salesAnalysis'
 import { addDays, formatShortDate, weekdayOf } from '../../../domain/time'
 import { SHIFTS } from '../../../domain/types'
 import { cx } from '../../../lib/cx'
 import { storeName } from '../../../lib/format'
-import { useHolidays, useStores, useTargetEvents, useTargets } from '../../../lib/queries'
+import { useHolidays, useSalesPeriods, useStores, useTargetEvents, useTargets } from '../../../lib/queries'
 import { today } from '../data'
 import { TapNum } from '../drill'
 import { useDailySales, useWeather } from './data'
@@ -57,6 +57,7 @@ export function ForecastCard({ days, compact = false }: { days: number; compact?
   const holidays = useHolidays()
   const targets = useTargets()
   const events = useTargetEvents()
+  const periods = useSalesPeriods()
   const sales = useDailySales()
   const weather = useWeather()
   const [open, setOpen] = useState<string | null>(null)
@@ -64,7 +65,7 @@ export function ForecastCard({ days, compact = false }: { days: number; compact?
   const now = today()
 
   const result = useMemo(() => {
-    if (!stores.data || !holidays.data || !targets.data || !events.data || !sales.data || !weather.data) return null
+    if (!stores.data || !holidays.data || !targets.data || !events.data || !sales.data || !weather.data || !periods.data) return null
     const wx = weather.data
     const ctx: Ctx = {
       sales: indexSales(sales.data),
@@ -75,19 +76,20 @@ export function ForecastCard({ days, compact = false }: { days: number; compact?
       shifts: [...SHIFTS],
     }
     const typeOf = dayTypeCache(holidays.data)
-    const { rain, factors, wf, check, wIn } = forecastModel(ctx, typeOf, wx, now, DATA_FROM)
+    const model = forecastModel(ctx, typeOf, wx, now, DATA_FROM, periods.data)
+    const { factors, wf, check } = model
     const dates = Array.from({ length: days }, (_, i) => addDays(now, i))
     const rows = dates.map((date) => {
       const view = dayView(ctx, date)
       const slots = ctx.storeIds.flatMap((store) =>
-        SHIFTS.map((shift) => ({ ...forecastSlot(ctx, typeOf, date, store, shift, rain, factors, check.chosen, wIn), target: view.slots.find((s) => s.store === store && s.shift === shift)?.target ?? null })),
+        SHIFTS.map((shift) => ({ ...modelSlot(ctx, typeOf, model, date, store, shift), target: view.slots.find((s) => s.store === store && s.shift === shift)?.target ?? null })),
       )
       const value = slots.reduce((a, s) => a + (s.value ?? 0), 0)
       const target = slots.every((s) => s.target !== null) ? slots.reduce((a, s) => a + s.target!, 0) : null
       return { date, dayType: view.dayType, slots, value, target }
     })
     return { rows, factors, wf, check, wx }
-  }, [stores.data, holidays.data, targets.data, events.data, sales.data, weather.data, days, now])
+  }, [stores.data, holidays.data, targets.data, events.data, sales.data, weather.data, periods.data, days, now])
 
   if (weather.error) return <Card className="text-sm text-muted">🔮 {t('forecast.weatherError')}</Card>
   if (!result) return compact ? null : <Spinner />
@@ -163,7 +165,7 @@ export function ForecastCard({ days, compact = false }: { days: number; compact?
           <>
             {' '}
             <TapNum onOpen={() => setExplain({ kind: 'error' })} className="text-xs">
-              {t('forecast.error', { n: result.check.error })}
+              {t('forecast.error', { n: result.check.error, bias: result.check.bias === null ? '—' : `${result.check.bias > 0 ? '+' : ''}${result.check.bias}` })}
             </TapNum>
           </>
         )}

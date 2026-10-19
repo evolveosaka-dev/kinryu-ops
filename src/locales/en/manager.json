@@ -925,13 +925,21 @@
       "noRecord": "No record",
       "patrol": "Patrols (patroller → staff checked)",
       "none": "None",
-      "judge": { "good": "Good", "improve": "Improve", "coaching": "Coached" },
+      "judge": {
+        "good": "Good",
+        "improve": "Improve",
+        "coaching": "Coached"
+      },
       "good": "Good points",
       "improve": "Improvements / coaching",
       "customer": "Customers",
       "comment": "Comment by {{by}}",
       "sudden": "Absences, complaints, accidents",
-      "change": { "absence": "Absent", "late": "Late", "early_leave": "Left early" },
+      "change": {
+        "absence": "Absent",
+        "late": "Late",
+        "early_leave": "Left early"
+      },
       "minutes": "{{n}} min",
       "cover": "covered by {{name}}",
       "open": "Open cases (from earlier days)",
@@ -975,7 +983,7 @@
     "bowls": " bowls",
     "vsTarget": "{{n}}% of target",
     "how": "Forecast = average ({{m}}) × events × weather ({{w}}).",
-    "error": "Error tested on the last 4 weeks ±{{n}}%.",
+    "error": "Error tested on the last 4 weeks ±{{n}}%, bias {{bias}}%.",
     "weatherError": "Could not get the weather forecast. Open again later.",
     "tapHint": "Tap a number to see how it is calculated and from which data.",
     "rainHead": "Effect of rain (measured): ",
@@ -1019,24 +1027,21 @@
       "rainResultFew": "= only {{n}} rainy days (fewer than {{min}}) → ×1.00 (not used)",
       "rainNote": "From {{from}} to yesterday, the days with 1 mm or more during {{hours}} ({{days}} days, {{n}} rows): the actual bowls divided by the forecast without rain (same-type average × events).\nThe median is used so that one odd day does not pull it; it is kept between {{lo}} and {{hi}}. Fewer than {{min}} rainy days → ×1.00.",
       "errorTitle": "Forecast error (last 4 weeks)",
-      "errorFormula": "Error = mean of “|forecast − actual| ÷ actual”\n= mean of {{n}} rows\n= ±{{err}}%",
+      "errorFormula": "Error = mean of “|forecast − actual| ÷ actual”\n= mean of {{n}} rows\n= ±{{err}}%\nBias = total forecast ÷ total actual − 1\n= {{bias}} (− = forecast too low)",
       "errorNote": "For the 28 days from {{from}} to yesterday, every day and shift was forecast the same way (only data before that day, and the rain that fell) and compared with the real bowls. All rows are below.",
-      "usedMethod": "Average from: {{m}} (the method with the smallest error over the last 4 weeks)",
-      "fallback": "Not enough data for {{m}}, so this shift uses \"A last 6 weeks\".",
-      "seasonalFormula": "Average = same month last year × this year’s level\n= {{ly}} × {{r}}\n= {{base}}",
-      "lastYear": "Same month last year: average of the \"{{type}}\" days of {{month}} for {{where}}. {{n}} days → {{avg}}. This brings in the season (month).",
-      "lastYearFew": "Same month last year: only {{n}} \"{{type}}\" days in {{month}} ({{min}} needed).",
-      "lastYearSkipped": "Days of yearly events left out: {{list}} (events are applied separately in ②).",
-      "yoy": "This year’s level: total of the \"{{type}}\" days {{from}}–{{to}} ({{n}} days) ÷ total 364 days before (same weekday) = {{sum}} ÷ {{sumLy}} = {{raw}}. Kept within {{lo}}–{{hi}} → ×{{r}}. This brings in how this year compares with last year.",
-      "yoyAll": "Fewer than {{min}} days of the same type, so every day of the 6 weeks was used.",
-      "allTypes": "all day types",
-      "lyTable": "Days averaged for last year ({{month}}, {{n}} days)",
-      "yoyTable": "Days for this year’s level ({{n}} days)",
+      "usedMethod": "Average from: {{m}}",
+      "fallback": {
+        "level": "Not enough figures from the same time last year (May–July 2025 were never entered), so only “last 6 weeks × recent drift” is used.",
+        "yoy": "No day of the same type in the last 12 weeks, so only “same time last year × this year’s level” is used.",
+        "recent": "The other methods have no figures to use."
+      },
+      "yoy": "This year’s level: actual {{from}}–{{to}} ({{n}} days) {{sum}} ÷ the same days 364 days before (same weekday) {{sumLy}} = {{raw}}. Kept within {{lo}}–{{hi}} → ×{{r}}. This brings in how this year compares with last year.",
+      "yoyTable": "Days used for this year’s level ({{n}})",
       "colLastYear": "364 days before",
       "colMethod": "Method",
       "chosen": "in use",
-      "methodsTitle": "Error of the three methods ({{n}} slots all three could forecast)",
-      "methodsNote": "A = average of the same day type in the last 6 weeks\nB = average of the same day type in the same month last year\nC = B × this year’s level (last 6 weeks ÷ the same weeks last year)\nThe method with the smallest error is used (C when tied).",
+      "methodsTitle": "Error and bias per method ({{n}} slots every method could forecast)",
+      "methodsNote": "v3 = mean of “last 6 weeks × recent drift” and “same time last year × this year’s level” (from 2026/10/19)\nRecent = last 6 weeks average × recent drift (14 days)\nLast yr = same time last year (±2 weeks) × this year’s level (4 weeks), with the effect of 前年の特殊期間 (Expo…) taken out\nOld = last 6 weeks average only (the old method)\nBefore, the method with the smallest error over the last 4 weeks was chosen; that only picked what worked last month and missed when the trend turned, so the mean of the two is now fixed.",
       "rowsTitle": "All rows (bold = the method in use: {{m}})",
       "tempLine": "③ Weather, temperature: {{temp}} °C in this shift ({{hours}}), {{diff}} °C vs this shift’s average of the last 6 weeks {{mean}} °C ({{days}} days) → \"{{band}}\" → ×{{f}}. Colder days sell more, hot days less.",
       "tempUnknown": "③ Weather, temperature: no temperature for this day yet → ×1.00.",
@@ -1054,12 +1059,26 @@
       "colFactor": "Factor",
       "weatherModesTitle": "Error by weather model (average: {{m}})",
       "weatherModesNote": "Rain only = on days with ≥ 1 mm, the rainy-day factor (the earlier method)\nRain amount × temperature = temperature band × rain-amount band factors\nThe smaller error is used (rain only when tied).",
-      "rainNoShort": "Rain: {{mm}} mm, under 1 mm → ×1.00."
+      "rainNoShort": "Rain: {{mm}} mm, under 1 mm → ×1.00.",
+      "blendFormula": "Average = (① × ② + ③ × this year’s level) ÷ 2\n= ({{a}} × {{l}} + {{ly}} × {{r}}) ÷ 2\n= ({{k}} + {{y}}) ÷ 2\n= {{base}} bowls",
+      "levelFormula": "Average = ① × ②\n= {{a}} × {{l}}\n= {{base}} bowls",
+      "yoyFormula": "Average = ③ × this year’s level\n= {{ly}} × {{r}}\n= {{base}} bowls",
+      "level": "② Recent drift: actual of the {{n}} days {{from}}–{{to}} (every day type) {{sum}} ÷ expected (① × events × weather) {{exp}} = {{raw}}. Kept within {{lo}}–{{hi}} → ×{{f}}. This brings in a recent change (more or fewer tourists…) at once.",
+      "levelFew": "② Recent drift: only {{n}} days with figures in the last 14 days ({{min}} needed) → ×1.00.",
+      "near": "③ Same time last year: average of the “{{type}}” days within 2 weeks of {{center}} (364 days before, same weekday), {{n}} days → {{avg}}. This brings in the season.",
+      "periodAdj": "Days of “{{name}}” last year are used divided by its effect (×{{u}}) (管理 → 設定 → 目標杯数 → 前年の特殊期間).",
+      "nearSkipped": "Left out: {{list}} (yearly event days, or days of a period whose effect could not be measured).",
+      "nearMissing": "③ Same time last year: {{n}} days around {{center}} ({{min}} needed) and {{pairs}} pairs for this year’s level ({{minPairs}} needed), so it cannot be used.",
+      "levelTable": "Days used for ② recent drift ({{n}})",
+      "nearTable": "Days used for ③ same time last year ({{n}})",
+      "colAdjusted": "Without the effect",
+      "colBias": "Bias"
     },
     "method": {
-      "recent": "A last 6 weeks",
-      "lastYear": "B same month last year",
-      "seasonal": "C last year × this year’s level"
+      "recent": "Last 6 weeks only (the old method)",
+      "blend": "Mean of recent × recent drift and last year × this year’s level (v3)",
+      "level": "Last 6 weeks × recent drift",
+      "yoy": "Same time last year × this year’s level"
     },
     "weatherHead": "Weather effect (from the figures):",
     "weatherMode": {
@@ -1088,6 +1107,12 @@
       "snow": "Snow",
       "showers": "Showers",
       "thunder": "Thunder"
+    },
+    "methodShort": {
+      "blend": "v3",
+      "level": "Recent",
+      "yoy": "Last yr",
+      "recent": "Old"
     }
   },
   "emergency": {
@@ -1396,6 +1421,19 @@
       "sumFormula": "{{col}} = {{parts}}\n= {{n}} bowls",
       "sumMissing": "Some shifts have no figure yet, so there is no total.",
       "forecastNote": "The forecast is calculated only from figures before {{date}} (the same calculation as the forecast made the day before). The weather is the day's actual weather."
-    }
+    },
+    "check": "Forecast over the last 4 weeks: error ±{{err}}%, bias {{bias}}% (− = too low)"
+  },
+  "periods": {
+    "title": "Unusual periods of past years (for the forecast)",
+    "help": "Periods when sales were unusual, like the Expo. When the forecast uses last year’s figures, days in such a period are divided by its effect.\nEffect = year-on-year ratio outside the period ÷ inside it (per store × shift, {{lo}}–{{hi}}). With fewer than {{min}} days inside, those days are left out of last year’s figures.",
+    "none": "No periods yet.",
+    "measured": "Measured effect",
+    "few": "{{n}} days (too few)",
+    "ratio": "in {{in}}% / out {{out}}%",
+    "add": "Add a period",
+    "name": "Name (e.g. Expo)",
+    "invalid": "Enter a name and a start date.",
+    "deleteConfirm": "Delete this period?"
   }
 }

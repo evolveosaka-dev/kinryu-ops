@@ -24,8 +24,9 @@ describe('実績・予測・前年', () => {
     expect(weekdayOf(c.lastYearDate)).toBe(weekdayOf('2026-10-15'))
     const early = c.rows.find((r) => r.shift === 'early')!
     expect(early).toMatchObject({ actual: 110, lastYear: 100 })
-    expect(early.forecast.value).toBe(110)
-    expect(c.sums.all).toEqual({ actual: 170, forecast: 170, lastYear: 150 })
+    // v3 = mean of ① × ② (110) and last year × this year's level (all day types: a little lower) → within 2
+    expect(Math.abs(early.forecast.value! - 110)).toBeLessThanOrEqual(2)
+    expect(c.sums.all).toEqual({ actual: 170, forecast: c.rows.reduce((a, r) => a + r.forecast.value!, 0), lastYear: 150 })
     expect(c.sums.S).toEqual(c.sums.all)
   })
   it('the forecast of a day ignores that day and later figures', () => {

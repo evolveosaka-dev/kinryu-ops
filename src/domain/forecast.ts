@@ -1,9 +1,14 @@
 // 杯数の予測 (owner, 2026-10-15; item 9 of the proposal). Per store × shift:
-//   base     = one of three methods (owner, 2026-10-16), the one with the smallest backtest error is used:
-//              ① recent   = average of the same day type (targetDayType) in the 6 weeks before (12 if fewer than 2 days)
-//              ② lastYear = average of the same day type in the same month a year before (season only)
-//              ③ seasonal = ② × (the last 6 weeks ÷ the same weeks a year before, same day type, 364 days back)
-//                           = last year's season at this year's level
+//   base     = v3 (owner, 2026-10-19): the mean of two estimates, no longer the method that won the last 28 days
+//              (that chased last month: C lost September to the Expo rush of 2025, A then lagged October by −12 %):
+//              level = ① the same day type (targetDayType) in the 6 weeks before (12 if fewer than 2 days)
+//                      × ② the last 14 days' actual ÷ their ① (0.8–1.2) — a change of level shows at once
+//              yoy   = ③ the same day type within ±2 weeks of 364 days before × this year's level
+//                      (the last 4 weeks ÷ the same days 364 days before, 0.5–1.5)
+//              Last year's figures are taken without the effect of 前年の特殊期間 (sales_periods: 万博 2025-04-13〜10-13 …),
+//              measured per store × shift as the year-on-year ratio outside ÷ inside the period (periodFit).
+//              blend = (level + yoy) ÷ 2; level alone when last year has no figures (2025-05〜07 were never entered).
+//              Real data 2026-07〜10-17: day error ±10.7 % / bias −0.1 % (A ±11.6 % / −2.5 %; October ±6 % vs ±12.5 %).
 //   × events = the active 目標杯数 events of that day (same % as the targets)
 //   × weather = one of two models (owner, 2026-10-16), the one with the smaller backtest error is used:
 //              rain     = when ≥ 1 mm falls in the shift's hours, the shift's measured rain factor
@@ -14,7 +19,7 @@
 //                         between 0.7 and 1.2, 1 when fewer than 15 slots
 // Weather = weather_shifts (Open-Meteo, Namba; archive = what happened, forecast ahead). The factors are measured
 // before the 28 backtest days, so the backtest is a fair test. The error shown is that backtest.
-import { slotKey, type Ctx } from './salesAnalysis'
+import { DATA_FROM, slotKey, type Ctx } from './salesAnalysis'
 import { pctOf, targetDayType, type TargetDayType } from './targets'
 import { addDays } from './time'
 import { SHIFTS, type Shift } from './types'
@@ -23,13 +28,9 @@ export const RAINY_MM = 1
 const LOOKBACK = 42
 const LOOKBACK_WIDE = 84
 const MIN_RAINY_DAYS = 5
-/** ② needs this many days of the type in last year's month */
-export const LAST_YEAR_MIN_DAYS = 3
-/** ③ needs this many day pairs (this year / 364 days before) of the type; fewer → every day type of the 6 weeks */
-export const YOY_MIN_PAIRS = 3
-export const YOY_CLAMP = [0.5, 1.5] as const
 
-export const FORECAST_METHODS = ['recent', 'lastYear', 'seasonal'] as const
+/** blend is used; the others are shown next to it in the 誤差 sheet */
+export const FORECAST_METHODS = ['blend', 'level', 'yoy', 'recent'] as const
 export type ForecastMethod = (typeof FORECAST_METHODS)[number]
 
 /** Rain (mm) per `${date}|${shift}` from Open-Meteo hourly data (Asia/Tokyo local hours). */
@@ -225,13 +226,154 @@ export function baseline(ctx: Ctx, typeOf: (d: string) => TargetDayType, date: s
   return { value: null, days: 0, samples: [], from: addDays(date, -LOOKBACK_WIDE), weeks: 12 }
 }
 
-export interface LastYearBase {
+/** 前年の特殊期間 (sales_periods): days whose figures were unusual (大阪・関西万博 2025…). */
+export interface SalesPeriod {
+  id: string
+  name: string
+  date_from: string
+  date_to: string
+  /** null = both stores */
+  store_id: string | null
+  active: boolean
+  note: string | null
+}
+
+export interface PeriodUplift {
+  period: SalesPeriod
+  store: string
+  shift: Shift
+  /** this year ÷ 364 days before, when the day before was in the period / in no period */
+  inside: { pairs: number; sum: number; sumLy: number }
+  outside: { pairs: number; sum: number; sumLy: number }
+  /** how much the period raised the figures (outside ratio ÷ inside ratio); null = too few pairs → its days are left out */
+  uplift: number | null
+}
+
+/** The periods with their measured effect, as of a day (only pairs before it). */
+export interface LastYearAdjust {
+  periods: SalesPeriod[]
+  uplift: Map<string, PeriodUplift>
+}
+
+export const NO_ADJUST: LastYearAdjust = { periods: [], uplift: new Map() }
+
+/** events × weather of a past slot: what ② 最近のズレ takes out, so the weather is not counted twice */
+export type Known = (date: string, store: string, shift: Shift) => number
+
+/** What the base needs besides the figures. */
+export interface BaseOpts {
+  adj: LastYearAdjust
+  /** default: the events only */
+  known?: Known
+}
+export const NO_OPTS: BaseOpts = { adj: NO_ADJUST }
+export const PERIOD_MIN_PAIRS = 20
+export const PERIOD_CLAMP = [0.67, 1.5] as const
+
+const periodOf = (periods: SalesPeriod[], date: string, store: string) =>
+  periods.find((p) => p.active && date >= p.date_from && date <= p.date_to && (!p.store_id || p.store_id === store))
+
+/** Measures each period per store × shift: the year-on-year ratio of days in it vs days in no period (before `asOf`). */
+export function periodFit(ctx: Ctx, periods: SalesPeriod[], asOf: string): LastYearAdjust {
+  const active = periods.filter((p) => p.active)
+  const uplift = new Map<string, PeriodUplift>()
+  for (const store of ctx.storeIds)
+    for (const shift of SHIFTS) {
+      const outside = { pairs: 0, sum: 0, sumLy: 0 }
+      const inside = new Map(active.map((p) => [p.id, { pairs: 0, sum: 0, sumLy: 0 }]))
+      for (let d = addDays(DATA_FROM, 364); d < asOf; d = addDays(d, 1)) {
+        if (periodOf(active, d, store)) continue
+        const a = ctx.sales.get(slotKey(d, store, shift))
+        const ly = addDays(d, -364)
+        const b = ctx.sales.get(slotKey(ly, store, shift))
+        if (a === undefined || !b) continue
+        const p = periodOf(active, ly, store)
+        const acc = p ? inside.get(p.id)! : outside
+        acc.pairs++
+        acc.sum += a
+        acc.sumLy += b
+      }
+      for (const p of active) {
+        if (p.store_id && p.store_id !== store) continue
+        const i = inside.get(p.id)!
+        const ok = i.pairs >= PERIOD_MIN_PAIRS && outside.pairs >= PERIOD_MIN_PAIRS && i.sum > 0 && outside.sumLy > 0
+        const raw = ok ? outside.sum / outside.sumLy / (i.sum / i.sumLy) : null
+        uplift.set(`${p.id}|${store}|${shift}`, {
+          period: p,
+          store,
+          shift,
+          inside: i,
+          outside,
+          uplift: raw === null ? null : Math.min(PERIOD_CLAMP[1], Math.max(PERIOD_CLAMP[0], raw)),
+        })
+      }
+    }
+  return { periods: active, uplift }
+}
+
+export interface LyValue {
+  /** the figure as it was */
+  raw: number
+  /** the figure without the period's effect; null = in a period that could not be measured (left out) */
   value: number | null
-  /** YYYY-MM of last year's month */
-  month: string
-  samples: { date: string; bowls: number }[]
-  /** days of the type left out because a yearly event (same month-day) falls on them */
-  skipped: { date: string; event: string }[]
+  period: string | null
+  uplift: number | null
+}
+
+/** A past figure without its period's effect (undefined = no figure). */
+export function lyValue(ctx: Ctx, adj: LastYearAdjust, date: string, store: string, shift: Shift): LyValue | undefined {
+  const raw = ctx.sales.get(slotKey(date, store, shift))
+  if (raw === undefined) return undefined
+  const p = periodOf(adj.periods, date, store)
+  if (!p) return { raw, value: raw, period: null, uplift: null }
+  const u = adj.uplift.get(`${p.id}|${store}|${shift}`)?.uplift ?? null
+  return { raw, value: u === null ? null : raw / u, period: p.name, uplift: u }
+}
+
+export const LEVEL_DAYS = 14
+export const LEVEL_MIN_DAYS = 7
+export const LEVEL_CLAMP = [0.8, 1.2] as const
+
+export interface LevelFactor {
+  /** clamped, 1 when too few days */
+  value: number
+  raw: number | null
+  /** expected = ① avg × events × weather of that day */
+  rows: { date: string; actual: number; avg: number; known: number; expected: number }[]
+  from: string
+}
+
+/**
+ * ② 最近のズレ: the last 14 days' actual ÷ what was expected from ① × events × weather (all day types),
+ * so a change of level shows at once without counting the weather twice.
+ */
+export function levelFactor(ctx: Ctx, typeOf: (d: string) => TargetDayType, date: string, store: string, shift: Shift, known?: Known): LevelFactor {
+  const from = addDays(date, -LEVEL_DAYS)
+  const rows: LevelFactor['rows'] = []
+  for (let d = from; d < date; d = addDays(d, 1)) {
+    const a = ctx.sales.get(slotKey(d, store, shift))
+    if (a === undefined) continue
+    const avg = baseline(ctx, typeOf, d, store, shift).value
+    if (!avg) continue
+    const k = known ? known(d, store, shift) : eventFactor(ctx, d, store, shift).factor
+    rows.push({ date: d, actual: a, avg, known: k, expected: avg * k })
+  }
+  const sa = rows.reduce((x, r) => x + r.actual, 0)
+  const sb = rows.reduce((x, r) => x + r.expected, 0)
+  const raw = rows.length >= LEVEL_MIN_DAYS && sb ? sa / sb : null
+  return { value: raw === null ? 1 : Math.min(LEVEL_CLAMP[1], Math.max(LEVEL_CLAMP[0], raw)), raw, rows, from }
+}
+
+export const NEAR_DAYS = 14
+export const NEAR_MIN_DAYS = 2
+
+export interface LastYearNear {
+  value: number | null
+  /** 364 days before (same weekday) */
+  center: string
+  samples: { date: string; bowls: number; value: number; period: string | null; uplift: number | null }[]
+  /** left out: yearly event days (②'s events cover them) and period days that could not be measured */
+  skipped: { date: string; why: string }[]
 }
 
 /** Yearly events (ハロウィン 10/31, クリスマス…): their month-day, to keep them out of last year's average. */
@@ -241,86 +383,88 @@ function yearlyEventDays(ctx: Ctx): Map<string, string> {
   return m
 }
 
-/** ② the same day type in the same month a year before. */
-export function lastYearBase(ctx: Ctx, typeOf: (d: string) => TargetDayType, date: string, store: string, shift: Shift): LastYearBase {
+/** ③ 前年: the same day type within ±2 weeks of 364 days before, without the periods' effect. */
+export function lastYearNear(ctx: Ctx, typeOf: (d: string) => TargetDayType, adj: LastYearAdjust, date: string, store: string, shift: Shift): LastYearNear {
   const type = typeOf(date)
-  const month = `${Number(date.slice(0, 4)) - 1}${date.slice(4, 7)}`
+  const center = addDays(date, -364)
   const skip = yearlyEventDays(ctx)
-  const samples: { date: string; bowls: number }[] = []
-  const skipped: { date: string; event: string }[] = []
-  for (let d = `${month}-01`; d.startsWith(month); d = addDays(d, 1)) {
+  const samples: LastYearNear['samples'] = []
+  const skipped: LastYearNear['skipped'] = []
+  for (let d = addDays(center, -NEAR_DAYS); d <= addDays(center, NEAR_DAYS); d = addDays(d, 1)) {
     if (typeOf(d) !== type) continue
-    const v = ctx.sales.get(slotKey(d, store, shift))
-    if (v === undefined) continue
+    const v = lyValue(ctx, adj, d, store, shift)
+    if (!v) continue
     const ev = skip.get(d.slice(5))
-    if (ev) {
-      skipped.push({ date: d, event: ev })
-      continue
-    }
-    samples.push({ date: d, bowls: v })
+    if (ev) skipped.push({ date: d, why: ev })
+    else if (v.value === null) skipped.push({ date: d, why: v.period! })
+    else samples.push({ date: d, bowls: v.raw, value: v.value, period: v.period, uplift: v.uplift })
   }
   return {
-    value: samples.length >= LAST_YEAR_MIN_DAYS ? samples.reduce((a, x) => a + x.bowls, 0) / samples.length : null,
-    month,
+    value: samples.length >= NEAR_MIN_DAYS ? samples.reduce((a, x) => a + x.value, 0) / samples.length : null,
+    center,
     samples,
     skipped,
   }
 }
 
+export const YOY_DAYS = 28
+export const YOY_MIN_PAIRS = 7
+export const YOY_CLAMP = [0.5, 1.5] as const
+
 export interface YoyRatio {
-  /** clamped ratio, null when no pair */
+  /** clamped ratio, null when too few pairs */
   value: number | null
   raw: number | null
-  pairs: { date: string; actual: number; lastYear: number }[]
-  /** too few pairs of the day type: every day type of the 6 weeks was used */
-  allTypes: boolean
+  pairs: { date: string; actual: number; lastYear: number; lastYearRaw: number; period: string | null; uplift: number | null }[]
   from: string
 }
 
-/** ③ this year's level: the last 6 weeks ÷ the same weeks a year before (364 days = same weekday). */
-export function yoyRatio(ctx: Ctx, typeOf: (d: string) => TargetDayType, date: string, store: string, shift: Shift): YoyRatio {
-  const type = typeOf(date)
-  const from = addDays(date, -LOOKBACK)
-  const collect = (sameType: boolean) => {
-    const pairs: { date: string; actual: number; lastYear: number }[] = []
-    for (let d = from; d < date; d = addDays(d, 1)) {
-      if (sameType && typeOf(d) !== type) continue
-      const a = ctx.sales.get(slotKey(d, store, shift))
-      const b = ctx.sales.get(slotKey(addDays(d, -364), store, shift))
-      if (a !== undefined && b) pairs.push({ date: d, actual: a, lastYear: b })
-    }
-    return pairs
+/** ③ 今年の水準: the last 4 weeks ÷ the same days 364 days before (same weekday), without the periods' effect. */
+export function yoyRatio(ctx: Ctx, adj: LastYearAdjust, date: string, store: string, shift: Shift): YoyRatio {
+  const from = addDays(date, -YOY_DAYS)
+  const pairs: YoyRatio['pairs'] = []
+  for (let d = from; d < date; d = addDays(d, 1)) {
+    const a = ctx.sales.get(slotKey(d, store, shift))
+    const b = lyValue(ctx, adj, addDays(d, -364), store, shift)
+    if (a !== undefined && b && b.value) pairs.push({ date: d, actual: a, lastYear: b.value, lastYearRaw: b.raw, period: b.period, uplift: b.uplift })
   }
-  let pairs = collect(true)
-  const allTypes = pairs.length < YOY_MIN_PAIRS
-  if (allTypes) pairs = collect(false)
   const sumB = pairs.reduce((a, x) => a + x.lastYear, 0)
-  const raw = pairs.length && sumB ? pairs.reduce((a, x) => a + x.actual, 0) / sumB : null
-  return { value: raw === null ? null : Math.min(YOY_CLAMP[1], Math.max(YOY_CLAMP[0], raw)), raw, pairs, allTypes, from }
+  const raw = pairs.length >= YOY_MIN_PAIRS && sumB ? pairs.reduce((a, x) => a + x.actual, 0) / sumB : null
+  return { value: raw === null ? null : Math.min(YOY_CLAMP[1], Math.max(YOY_CLAMP[0], raw)), raw, pairs, from }
 }
 
 export interface BaseParts {
   method: ForecastMethod
-  /** the method could not be used (missing data) and ① was used instead */
+  /** the method could not be used (missing data) and another was used instead */
   fallback: boolean
+  /** what was used */
+  used: ForecastMethod
   value: number | null
   recent: Baseline
-  lastYear: LastYearBase
+  level: LevelFactor
+  near: LastYearNear
   yoy: YoyRatio
+  by: Record<ForecastMethod, number | null>
 }
 
-/** The base of one slot by every method; `value` = the chosen method (① when it has no data). */
-export function baseParts(ctx: Ctx, typeOf: (d: string) => TargetDayType, date: string, store: string, shift: Shift, method: ForecastMethod): BaseParts {
+/**
+ * The base of one slot by every method; `value` = the chosen one.
+ *   recent = ① 直近6週の平均
+ *   level  = ① × ② 最近のズレ (14 days)
+ *   yoy    = ③ 前年の同じ時期 × 今年の水準 (periods taken out)
+ *   blend  = (level + yoy) ÷ 2 — level alone when last year has no figures (e.g. 2025-05〜07, not entered)
+ */
+export function baseParts(ctx: Ctx, typeOf: (d: string) => TargetDayType, date: string, store: string, shift: Shift, method: ForecastMethod, opts: BaseOpts = NO_OPTS): BaseParts {
+  const adj = opts.adj
   const recent = baseline(ctx, typeOf, date, store, shift)
-  const lastYear = lastYearBase(ctx, typeOf, date, store, shift)
-  const yoy = yoyRatio(ctx, typeOf, date, store, shift)
-  const by: Record<ForecastMethod, number | null> = {
-    recent: recent.value,
-    lastYear: lastYear.value,
-    seasonal: lastYear.value !== null && yoy.value !== null ? lastYear.value * yoy.value : null,
-  }
-  const own = by[method]
-  return { method, fallback: own === null && method !== 'recent', value: own ?? recent.value, recent, lastYear, yoy }
+  const level = levelFactor(ctx, typeOf, date, store, shift, opts.known)
+  const near = lastYearNear(ctx, typeOf, adj, date, store, shift)
+  const yoy = yoyRatio(ctx, adj, date, store, shift)
+  const lv = recent.value === null ? null : recent.value * level.value
+  const yy = near.value !== null && yoy.value !== null ? near.value * yoy.value : null
+  const by: Record<ForecastMethod, number | null> = { blend: lv !== null && yy !== null ? (lv + yy) / 2 : null, level: lv, yoy: yy, recent: recent.value }
+  const used: ForecastMethod = by[method] !== null ? method : method === 'recent' ? 'recent' : lv !== null ? 'level' : yy !== null ? 'yoy' : 'recent'
+  return { method, fallback: used !== method, used, value: by[used], recent, level, near, yoy, by }
 }
 
 export function eventFactor(ctx: Ctx, date: string, store: string, shift: Shift): { factor: number; names: string[] } {
@@ -417,10 +561,11 @@ export function forecastSlot(
   shift: Shift,
   rain: RainMap,
   factors: RainFactors,
-  method: ForecastMethod = 'seasonal',
+  method: ForecastMethod = 'blend',
   weather?: WeatherInput,
+  opts: BaseOpts = NO_OPTS,
 ): SlotForecast {
-  const parts = baseParts(ctx, typeOf, date, store, shift, method)
+  const parts = baseParts(ctx, typeOf, date, store, shift, method, opts)
   const b = { ...parts.recent, value: parts.value }
   const ev = eventFactor(ctx, date, store, shift)
   const mm = rain.has(`${date}|${shift}`) ? rain.get(`${date}|${shift}`)! : null
@@ -446,32 +591,52 @@ export interface BacktestRow {
   date: string
   store: string
   shift: Shift
-  /** the chosen method's forecast */
+  /** blend × events × the chosen weather model */
   forecast: number
   actual: number
   /** |forecast − actual| ÷ actual, in % */
   errorPct: number
-  /** every method's forecast (null = no data for it) */
+  /** every method's forecast with the same events and weather (null = no data for it) */
   by: Record<ForecastMethod, number | null>
 }
 
-export interface Backtest {
-  /** error of the chosen method */
+export interface MethodScore {
+  /** mean of |forecast − actual| ÷ actual, in % */
   error: number | null
+  /** Σ forecast ÷ Σ actual − 1, in % (− = the forecast was too low) */
+  bias: number | null
+  slots: number
+}
+
+export interface Backtest {
+  /** error of what is shown (blend × events × chosen weather) */
+  error: number | null
+  bias: number | null
   slots: number
   rows: BacktestRow[]
   from: string
-  /** mean absolute error in % per method, on the slots every method could forecast */
-  methods: Record<ForecastMethod, { error: number | null; slots: number }>
+  /** every method on the slots all of them could forecast */
+  methods: Record<ForecastMethod, MethodScore>
   chosen: ForecastMethod
-  /** the chosen base with each weather model, on the same slots */
+  /** blend with each weather model, on the same slots */
   weather: Record<WeatherMode, { error: number | null; slots: number }>
   weatherChosen: WeatherMode
 }
 
+const score = (xs: { f: number; a: number }[]): MethodScore => {
+  if (!xs.length) return { error: null, bias: null, slots: 0 }
+  const sa = xs.reduce((s, x) => s + x.a, 0)
+  return {
+    error: Math.round((xs.reduce((s, x) => s + Math.abs(x.f - x.a) / x.a, 0) / xs.length) * 1000) / 10,
+    bias: Math.round((xs.reduce((s, x) => s + x.f, 0) / sa - 1) * 1000) / 10,
+    slots: xs.length,
+  }
+}
+
 /**
- * Every method on the days before `today` that have figures. The method with the smallest error on the slots
- * all three could forecast is the one used (③ when tied or nothing to compare).
+ * Every method on the 28 days before `today` that have figures, each day using only figures before it.
+ * blend is what the forecast uses (fixed since v3); the others are shown for comparison. The weather model with the
+ * smaller error on blend is used.
  */
 export function backtest(
   ctx: Ctx,
@@ -481,78 +646,67 @@ export function backtest(
   today: string,
   days = 28,
   weather?: { wx: WeatherMap; factors: WeatherFactors },
+  opts: BaseOpts = NO_OPTS,
 ): Backtest {
-  const raw: (Omit<BacktestRow, 'forecast' | 'errorPct'> & { base: Record<ForecastMethod, number | null>; ev: number; wf: Record<WeatherMode, number> })[] = []
+  const chosen: ForecastMethod = 'blend'
+  const raw: { date: string; store: string; shift: Shift; actual: number; base: number | null; own: Record<ForecastMethod, number | null>; ev: number; wf: Record<WeatherMode, number> }[] = []
   for (let d = addDays(today, -days); d < today; d = addDays(d, 1))
     for (const store of ctx.storeIds)
       for (const shift of ctx.shifts) {
         const actual = ctx.sales.get(slotKey(d, store, shift))
         if (!actual) continue
-        const parts = baseParts(ctx, typeOf, d, store, shift, 'recent')
+        const parts = baseParts(ctx, typeOf, d, store, shift, chosen, opts)
         const ev = eventFactor(ctx, d, store, shift).factor
         const mm = rain.get(`${d}|${shift}`) ?? 0
         const rf = mm >= RAINY_MM ? factors[shift].factor : 1
-        const ly = parts.lastYear.value
-        const own: Record<ForecastMethod, number | null> = {
-          recent: parts.recent.value,
-          lastYear: ly,
-          seasonal: ly !== null && parts.yoy.value !== null ? ly * parts.yoy.value : null,
-        }
-        const by = Object.fromEntries(FORECAST_METHODS.map((m) => [m, own[m] === null ? null : Math.round(own[m]! * ev * rf)])) as Record<ForecastMethod, number | null>
         const wf = { rain: rf, rainTemp: weather ? weatherPart(weather.wx, d, shift, 'rainTemp', factors, weather.factors).factor : rf }
-        raw.push({ date: d, store, shift, actual, by, base: own, ev, wf })
+        raw.push({ date: d, store, shift, actual, base: parts.value, own: parts.by, ev, wf })
       }
-  const comparable = raw.filter((r) => FORECAST_METHODS.every((m) => r.by[m] !== null))
-  const errOf = (m: ForecastMethod, rows: typeof raw) => {
-    const xs = rows.filter((r) => r.by[m] !== null)
-    return { error: xs.length ? Math.round((xs.reduce((a, r) => a + Math.abs(r.by[m]! - r.actual) / r.actual, 0) / xs.length) * 1000) / 10 : null, slots: xs.length }
-  }
-  const methods = Object.fromEntries(FORECAST_METHODS.map((m) => [m, errOf(m, comparable)])) as Backtest['methods']
-  const ranked = FORECAST_METHODS.filter((m) => methods[m].error !== null).sort((a, b) => methods[a].error! - methods[b].error! || (a === 'seasonal' ? -1 : b === 'seasonal' ? 1 : 0))
-  const chosen = ranked[0] ?? 'seasonal'
-  // the chosen method on every slot (① where it has no data, as the forecast does)
-  const rows: BacktestRow[] = raw.flatMap((r) => {
-    const f = r.by[chosen] ?? r.by.recent
-    return f === null ? [] : [{ ...r, forecast: f, errorPct: Math.round((Math.abs(f - r.actual) / r.actual) * 1000) / 10 }]
-  })
-  // the chosen base with each weather model
+  const fc = (b: number | null, r: (typeof raw)[number], mode: WeatherMode) => (b === null ? null : Math.round(b * r.ev * r.wf[mode]))
   const wErr = (mode: WeatherMode) => {
-    const xs = raw.flatMap((r) => {
-      const b = r.base[chosen] ?? r.base.recent
-      return b === null ? [] : [Math.abs(Math.round(b * r.ev * r.wf[mode]) - r.actual) / r.actual]
-    })
-    return { error: xs.length ? Math.round((xs.reduce((a, x) => a + x, 0) / xs.length) * 1000) / 10 : null, slots: xs.length }
+    const s = score(raw.flatMap((r) => (r.base === null ? [] : [{ f: fc(r.base, r, mode)!, a: r.actual }])))
+    return { error: s.error, slots: s.slots }
   }
   const weatherErr = { rain: wErr('rain'), rainTemp: weather ? wErr('rainTemp') : { error: null, slots: 0 } }
   const weatherChosen: WeatherMode =
     weatherErr.rainTemp.error !== null && weatherErr.rain.error !== null && weatherErr.rainTemp.error < weatherErr.rain.error ? 'rainTemp' : 'rain'
-  // the rows shown = the chosen base × the chosen weather model
-  const shown = rows.map((r) => {
-    const x = raw.find((y) => y.date === r.date && y.store === r.store && y.shift === r.shift)!
-    const b = x.base[chosen] ?? x.base.recent
-    const f = b === null ? r.forecast : Math.round(b * x.ev * x.wf[weatherChosen])
-    return { ...r, forecast: f, errorPct: Math.round((Math.abs(f - r.actual) / r.actual) * 1000) / 10 }
+  const rows: BacktestRow[] = raw.flatMap((r) => {
+    const f = fc(r.base, r, weatherChosen)
+    if (f === null) return []
+    const by = Object.fromEntries(FORECAST_METHODS.map((m) => [m, fc(r.own[m], r, weatherChosen)])) as Record<ForecastMethod, number | null>
+    return [{ date: r.date, store: r.store, shift: r.shift, actual: r.actual, forecast: f, errorPct: Math.round((Math.abs(f - r.actual) / r.actual) * 1000) / 10, by }]
   })
-  const error = shown.length ? Math.round((shown.reduce((a, r) => a + r.errorPct, 0) / shown.length) * 10) / 10 : null
-  return { error, slots: shown.length, rows: shown, from: addDays(today, -days), methods, chosen, weather: weatherErr, weatherChosen }
+  const comparable = rows.filter((r) => FORECAST_METHODS.every((m) => r.by[m] !== null))
+  const methods = Object.fromEntries(FORECAST_METHODS.map((m) => [m, score(comparable.map((r) => ({ f: r.by[m]!, a: r.actual })))])) as Backtest['methods']
+  const all = score(rows.map((r) => ({ f: r.forecast, a: r.actual })))
+  const error = rows.length ? Math.round((rows.reduce((a, r) => a + r.errorPct, 0) / rows.length) * 10) / 10 : null
+  return { error, bias: all.bias, slots: rows.length, rows, from: addDays(today, -days), methods, chosen, weather: weatherErr, weatherChosen }
 }
 
-/** Everything a forecast made on `asOf` uses: rain / weather factors measured before its 28 backtest days, the backtest, the chosen models. */
+/** Everything a forecast made on `asOf` uses: rain / weather factors measured before its 28 backtest days, the periods' effect, the backtest. */
 export interface ForecastModel {
   rain: RainMap
   factors: RainFactors
   wf: WeatherFactors
+  opts: BaseOpts
   check: Backtest
   wIn: WeatherInput
 }
 
 /** The forecast as it is made on `asOf`: only figures before that day are used (the forecast card uses today). */
-export function forecastModel(ctx: Ctx, typeOf: (d: string) => TargetDayType, wx: WeatherMap, asOf: string, dataFrom: string): ForecastModel {
+export function forecastModel(ctx: Ctx, typeOf: (d: string) => TargetDayType, wx: WeatherMap, asOf: string, dataFrom: string, periods: SalesPeriod[] = []): ForecastModel {
   const rain = rainOf(wx)
   // the factors are measured before the 28 backtest days, so the backtest is a fair test of them
   const fitTo = addDays(asOf, -29)
   const factors = rainFactors(ctx, typeOf, rain, dataFrom, fitTo)
   const wf = weatherFactors(ctx, typeOf, wx, dataFrom, fitTo)
-  const check = backtest(ctx, typeOf, rain, factors, asOf, 28, { wx, factors: wf })
-  return { rain, factors, wf, check, wIn: { wx, rain: factors, factors: wf, mode: check.weatherChosen } }
+  // ② takes out events × weather (rain × temperature model) of the past days
+  const known: Known = (d, store, shift) => eventFactor(ctx, d, store, shift).factor * weatherPart(wx, d, shift, 'rainTemp', factors, wf).factor
+  const opts: BaseOpts = { adj: periodFit(ctx, periods, asOf), known }
+  const check = backtest(ctx, typeOf, rain, factors, asOf, 28, { wx, factors: wf }, opts)
+  return { rain, factors, wf, opts, check, wIn: { wx, rain: factors, factors: wf, mode: check.weatherChosen } }
 }
+
+/** One slot as forecast by a model. */
+export const modelSlot = (ctx: Ctx, typeOf: (d: string) => TargetDayType, m: ForecastModel, date: string, store: string, shift: Shift) =>
+  forecastSlot(ctx, typeOf, date, store, shift, m.rain, m.factors, m.check.chosen, m.wIn, m.opts)

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from './supabase'
 import type { Scheduled } from '../domain/participants'
+import type { SalesPeriod } from '../domain/forecast'
 import type { TargetEvent } from '../domain/targets'
 import type { RosterEntry, StaffEntry, Store, TargetBowls } from './types'
 
@@ -35,6 +36,15 @@ export function useTargets() {
     queryKey: ['target_bowls'],
     staleTime: 60 * 60 * 1000,
     queryFn: async () => unwrap<TargetBowls[]>(await supabase.from('target_bowls').select('*')),
+  })
+}
+
+/** 前年の特殊期間 (万博…): last year's figures are taken without their effect in 杯数の予測. */
+export function useSalesPeriods() {
+  return useQuery({
+    queryKey: ['sales_periods'],
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => unwrap<SalesPeriod[]>(await supabase.from('sales_periods').select('id, name, date_from, date_to, store_id, active, note').order('date_from')),
   })
 }
 

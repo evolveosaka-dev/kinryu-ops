@@ -74,7 +74,7 @@ async function ensureSpreadsheet(admin: ReturnType<typeof adminClient>, sheetNam
 // Backups older than 12 weeks are deleted. No secrets are in these tables; photos are already in Drive.
 
 const BACKUP_TABLES = [
-  'stores', 'profiles', 'bootstrap_accounts', 'staff_roster', 'holidays', 'target_bowls', 'target_events',
+  'stores', 'profiles', 'bootstrap_accounts', 'staff_roster', 'holidays', 'target_bowls', 'target_events', 'sales_periods',
   'chorei_records', 'chorei_notes', 'chorei_comments', 'chorei_misses', 'patrol_checks', 'patrol_comments', 'staff_interviews',
   'attachments', 'shift_requests', 'shift_assignments', 'duty_assignments', 'shift_changes', 'shift_offers', 'staff_limits',
   'attendance_overrides', 'stock_items', 'stock_events', 'sales_reports', 'sales_report_log', 'daily_sales', 'incidents',

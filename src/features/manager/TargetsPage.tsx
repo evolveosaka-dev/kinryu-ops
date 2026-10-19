@@ -13,6 +13,7 @@ import type { TargetBowls } from '../../lib/types'
 import { PeriodBar } from './common'
 import { shiftMonth, usePeriod } from './data'
 import { ManagerTabs } from './ManagerTabs'
+import { SalesPeriodsCard } from './SalesPeriodsCard'
 
 const key = (storeId: string, dayType: string, shift: string) => `${storeId}|${dayType}|${shift}`
 const cell = 'min-h-11 w-full rounded-lg border border-slate-300 px-1 text-center'
@@ -297,6 +298,7 @@ export function TargetsPage() {
       </Button>
       {save.error && <ErrorBox message={errorMessage(save.error)} />}
       <EventsCard month={month} />
+      <SalesPeriodsCard />
     </div>
   )
 }

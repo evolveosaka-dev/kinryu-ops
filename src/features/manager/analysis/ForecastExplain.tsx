@@ -4,7 +4,9 @@ import { Link } from 'react-router'
 import { Sheet } from '../../../components/Sheet'
 import {
   FORECAST_METHODS,
-  LAST_YEAR_MIN_DAYS,
+  LEVEL_CLAMP,
+  LEVEL_MIN_DAYS,
+  NEAR_MIN_DAYS,
   RAIN_CLAMP,
   RAIN_MIN_DAYS,
   RAIN_EDGES,
@@ -88,13 +90,18 @@ function SlotSheet({
   const store = stores.find((x) => x.id === s.store)
   const b = s.detail.baseline
   const parts = s.detail.parts
-  const used = parts.fallback ? 'recent' : parts.method
-  const ly = parts.lastYear
+  const used = parts.used
+  const lv = parts.level
+  const near = parts.near
   const yoy = parts.yoy
   const rate = pctOf(s.value, s.target)
   const f = factors[s.shift]
   const rainy = s.rainMm !== null && s.rainMm >= RAINY_MM
   const where = `${store?.label ?? ''} ${shift(s.shift)}`
+  const type = t(`chorei:target.${dayType}`)
+  const withLevel = used === 'blend' || used === 'level'
+  const withYoy = used === 'blend' || used === 'yoy'
+  const adjusted = [...near.samples, ...yoy.pairs].find((x) => x.period !== null && x.uplift !== null)
   const rainLine =
     s.rainMm === null
       ? t('forecast.x.rainUnknown')
@@ -103,56 +110,36 @@ function SlotSheet({
         : f.days < RAIN_MIN_DAYS
           ? t('forecast.x.rainFew', { hours: t(`forecast.hours.${s.shift}`), mm: s.rainMm, n: f.days, min: RAIN_MIN_DAYS })
           : t('forecast.x.rainYes', { hours: t(`forecast.hours.${s.shift}`), mm: s.rainMm, shift: shift(s.shift), f: x2(s.rainFactor) })
+  const baseFormula = () => {
+    const lvN = b.value === null ? 0 : b.value * lv.value
+    const yyN = near.value !== null && yoy.value !== null ? near.value * yoy.value : 0
+    if (used === 'blend') return t('forecast.x.blendFormula', { a: n1(b.value!), l: x2(lv.value), ly: n1(near.value!), r: x2(yoy.value!), k: n1(lvN), y: n1(yyN), base: n1(parts.value!) })
+    if (used === 'level') return t('forecast.x.levelFormula', { a: n1(b.value!), l: x2(lv.value), base: n1(parts.value!) })
+    if (used === 'yoy') return t('forecast.x.yoyFormula', { ly: n1(near.value!), r: x2(yoy.value!), base: n1(parts.value!) })
+    return ''
+  }
 
   return (
     <Sheet title={t('forecast.x.slotTitle', { date: day(s.date), where })} onClose={onClose}>
       {s.value === null ? (
-        <p className="rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-900">{t('forecast.x.noBase', { type: t(`chorei:target.${dayType}`) })}</p>
+        <p className="rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-900">{t('forecast.x.noBase', { type })}</p>
       ) : (
         <Formula
           text={
-            (used === 'seasonal' ? `${t('forecast.x.seasonalFormula', { ly: n1(ly.value!), r: x2(yoy.value!), base: n1(parts.value!) })}\n` : '') +
+            (used !== 'recent' ? `${baseFormula()}\n` : '') +
             t('forecast.x.slotFormula', { base: n1(parts.value!), ev: x2(s.detail.eventFactor), rain: x2(s.rainFactor), value: s.value.toLocaleString() })
           }
         />
       )}
       <p className="rounded-lg bg-surface p-2 text-sm">
         <b>{t('forecast.x.usedMethod', { m: t(`forecast.method.${used}`) })}</b>
-        {parts.fallback && <span className="block text-amber-800">{t('forecast.x.fallback', { m: t(`forecast.method.${parts.method}`) })}</span>}
+        {parts.fallback && <span className="block text-amber-800">{t(`forecast.x.fallback.${used}`)}</span>}
       </p>
       <ol className="flex flex-col gap-2 text-sm">
-        {used !== 'recent' && (
-          <li>
-            {ly.value === null
-              ? t('forecast.x.lastYearFew', { month: ly.month.replace('-', '/'), type: t(`chorei:target.${dayType}`), n: ly.samples.length, min: LAST_YEAR_MIN_DAYS })
-              : t('forecast.x.lastYear', { month: ly.month.replace('-', '/'), type: t(`chorei:target.${dayType}`), where, n: ly.samples.length, avg: n1(ly.value) })}
-            {ly.skipped.length > 0 && (
-              <span className="block text-muted">{t('forecast.x.lastYearSkipped', { list: ly.skipped.map((x) => `${day(x.date)} ${x.event}`).join('・') })}</span>
-            )}
-          </li>
-        )}
-        {used === 'seasonal' && yoy.value !== null && (
-          <li>
-            {t('forecast.x.yoy', {
-              from: formatShortDate(yoy.from),
-              to: formatShortDate(addDays(s.date, -1)),
-              type: yoy.allTypes ? t('forecast.x.allTypes') : t(`chorei:target.${dayType}`),
-              n: yoy.pairs.length,
-              sum: yoy.pairs.reduce((a, x) => a + x.actual, 0).toLocaleString(),
-              sumLy: yoy.pairs.reduce((a, x) => a + x.lastYear, 0).toLocaleString(),
-              raw: x2(yoy.raw!),
-              lo: YOY_CLAMP[0],
-              hi: YOY_CLAMP[1],
-              r: x2(yoy.value),
-            })}
-            {yoy.allTypes && <span className="block text-amber-800">{t('forecast.x.yoyAll', { min: YOY_MIN_PAIRS })}</span>}
-          </li>
-        )}
-        {used === 'recent' && (
         <li>
           {t('forecast.x.base', {
             date: day(s.date),
-            type: t(`chorei:target.${dayType}`),
+            type,
             from: formatShortDate(b.from),
             to: formatShortDate(addDays(s.date, -1)),
             weeks: b.weeks,
@@ -162,6 +149,47 @@ function SlotSheet({
           })}
           {b.weeks === 12 && b.days > 0 && <span className="block text-amber-800">{t('forecast.x.baseWide')}</span>}
         </li>
+        {withLevel && (
+          <li>
+            {lv.raw === null
+              ? t('forecast.x.levelFew', { n: lv.rows.length, min: LEVEL_MIN_DAYS })
+              : t('forecast.x.level', {
+                  from: formatShortDate(lv.from),
+                  to: formatShortDate(addDays(s.date, -1)),
+                  n: lv.rows.length,
+                  sum: lv.rows.reduce((a, x) => a + x.actual, 0).toLocaleString(),
+                  exp: n1(lv.rows.reduce((a, x) => a + x.expected, 0)),
+                  raw: x2(lv.raw),
+                  lo: LEVEL_CLAMP[0],
+                  hi: LEVEL_CLAMP[1],
+                  f: x2(lv.value),
+                })}
+          </li>
+        )}
+        {withYoy && (
+          <li>
+            {t('forecast.x.near', { center: `${near.center.slice(0, 4)}/${day(near.center)}`, type, n: near.samples.length, avg: n1(near.value!) })}
+            <span className="block">
+              {t('forecast.x.yoy', {
+                from: formatShortDate(yoy.from),
+                to: formatShortDate(addDays(s.date, -1)),
+                n: yoy.pairs.length,
+                sum: yoy.pairs.reduce((a, x) => a + x.actual, 0).toLocaleString(),
+                sumLy: n1(yoy.pairs.reduce((a, x) => a + x.lastYear, 0)),
+                raw: x2(yoy.raw!),
+                lo: YOY_CLAMP[0],
+                hi: YOY_CLAMP[1],
+                r: x2(yoy.value!),
+              })}
+            </span>
+            {adjusted && <span className="block text-violet-800">{t('forecast.x.periodAdj', { name: adjusted.period, u: x2(adjusted.uplift!) })}</span>}
+            {near.skipped.length > 0 && <span className="block text-muted">{t('forecast.x.nearSkipped', { list: near.skipped.map((x) => `${day(x.date)} ${x.why}`).join('・') })}</span>}
+          </li>
+        )}
+        {used === 'level' && (
+          <li className="text-muted">
+            {t('forecast.x.nearMissing', { center: `${near.center.slice(0, 4)}/${day(near.center)}`, n: near.samples.length, min: NEAR_MIN_DAYS, pairs: yoy.pairs.length, minPairs: YOY_MIN_PAIRS })}
+          </li>
         )}
         <li>{s.events.length ? t('forecast.x.events', { list: s.events.join('・'), f: x2(s.detail.eventFactor) }) : t('forecast.x.eventsNone')}</li>
         {s.detail.weather.mode === 'rainTemp' ? (
@@ -203,40 +231,9 @@ function SlotSheet({
             </button>
           </li>
         )}
-        <li>{s.target ? t('forecast.x.target', { target: s.target, type: t(`chorei:target.${dayType}`), rate }) : t('forecast.x.noTarget')}</li>
+        <li>{s.target ? t('forecast.x.target', { target: s.target, type, rate }) : t('forecast.x.noTarget')}</li>
       </ol>
       <Sources keys={['sales', 'dayType', 'events', 'weather', 'target']} />
-      {used !== 'recent' && (
-        <>
-          <h3 className="text-sm font-bold">{t('forecast.x.lyTable', { month: ly.month.replace('-', '/'), n: ly.samples.length })}</h3>
-          <Table
-            head={[t('forecast.x.colDate'), t('forecast.x.colBowls')]}
-            rows={ly.samples.map((x) => ({ key: x.date, cells: [day(x.date), x.bowls.toLocaleString()] }))}
-            foot={ly.value === null ? undefined : [t('forecast.x.avg'), n1(ly.value)]}
-          />
-        </>
-      )}
-      {used === 'seasonal' && (
-        <>
-          <h3 className="text-sm font-bold">{t('forecast.x.yoyTable', { n: yoy.pairs.length })}</h3>
-          <Table
-            head={[t('forecast.x.colDate'), t('forecast.x.colActual'), t('forecast.x.colLastYear')]}
-            rows={yoy.pairs.map((x) => ({
-              key: x.date,
-              cells: [
-                <SalesLink date={x.date} store={store} shift={s.shift}>
-                  {day(x.date)}
-                </SalesLink>,
-                x.actual.toLocaleString(),
-                `${x.lastYear.toLocaleString()}（${formatShortDate(addDays(x.date, -364))}）`,
-              ],
-            }))}
-            foot={[t('analysis.total'), yoy.pairs.reduce((a, x) => a + x.actual, 0).toLocaleString(), yoy.pairs.reduce((a, x) => a + x.lastYear, 0).toLocaleString()]}
-          />
-        </>
-      )}
-      {used === 'recent' && (
-      <>
       <h3 className="text-sm font-bold">{t('forecast.x.baseTable', { n: b.days })}</h3>
       <Table
         head={[t('forecast.x.colDate'), t('forecast.x.colBowls')]}
@@ -251,7 +248,57 @@ function SlotSheet({
         }))}
         foot={b.value === null ? undefined : [t('forecast.x.avg'), n1(b.value)]}
       />
-      </>
+      {withLevel && lv.rows.length > 0 && (
+        <>
+          <h3 className="text-sm font-bold">{t('forecast.x.levelTable', { n: lv.rows.length })}</h3>
+          <Table
+            head={[t('forecast.x.colDate'), t('forecast.x.colActual'), t('forecast.x.colExpected')]}
+            rows={lv.rows.map((x) => ({
+              key: x.date,
+              cells: [
+                <SalesLink date={x.date} store={store} shift={s.shift}>
+                  {day(x.date)}
+                </SalesLink>,
+                x.actual.toLocaleString(),
+                <span>
+                  {n1(x.expected)}
+                  <span className="block text-[11px] text-slate-500">
+                    {n1(x.avg)} × {x2(x.known)}
+                  </span>
+                </span>,
+              ],
+            }))}
+            foot={[t('analysis.total'), lv.rows.reduce((a, x) => a + x.actual, 0).toLocaleString(), n1(lv.rows.reduce((a, x) => a + x.expected, 0))]}
+          />
+        </>
+      )}
+      {withYoy && (
+        <>
+          <h3 className="text-sm font-bold">{t('forecast.x.nearTable', { n: near.samples.length })}</h3>
+          <Table
+            head={[t('forecast.x.colDate'), t('forecast.x.colBowls'), t('forecast.x.colAdjusted')]}
+            rows={near.samples.map((x) => ({ key: x.date, cells: [day(x.date), x.bowls.toLocaleString(), x.period ? `${n1(x.value)}（÷${x2(x.uplift!)}）` : n1(x.value)] }))}
+            foot={[t('forecast.x.avg'), '', n1(near.value!)]}
+          />
+          <h3 className="text-sm font-bold">{t('forecast.x.yoyTable', { n: yoy.pairs.length })}</h3>
+          <Table
+            head={[t('forecast.x.colDate'), t('forecast.x.colActual'), t('forecast.x.colLastYear')]}
+            rows={yoy.pairs.map((x) => ({
+              key: x.date,
+              cells: [
+                <SalesLink date={x.date} store={store} shift={s.shift}>
+                  {day(x.date)}
+                </SalesLink>,
+                x.actual.toLocaleString(),
+                <span>
+                  {x.period ? `${n1(x.lastYear)}（${x.lastYearRaw}÷${x2(x.uplift!)}）` : x.lastYear.toLocaleString()}
+                  <span className="block text-[11px] text-slate-500">{formatShortDate(addDays(x.date, -364))}</span>
+                </span>,
+              ],
+            }))}
+            foot={[t('analysis.total'), yoy.pairs.reduce((a, x) => a + x.actual, 0).toLocaleString(), n1(yoy.pairs.reduce((a, x) => a + x.lastYear, 0))]}
+          />
+        </>
       )}
       <p className="text-xs text-muted">{t('forecast.x.linkNote', { date: formatShortDate(REPORTS_FROM) })}</p>
     </Sheet>
@@ -366,16 +413,18 @@ function WeatherSheet({ shift: sh, wf, onClose }: { shift: Shift; wf: WeatherFac
   )
 }
 
+const signed = (v: number | null) => (v === null ? '—' : `${v > 0 ? '+' : ''}${v}%`)
+
 function ErrorSheet({ check, stores, onClose }: { check: Backtest; stores: StoreRef[]; onClose: () => void }) {
   const { t, day, shift } = useLabels()
   const label = (id: string) => stores.find((x) => x.id === id)?.label ?? ''
   return (
     <Sheet title={t('forecast.x.errorTitle')} onClose={onClose}>
-      <Formula text={t('forecast.x.errorFormula', { n: check.slots, err: check.error ?? '—' })} />
+      <Formula text={t('forecast.x.errorFormula', { n: check.slots, err: check.error ?? '—', bias: signed(check.bias) })} />
       <p className="text-xs whitespace-pre-line text-muted">{t('forecast.x.errorNote', { from: formatShortDate(check.from) })}</p>
-      <h3 className="text-sm font-bold">{t('forecast.x.methodsTitle', { n: check.methods.recent.slots })}</h3>
+      <h3 className="text-sm font-bold">{t('forecast.x.methodsTitle', { n: check.methods.blend.slots })}</h3>
       <Table
-        head={[t('forecast.x.colMethod'), t('forecast.x.colError')]}
+        head={[t('forecast.x.colMethod'), t('forecast.x.colError'), t('forecast.x.colBias')]}
         rows={FORECAST_METHODS.map((m) => ({
           key: m,
           cells: [
@@ -384,6 +433,7 @@ function ErrorSheet({ check, stores, onClose }: { check: Backtest; stores: Store
               {m === check.chosen && ` ✅ ${t('forecast.x.chosen')}`}
             </span>,
             check.methods[m].error === null ? '—' : `±${check.methods[m].error}%`,
+            signed(check.methods[m].bias),
           ],
         }))}
       />
@@ -406,7 +456,7 @@ function ErrorSheet({ check, stores, onClose }: { check: Backtest; stores: Store
       <Sources keys={['sales', 'dayType', 'events', 'weather']} />
       <h3 className="text-sm font-bold">{t('forecast.x.rowsTitle', { m: t(`forecast.method.${check.chosen}`) })}</h3>
       <Table
-        head={[t('forecast.x.colDate'), t('analysis.slot'), t('forecast.x.colActual'), 'A', 'B', 'C']}
+        head={[t('forecast.x.colDate'), t('analysis.slot'), t('forecast.x.colActual'), ...FORECAST_METHODS.map((m) => t(`forecast.methodShort.${m}`))]}
         rows={[...check.rows].reverse().map((r) => ({
           key: `${r.date}${r.store}${r.shift}`,
           cells: [
@@ -416,13 +466,16 @@ function ErrorSheet({ check, stores, onClose }: { check: Backtest; stores: Store
             `${label(r.store)} ${shift(r.shift)}`,
             r.actual,
             ...FORECAST_METHODS.map((m) => {
-              const f = r.by[m]
+              const f = m === check.chosen ? r.forecast : r.by[m]
               if (f === null) return '—'
-              const e = Math.round((Math.abs(f - r.actual) / r.actual) * 100)
+              const e = Math.round(((f - r.actual) / r.actual) * 100)
               return (
                 <span className={cx(m === check.chosen && 'font-bold')}>
                   {f}
-                  <span className={cx('block text-[11px]', e >= 20 ? 'text-red-700' : e >= 10 ? 'text-amber-800' : 'text-slate-500')}>{e}%</span>
+                  <span className={cx('block text-[11px]', Math.abs(e) >= 20 ? 'text-red-700' : Math.abs(e) >= 10 ? 'text-amber-800' : 'text-slate-500')}>
+                    {e > 0 ? '+' : ''}
+                    {e}%
+                  </span>
                 </span>
               )
             }),

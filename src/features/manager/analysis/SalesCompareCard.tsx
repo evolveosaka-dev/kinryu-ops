@@ -11,7 +11,7 @@ import { addDays, formatShortDate, weekdayOf } from '../../../domain/time'
 import { SHIFTS, type Shift } from '../../../domain/types'
 import { cx } from '../../../lib/cx'
 import { storeName } from '../../../lib/format'
-import { unwrap, useHolidays, useStores, useTargetEvents, useTargets } from '../../../lib/queries'
+import { unwrap, useHolidays, useSalesPeriods, useStores, useTargetEvents, useTargets } from '../../../lib/queries'
 import { supabase } from '../../../lib/supabase'
 import { today } from '../data'
 import { TapNum } from '../drill'
@@ -50,6 +50,7 @@ function useDaySources(dates: string[]) {
 }
 
 type Col = 'actual' | 'forecast' | 'lastYear'
+const signed = (v: number | null) => (v === null ? '—' : `${v > 0 ? '+' : ''}${v}`)
 type Info = { kind: 'cell'; row: CompareRow; col: 'actual' | 'lastYear' } | { kind: 'sum'; store: string | null; col: Col }
 
 export function SalesCompareCard() {
@@ -58,6 +59,7 @@ export function SalesCompareCard() {
   const holidays = useHolidays()
   const targets = useTargets()
   const events = useTargetEvents()
+  const periods = useSalesPeriods()
   const sales = useDailySales()
   const weather = useWeather()
   const now = today()
@@ -71,7 +73,10 @@ export function SalesCompareCard() {
     return { ctx, typeOf: dayTypeCache(holidays.data), latest: latestActual(ctx, addDays(now, -1)) }
   }, [stores.data, holidays.data, targets.data, events.data, sales.data, weather.data, now])
   const date = picked ?? base?.latest ?? addDays(now, -1)
-  const day = useMemo(() => (base && weather.data ? compareDay(base.ctx, base.typeOf, weather.data, date, DATA_FROM) : null), [base, weather.data, date])
+  const day = useMemo(
+    () => (base && weather.data && periods.data ? compareDay(base.ctx, base.typeOf, weather.data, date, DATA_FROM, periods.data) : null),
+    [base, weather.data, periods.data, date],
+  )
   const sources = useDaySources(day ? [day.date, day.lastYearDate] : [])
 
   if (weather.error) return null
@@ -186,6 +191,13 @@ export function SalesCompareCard() {
           </tr>
         </tbody>
       </table>
+      {day.model.check.error !== null && (
+        <p className="text-xs">
+          <TapNum onOpen={() => setExplain({ kind: 'error' })} className="text-xs">
+            {t('compare.check', { err: day.model.check.error, bias: signed(day.model.check.bias) })}
+          </TapNum>
+        </p>
+      )}
       <p className="text-xs text-muted">
         {t('compare.legend')} {t('compare.tapHint')}
       </p>
