@@ -6,7 +6,10 @@ import { SentNoticeProvider, useSentNotice } from '../../components/SentNotice'
 import i18n from '../../i18n'
 import type { PreparedMedia } from '../../lib/media'
 import { UploadQueueProvider, useUploadQueue } from './uploadQueue'
+import { set } from 'idb-keyval'
+import { supabase } from '../../lib/supabase'
 
+vi.mock('../../lib/supabase', () => ({ supabase: { rpc: vi.fn(async () => ({ data: 0, error: null })) } }))
 vi.mock('../../app/auth', () => ({ useAuth: () => ({ session: { user: { id: 'u1' } }, profile: { is_test_account: false } }) }))
 
 // IndexedDB in memory (jsdom has none)
@@ -154,5 +157,14 @@ describe('upload queue + 送信しました dialog', () => {
     expect(screen.getByRole('button', { name: '📷 写真・動画を選ぶ' })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: '写真・動画なしで終える' }))
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+  })
+
+  it('files left from an earlier visit: the server learns what the phone holds, the dialog follows them', async () => {
+    mode = 'auto'
+    await set('old', { ...media('old.jpg', 'image'), ownerId: 'u1', parentType: 'patrol', parentId: 'p9', progress: 0, status: 'queued', attachmentId: 'att-old', uploadUrl: 'https://drive/old.jpg' })
+    renderApp()
+    expect(await screen.findByText('前回送り終わらなかった写真・動画')).toBeInTheDocument()
+    expect(supabase.rpc).toHaveBeenCalledWith('report_upload_holdings', { p_ids: ['att-old'] })
+    expect(await screen.findByText('写真・動画 1件もすべて届きました。')).toBeInTheDocument()
   })
 })

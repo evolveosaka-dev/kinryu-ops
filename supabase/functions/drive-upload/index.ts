@@ -134,7 +134,7 @@ serve(async (req) => {
       return { ok: true }
     }
     if (body.action === 'drop') {
-      if (att.status === 'pending' || att.status === 'failed') await admin.from('attachments').update({ status: 'deleted' }).eq('id', att.id)
+      if (['pending', 'failed', 'lost'].includes(att.status)) await admin.from('attachments').update({ status: 'deleted' }).eq('id', att.id)
       return { ok: true }
     }
     // Trust nothing from the client: the file must exist in the expected folder.

@@ -5,6 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { useAuth } from '../../app/auth'
 import { callDriveFunction, uploadToSession, UploadHttpError } from '../../lib/driveUpload'
 import { isNetworkError } from '../../lib/format'
+import { supabase } from '../../lib/supabase'
 import type { MediaKind, PreparedMedia } from '../../lib/media'
 
 export interface UploadItem {
@@ -36,6 +37,8 @@ interface QueueApi {
   current: () => UploadItem[]
   /** files that left the queue in this session: arrived, or given up by the sender (やめる) */
   outcome: Record<string, 'done' | 'dropped'>
+  /** called once after sign-in with the files left from an earlier visit (the app was closed while sending) */
+  onRestored: (cb: (items: UploadItem[]) => void) => () => void
 }
 
 /** Why a file failed, for the sender (the raw error stays in the banner's detail). */
@@ -47,7 +50,7 @@ export function failReason(error: string | undefined): 'tooLarge' | 'missing' | 
 }
 const MISSING = 'file missing on this phone'
 
-const QueueContext = createContext<QueueApi>({ items: [], enqueue: async () => {}, retry: () => {}, discard: async () => {}, current: () => [], outcome: {} })
+const QueueContext = createContext<QueueApi>({ items: [], enqueue: async () => {}, retry: () => {}, discard: async () => {}, current: () => [], outcome: {}, onRestored: () => () => {} })
 
 let idbStore: ReturnType<typeof createStore> | null = null
 const store = () => (idbStore ??= createStore('kinryu-uploads', 'queue'))
@@ -69,6 +72,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<UploadItem[]>([])
   const [outcome, setOutcome] = useState<Record<string, 'done' | 'dropped'>>({})
   const running = useRef(false)
+  const restoredListeners = useRef(new Set<(items: UploadItem[]) => void>())
   const itemsRef = useRef<UploadItem[]>([])
 
   // keep the screen on while files are sending: a locked screen or another app stops the upload (iOS / Android)
@@ -215,14 +219,23 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
     if (!userId) return
     let cancelled = false
     void entries<string, UploadItem>(store())
-      .catch(() => [] as [string, UploadItem][])
-      .then((rows) => {
+      .catch(() => null)
+      .then((stored) => {
         if (cancelled) return
+        const rows = stored ?? []
         const mine = rows.map(([, v]) => ({ ...v, status: v.status === 'uploading' ? ('queued' as const) : v.status })).filter((v) => v.ownerId === userId)
         // a report sent before this load finished is already in memory (and newer): keep that copy
         const live = itemsRef.current.filter((i) => i.ownerId === userId)
         itemsRef.current = [...mine.filter((m) => !live.some((i) => i.id === m.id)), ...live]
         setItems(itemsRef.current)
+        // tell the server which files this phone still holds: its other waiting files are gone (システム shows them as lost).
+        // Only when the stored queue could be read (a private window cannot keep files at all).
+        if (stored && !isTestAccount) {
+          const held = itemsRef.current.flatMap((i) => (i.attachmentId ? [i.attachmentId] : []))
+          void supabase.rpc('report_upload_holdings', { p_ids: held }).then(() => undefined, () => undefined)
+        }
+        const left = mine.filter((m) => !live.some((i) => i.id === m.id))
+        if (left.length) restoredListeners.current.forEach((cb) => cb(left))
         void run()
       })
     const onOnline = () => void run()
@@ -237,7 +250,7 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
       document.removeEventListener('visibilitychange', onVisible)
       window.clearInterval(timer)
     }
-  }, [userId, run])
+  }, [userId, run, isTestAccount])
 
   const enqueue = useCallback<QueueApi['enqueue']>(
     async (parentType, parentId, media) => {
@@ -286,8 +299,12 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
   )
 
   const current = useCallback(() => itemsRef.current, [])
+  const onRestored = useCallback((cb: (items: UploadItem[]) => void) => {
+    restoredListeners.current.add(cb)
+    return () => void restoredListeners.current.delete(cb)
+  }, [])
 
-  return <QueueContext.Provider value={{ items, enqueue, retry, discard, current, outcome }}>{children}</QueueContext.Provider>
+  return <QueueContext.Provider value={{ items, enqueue, retry, discard, current, outcome, onRestored }}>{children}</QueueContext.Provider>
 }
 
 // eslint-disable-next-line react-refresh/only-export-components

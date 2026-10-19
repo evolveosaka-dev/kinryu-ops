@@ -204,7 +204,9 @@
     "count": "{{n}} file đính kèm",
     "photoRequired": "Hãy thêm ít nhất 1 ảnh tiệm.",
     "takePhoto": "Chụp ảnh",
-    "choosePhoto": "Chọn ảnh"
+    "choosePhoto": "Chọn ảnh",
+    "missing": "{{n}} ảnh/video chưa đến nơi",
+    "addAgain": "Thêm ảnh/video"
   },
   "upload": {
     "uploading": "Đang tải lên {{n}} file ({{pct}}%)",
@@ -364,7 +366,8 @@
       "tooLarge": "File quá lớn, không gửi được (video tối đa 90 giây, 150MB). Hãy chọn video ngắn hơn hoặc file khác.",
       "missing": "Không tìm thấy file (có thể đã bị xoá khỏi điện thoại). Hãy chọn file khác hoặc bỏ file này.",
       "other": "Không gửi được. Hãy ra chỗ sóng tốt và bấm “Gửi lại”."
-    }
+    },
+    "restored": "Ảnh/video lần trước chưa gửi xong"
   },
   "comment": {
     "title": "Nhận xét của quản lý",

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import type { ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router'
 import { useAuth, useMe } from '../../app/auth'
@@ -13,6 +13,9 @@ import { unwrap, useStores } from '../../lib/queries'
 import { supabase } from '../../lib/supabase'
 import type { AttachmentSummary, ChoreiRecord, PatrolCheck } from '../../lib/types'
 import { RecordComments, useMarkCommentsRead, type RecordComment } from '../comments/Comments'
+import { useSentNotice } from '../../components/SentNotice'
+import { canAdd, MAX_IMAGES, MAX_VIDEOS, MediaError, prepareMedia, type PreparedMedia } from '../../lib/media'
+import { useUploadQueue } from '../attachments/uploadQueue'
 import { CustomerResult } from '../patrol/CustomerItem'
 import { IssueTagsView } from '../patrol/IssueTags'
 
@@ -77,15 +80,69 @@ function Original({ texts, field }: { texts: Record<string, string> | null; fiel
   return o ? <span className="mt-0.5 block text-xs text-slate-600">{t('history.original')}: {o}</span> : null
 }
 
-function Attachments({ list }: { list?: AttachmentSummary[] }) {
+/**
+ * My own record whose photos/videos did not arrive (gone from the phone, given up, closed): add files again (owner, 2026-10-19).
+ * They go to the same record through the upload queue; the 送信しました dialog follows them.
+ */
+function AddMissing({ parent, list, missing }: { parent: { type: 'chorei' | 'patrol'; id: string }; list: AttachmentSummary[]; missing: number }) {
+  const { t } = useTranslation()
+  const uploads = useUploadQueue()
+  const sent = useSentNotice()
+  const input = useRef<HTMLInputElement>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  // files the record has or is still receiving count toward the limits
+  const taken = list.filter((a) => a.status === 'uploaded' || a.status === 'pending')
+  const full = taken.filter((a) => a.kind === 'image').length >= MAX_IMAGES && taken.filter((a) => a.kind === 'video').length >= MAX_VIDEOS
+  const add = async (files: FileList | null) => {
+    if (!files?.length) return
+    setBusy(true)
+    setError(null)
+    const added: PreparedMedia[] = []
+    for (const file of Array.from(files)) {
+      try {
+        const m = await prepareMedia(file)
+        if (!canAdd([...taken, ...added], m.kind)) {
+          setError(t('attach.tooMany'))
+          break
+        }
+        added.push(m)
+      } catch (err) {
+        setError(t(`attach.${err instanceof MediaError ? err.code : 'unsupported'}`))
+      }
+    }
+    if (added.length) {
+      await uploads.enqueue(parent.type, parent.id, added)
+      sent({ kind: t('attach.title'), photos: added.length })
+    }
+    setBusy(false)
+  }
+  return (
+    <span className="flex flex-col gap-1.5 rounded-lg bg-amber-50 p-2">
+      <span className="text-sm font-bold text-amber-900">📭 {t('attach.missing', { n: missing })}</span>
+      {!full && (
+        <Button variant="secondary" disabled={busy} onClick={() => input.current?.click()}>
+          📷 {busy ? t('attach.processing') : t('attach.addAgain')}
+        </Button>
+      )}
+      {error && <span className="text-sm font-bold text-red-800">{error}</span>}
+      <input ref={input} type="file" accept="image/*,video/*" multiple hidden onChange={(e) => void add(e.target.files).then(() => (e.target.value = ''))} />
+    </span>
+  )
+}
+
+function Attachments({ list, parent }: { list?: AttachmentSummary[]; parent?: { type: 'chorei' | 'patrol'; id: string } }) {
   const { t } = useTranslation()
   const { isManager } = useAuth()
   const uploaded = (list ?? []).filter((a) => a.status === 'uploaded')
-  if (uploaded.length === 0) return null
+  // did not arrive: lost (phone / manager / 48 hours) or given up by me
+  const missing = (list ?? []).filter((a) => a.status === 'lost' || (a.status === 'deleted' && !a.drive_url)).length
+  const canAddAgain = Boolean(parent) && missing > 0
+  if (uploaded.length === 0 && !canAddAgain) return null
   return (
     <Line label={t('attach.title')}>
       <span className="flex flex-wrap gap-2">
-        {t('attach.count', { n: uploaded.length })}
+        {uploaded.length > 0 && t('attach.count', { n: uploaded.length })}
         {isManager &&
           uploaded.map((a, i) =>
           a.drive_url ? (
@@ -96,6 +153,7 @@ function Attachments({ list }: { list?: AttachmentSummary[] }) {
           ) : null,
         )}
       </span>
+      {canAddAgain && <AddMissing parent={parent!} list={list!} missing={missing} />}
     </Line>
   )
 }
@@ -114,7 +172,7 @@ function DateTitle({ date, shift, store, test, children }: { date: string; shift
   )
 }
 
-function ChoreiCard({ r, store }: { r: ChoreiView; store?: string }) {
+function ChoreiCard({ r, store, mine = false }: { r: ChoreiView; store?: string; mine?: boolean }) {
   const { t } = useTranslation('chorei')
   const skipped = CHOREI_STEPS.filter((s) => r.steps_done[s] === false)
   return (
@@ -158,13 +216,13 @@ function ChoreiCard({ r, store }: { r: ChoreiView; store?: string }) {
           ))}
         </Line>
       )}
-      <Attachments list={r.attachments} />
+      <Attachments list={r.attachments} parent={mine && r.status !== 'void' ? { type: 'chorei', id: r.id } : undefined} />
       <RecordComments kind="chorei" recordId={r.id} comments={r.comments ?? []} canWrite={r.status !== 'void'} />
     </Card>
   )
 }
 
-function PatrolCard({ r, store }: { r: PatrolView; store?: string }) {
+function PatrolCard({ r, store, mine = false }: { r: PatrolView; store?: string; mine?: boolean }) {
   const { t } = useTranslation('patrol')
   return (
     <Card className={cx('flex flex-col gap-1.5', r.status === 'void' && 'opacity-50')}>
@@ -217,7 +275,7 @@ function PatrolCard({ r, store }: { r: PatrolView; store?: string }) {
           <Original texts={r.original_texts} field="remarks" />
         </Line>
       )}
-      <Attachments list={r.attachments} />
+      <Attachments list={r.attachments} parent={mine && r.status === 'valid' ? { type: 'patrol', id: r.id } : undefined} />
       <RecordComments kind="patrol" recordId={r.id} comments={r.comments ?? []} canWrite={r.status === 'valid'} />
     </Card>
   )
@@ -256,6 +314,7 @@ function MyChorei() {
           <ChoreiCard
             r={{ ...r, participants: r.participants_extra, notes: r.chorei_notes ?? [], attachments: r.attachments ?? [], comments: r.chorei_comments ?? [] }}
             store={storeName(stores.data?.find((s) => s.id === r.store_id), currentLocale())}
+            mine
           />
         </li>
       ))}
@@ -286,7 +345,7 @@ function MyPatrols() {
     <ListState loading={q.isLoading} error={q.error} empty={!q.data?.length} emptyText={t('historyEmpty')}>
       {q.data?.map((r) => (
         <li key={r.id}>
-          <PatrolCard r={{ ...r, comments: r.patrol_comments ?? [] }} store={storeName(stores.data?.find((s) => s.id === r.store_id), currentLocale())} />
+          <PatrolCard r={{ ...r, comments: r.patrol_comments ?? [] }} store={storeName(stores.data?.find((s) => s.id === r.store_id), currentLocale())} mine />
         </li>
       ))}
     </ListState>

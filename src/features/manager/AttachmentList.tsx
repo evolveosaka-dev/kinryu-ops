@@ -15,6 +15,8 @@ export function AttachmentList({ list, parentId }: { list: AttachmentSummary[]; 
   const failed = list.filter((a) => a.status === 'failed')
   // the sender gave these up (やめる) after they could not be sent
   const dropped = list.filter((a) => a.status === 'deleted' && !a.drive_url)
+  // did not arrive: gone from the sender's phone, closed by a manager, or still waiting after 48 hours
+  const lost = list.filter((a) => a.status === 'lost')
   // on this device: queued / uploading items not yet started on the server (no attachment row yet)
   const local = items.filter((i) => i.parentId === parentId && !list.some((a) => a.id === i.attachmentId))
   const count = (kind: 'image' | 'video') =>
@@ -40,6 +42,7 @@ export function AttachmentList({ list, parentId }: { list: AttachmentSummary[]; 
         </span>
       ))}
       {failed.length > 0 && <span className="text-sm text-red-800">⚠️ {t('files.failed', { n: failed.length })}</span>}
+      {lost.length > 0 && <span className="text-sm text-amber-800">📭 {t('files.lost', { n: lost.length })}</span>}
       {dropped.length > 0 && <span className="text-sm text-slate-600">🗑️ {t('files.dropped', { n: dropped.length })}</span>}
     </span>
   )

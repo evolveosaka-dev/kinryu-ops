@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { formatTokyoTime } from '../domain/time'
 import { failReason, useUploadQueue, type UploadItem } from '../features/attachments/uploadQueue'
@@ -32,7 +32,7 @@ interface Tracked {
  */
 export function SentNoticeProvider({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
-  const { items, current, outcome, enqueue, discard, retry } = useUploadQueue()
+  const { items, current, outcome, enqueue, discard, retry, onRestored } = useUploadQueue()
   // files: this report's files (id → …), taken from the queue at show(); the report's files are queued before it
   const [info, setInfo] = useState<(SentInfo & { at: Date; files: Record<string, Tracked> }) | null>(null)
   const [warned, setWarned] = useState(false)
@@ -51,6 +51,22 @@ export function SentNoticeProvider({ children }: { children: ReactNode }) {
       setInfo({ ...i, at: new Date(), files })
     },
     [current],
+  )
+
+  // the app was closed while sending: on the next start the same dialog follows the files left from then
+  useEffect(
+    () =>
+      onRestored((left) =>
+        setInfo(
+          (cur) =>
+            cur ?? {
+              kind: t('sent.restored'),
+              at: new Date(Math.min(...left.map((i) => i.queuedAt ?? Date.now()))),
+              files: Object.fromEntries(left.map((x) => [x.id, { size: x.size, kind: x.kind, parentType: x.parentType, parentId: x.parentId }])),
+            },
+        ),
+      ),
+    [onRestored, t],
   )
 
   // 別のファイルを選ぶ (replaces one file, same kind) / 写真・動画を選ぶ (nothing attached any more: any files)

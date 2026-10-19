@@ -204,7 +204,9 @@
     "count": "{{n}} attachment(s)",
     "photoRequired": "Please add at least 1 photo of the store.",
     "takePhoto": "Take photo",
-    "choosePhoto": "Choose photo"
+    "choosePhoto": "Choose photo",
+    "missing": "{{n}} photo(s)/video(s) did not arrive",
+    "addAgain": "Add photos/videos"
   },
   "upload": {
     "uploading": "Uploading {{n}} file(s) ({{pct}}%)",
@@ -364,7 +366,8 @@
       "tooLarge": "Too large to send (videos: up to 90 s and 150 MB). Choose a shorter video or another file.",
       "missing": "The file cannot be found (it may have been removed from the phone). Choose another file or give it up.",
       "other": "Could not be sent. Go where the signal is good and tap “Send again”."
-    }
+    },
+    "restored": "Photos/videos not finished sending last time"
   },
   "comment": {
     "title": "Manager comments",

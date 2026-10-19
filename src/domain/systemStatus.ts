@@ -19,8 +19,24 @@ export interface SystemStatus {
   notify_waiting: number
   uploads_failed: number
   uploads_pending: number
-  /** the oldest 30 waiting > 1 h: sender, kind, bytes, created (migration 20261017000012) */
-  uploads_pending_list?: { name: string; kind: 'image' | 'video'; size: number; at: string }[]
+  /**
+   * the oldest 30 waiting > 1 h: sender, kind, bytes, created (migration 20261017000012); since 20261019000002 also
+   * the attachment / sender ids, when the sender's phone last said it still holds the file, the record type, and
+   * whether the sender has notifications on
+   */
+  uploads_pending_list?: {
+    id?: string
+    owner?: string
+    name: string
+    kind: 'image' | 'video'
+    size: number
+    at: string
+    seen?: string | null
+    parent?: string | null
+    push?: boolean
+  }[]
+  /** closed as not arriving in the last 7 days (not a problem): gone from the phone / closed by a manager / 48 hours */
+  uploads_lost_list?: { name: string; kind: 'image' | 'video'; at: string; reason: 'device' | 'manager' | 'expired' | null; parent: string | null }[]
   jobs: CronJob[]
   sheets_synced_at: string | null
   backup_at?: string | null

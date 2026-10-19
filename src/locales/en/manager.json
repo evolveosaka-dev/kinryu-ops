@@ -455,7 +455,8 @@
     "waiting": "waiting on this device",
     "localFailed": "could not be sent from this device",
     "now": "Photos and videos now",
-    "dropped": "{{n}} file(s) given up by the sender (could not be sent)"
+    "dropped": "{{n}} file(s) given up by the sender (could not be sent)",
+    "lost": "{{n}} file(s) did not arrive (gone from the phone / closed by a manager / 48 hours)"
   },
   "learn": {
     "add": "Add",
@@ -789,7 +790,7 @@
     "uploadTitle": "Photos / videos",
     "uploadsFailed": "Uploads failed (7 days)",
     "uploadsPending": "Uploads waiting over 1 h",
-    "uploadNote": "The files stay on the sender's phone and are sent again when the app is opened. The sender's app asks them to keep the app open until sending ends and shows how to make videos smaller. If files keep waiting, talk to the person.",
+    "uploadNote": "The files are still on the sender’s phone; opening the app sends the rest (after 20 minutes the sender gets a notification). Use “Notify the sender” now, or “Close as not arriving” for files that will not come. After 48 hours they are closed automatically.",
     "videoGuide": "How to make videos smaller (what staff see)",
     "jobsTitle": "Scheduled jobs",
     "noJobs": "No job information.",
@@ -825,7 +826,9 @@
       "check-pending-changes": "Reminders for waiting reports (every 10 min)",
       "ai-report": "AI report (8:00)",
       "ai-daily-report": "AI daily report (7:30)",
-      "backup-weekly": "Backup (Monday 4:30)"
+      "backup-weekly": "Backup (Monday 4:30)",
+      "uploads-expire": "Close files not arrived in 48 hours (hourly)",
+      "push-upload-reminders": "Reminders for unsent photos/videos (every 10 min)"
     },
     "backupTitle": "Backup (Google Drive)",
     "backupLast": "Last backup",
@@ -834,7 +837,32 @@
     "backupOpen": "Open the Drive folder",
     "backupNote": "Every Monday 4:30 all data is saved to 「金龍 朝礼・巡回 / バックアップ」 (12 weeks kept). ⚠ after 8 days.",
     "backupNow": "Back up now",
-    "backupRunning": "Backing up… (about 1 min)"
+    "backupRunning": "Backing up… (about 1 min)",
+    "nudge": "Notify the sender",
+    "pushOff": "Notifications off",
+    "nudged": "Notified {{name}}",
+    "noPush": "{{name}} has not turned on notifications. Please tell them in person.",
+    "seenOnPhone": "Still on the phone (checked {{min}} min ago)",
+    "notSeen": "Not known yet whether it is still on the phone",
+    "closeLost": "Close as not arriving",
+    "closeConfirm": "This file will be closed as not arriving. The record stays (for 朝礼 / patrol the sender can add photos/videos later).",
+    "cancel": "Cancel",
+    "lostTitle": "Files that did not arrive (7 days): {{n}}",
+    "lostNote": "Not a problem: the record shows “did not arrive”; for 朝礼 / patrol the sender can add photos/videos from History.",
+    "lostReason": {
+      "device": "gone from the phone",
+      "manager": "closed by a manager",
+      "expired": "not arrived in 48 hours"
+    },
+    "parent": {
+      "chorei": "朝礼",
+      "patrol": "Patrol",
+      "miss": "朝礼 not held",
+      "stock": "Stock",
+      "incident": "Complaint / accident",
+      "lost": "Lost item",
+      "sales": "Sales report"
+    }
   },
   "incidents": {
     "title": "Complaints / accidents",

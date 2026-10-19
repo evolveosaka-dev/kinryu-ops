@@ -61,7 +61,7 @@ export interface TargetBowls {
 export interface AttachmentSummary {
   id: string
   kind: 'image' | 'video'
-  status: 'pending' | 'uploaded' | 'failed' | 'deleted'
+  status: 'pending' | 'uploaded' | 'failed' | 'deleted' | 'lost'
   drive_url: string | null
   owner_id?: string
   created_at?: string

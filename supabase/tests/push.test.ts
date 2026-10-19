@@ -240,8 +240,8 @@ describe('web push', () => {
     const [jst] = await t.admin<{ h: number }>(`select extract(hour from now() at time zone 'Asia/Tokyo')::int as h`)
     await t.admin(`select public.queue_upload_reminders()`)
     await t.admin(`select public.queue_upload_reminders()`)
-    // quiet before 9:00 JST
-    expect(await queue()).toEqual(jst!.h < 9 ? [] : [{ user_id: kita, kind: 'upload', data: { n: 2 }, url: '/' }])
+    // quiet before 7:00 JST; the file sent just now is not counted (first reminder after 20 minutes)
+    expect(await queue()).toEqual(jst!.h < 7 ? [] : [{ user_id: kita, kind: 'upload', data: { n: 2 }, url: '/' }])
   })
 
   it('test accounts never get real events', async () => {
