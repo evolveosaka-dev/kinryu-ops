@@ -160,6 +160,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
         score_clean: scores!.clean,
         score_quality: scores!.quality,
         mask_worn: Boolean(f.maskWorn),
+        media_skipped: Boolean(f.mediaSkipped) && media.length === 0,
         staff_names: (f.staffNames ?? []).filter(Boolean),
         staff_on_shift: (f.staffNames ?? []).filter(Boolean).join('、') || '全員',
         good_points: tr.values.good_points,
@@ -218,7 +219,8 @@ function PatrolForm({ stores }: { stores: Store[] }) {
   const customerOk = Boolean(form.customerNone || form.customerSatisfied === true || (form.customerSatisfied === false && form.customerReason?.trim()))
   const staffOnShift = (form.staffNames ?? []).filter(Boolean)
   const issuesOk = !STAFF_ISSUES_ENABLED || issueTagsToSave(form.issueNone, form.issueTags, staffOnShift) !== null
-  const ready = Boolean(started && ended && photos > 0 && scores && customerOk && issuesOk && form.goodPoints.trim() && form.improvements.trim())
+  const photoOk = photos > 0 || Boolean(form.mediaSkipped)
+  const ready = Boolean(started && ended && photoOk && scores && customerOk && issuesOk && form.goodPoints.trim() && form.improvements.trim())
 
   // vibrate once when 15 minutes pass without 終了
   useEffect(() => {
@@ -348,6 +350,8 @@ function PatrolForm({ stores }: { stores: Store[] }) {
         hint={t('photoHint')}
         lockedNote={started ? null : t('photoAfterStart')}
         missing={showMissing}
+        skip={Boolean(form.mediaSkipped)}
+        onSkip={(mediaSkipped) => update({ mediaSkipped })}
       />
 
       {confirmCancel && (
@@ -383,7 +387,7 @@ function PatrolForm({ stores }: { stores: Store[] }) {
         {endMissing && !ended && <ErrorBox message={t('time.endFirst')} />}
         {showMissing && !customerOk && <ErrorBox message={t('customer.needAnswer')} />}
         {showMissing && !issuesOk && <ErrorBox message={t('issues.need')} />}
-        {showMissing && started && photos === 0 &&<ErrorBox message={t('common:attach.photoRequired')} />}
+        {showMissing && started && !photoOk && <ErrorBox message={t('common:attach.photoOrSkip')} />}
         {error && <ErrorBox message={error} />}
         <div className="grid grid-cols-[1fr_2fr] gap-2">
           <Button variant="secondary" disabled={submit.isPending} onClick={() => (hasInput ? setConfirmCancel(true) : void navigate('/'))}>

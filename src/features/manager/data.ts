@@ -12,6 +12,8 @@ import type { IssueStatus, IssueTag } from '../../domain/issues'
 import type { RecordComment } from '../comments/Comments'
 
 export type AdminPatrol = StatPatrol & {
+  /** 接客中のため、写真・動画の撮影を控えました */
+  media_skipped?: boolean
   /** recorded afterwards by a manager (巡回を後から記録) */
   entered_by_manager: boolean
   manager_note: string | null
@@ -33,6 +35,8 @@ export type AdminPatrol = StatPatrol & {
 }
 
 export type AdminChorei = StatChorei & {
+  /** 接客中のため、写真・動画の撮影を控えました */
+  media_skipped?: boolean
   participants: string[]
   stock_none: boolean
   /** recorded afterwards by a manager (✗ → ✓), sent at the meeting time */

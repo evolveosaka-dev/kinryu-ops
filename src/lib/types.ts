@@ -69,6 +69,8 @@ export interface AttachmentSummary {
 
 export interface ChoreiRecord {
   id: string
+  /** 「接客中のため、写真・動画の撮影を控えました」 (sent without files) */
+  media_skipped?: boolean
   store_id: string
   business_date: string
   shift: Shift
@@ -121,6 +123,8 @@ export interface ChoreiSlot {
 
 export interface PatrolCheck {
   id: string
+  /** 「接客中のため、写真・動画の撮影を控えました」 (sent without files) */
+  media_skipped?: boolean
   patroller_id: string
   store_id: string
   business_date: string

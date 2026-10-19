@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Card, ErrorBox } from '../../components/ui'
+import { Card, Checkbox, ErrorBox } from '../../components/ui'
 import { canAdd, MAX_IMAGES, MAX_VIDEOS, MediaError, prepareMedia, type MediaKind, type PreparedMedia } from '../../lib/media'
 import { VideoSizeGuide } from './VideoSizeGuide'
 
@@ -43,11 +43,19 @@ export function AttachmentPicker({
   missing = false,
   taken = { images: 0, videos: 0 },
   rule,
+  requireAny = false,
+  skip = false,
+  onSkip,
 }: {
   value: PreparedMedia[]
   onChange: (v: PreparedMedia[]) => void
   /** at least one photo is required (巡回) */
   requirePhoto?: boolean
+  /** at least one photo or video is required (朝礼) */
+  requireAny?: boolean
+  /** 「接客中のため、写真・動画の撮影を控えました」: shown when onSkip is given; ticked = nothing required */
+  skip?: boolean
+  onSkip?: (v: boolean) => void
   /** two photo buttons: 撮影 (opens the camera) and 写真を選ぶ (from the phone) */
   camera?: boolean
   hint?: string
@@ -148,7 +156,16 @@ export function AttachmentPicker({
       )}
       {guide && <VideoSizeGuide />}
       {error && <ErrorBox message={error} />}
-      {missing && requirePhoto && images === 0 && <ErrorBox message={t('attach.photoRequired')} />}
+      {onSkip && (
+        <div className="rounded-xl border border-amber-300 bg-amber-50 px-2 py-1">
+          <Checkbox checked={skip} onChange={onSkip}>
+            <b>📵 {t('attach.skip')}</b>
+          </Checkbox>
+          <p className="pb-1 text-xs text-amber-900">{t('attach.skipNote')}</p>
+        </div>
+      )}
+      {missing && !skip && requirePhoto && images === 0 && <ErrorBox message={t(onSkip ? 'attach.photoOrSkip' : 'attach.photoRequired')} />}
+      {missing && !skip && requireAny && value.length + taken.images + taken.videos === 0 && <ErrorBox message={t('attach.mediaOrSkip')} />}
     </Card>
   )
 }

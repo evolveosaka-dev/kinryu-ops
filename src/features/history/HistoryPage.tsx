@@ -43,6 +43,7 @@ interface ChoreiView {
   notes: { body: string; author?: string; created_at: string }[]
   attachments: AttachmentSummary[]
   comments: RecordComment[]
+  media_skipped?: boolean
 }
 type PatrolView = PatrolCheck & { patroller?: string; comments?: RecordComment[] }
 
@@ -131,13 +132,14 @@ function AddMissing({ parent, list, missing }: { parent: { type: 'chorei' | 'pat
   )
 }
 
-function Attachments({ list, parent }: { list?: AttachmentSummary[]; parent?: { type: 'chorei' | 'patrol'; id: string } }) {
+function Attachments({ list, parent, skipped }: { list?: AttachmentSummary[]; parent?: { type: 'chorei' | 'patrol'; id: string }; skipped?: boolean }) {
   const { t } = useTranslation()
   const { isManager } = useAuth()
   const uploaded = (list ?? []).filter((a) => a.status === 'uploaded')
   // did not arrive: lost (phone / manager / 48 hours) or given up by me
   const missing = (list ?? []).filter((a) => a.status === 'lost' || (a.status === 'deleted' && !a.drive_url)).length
   const canAddAgain = Boolean(parent) && missing > 0
+  if (skipped && uploaded.length === 0 && !canAddAgain) return <Line label={t('attach.title')}>📵 {t('attach.skipped')}</Line>
   if (uploaded.length === 0 && !canAddAgain) return null
   return (
     <Line label={t('attach.title')}>
@@ -216,7 +218,7 @@ function ChoreiCard({ r, store, mine = false }: { r: ChoreiView; store?: string;
           ))}
         </Line>
       )}
-      <Attachments list={r.attachments} parent={mine && r.status !== 'void' ? { type: 'chorei', id: r.id } : undefined} />
+      <Attachments list={r.attachments} skipped={r.media_skipped} parent={mine && r.status !== 'void' ? { type: 'chorei', id: r.id } : undefined} />
       <RecordComments kind="chorei" recordId={r.id} comments={r.comments ?? []} canWrite={r.status !== 'void'} />
     </Card>
   )
@@ -275,7 +277,7 @@ function PatrolCard({ r, store, mine = false }: { r: PatrolView; store?: string;
           <Original texts={r.original_texts} field="remarks" />
         </Line>
       )}
-      <Attachments list={r.attachments} parent={mine && r.status === 'valid' ? { type: 'patrol', id: r.id } : undefined} />
+      <Attachments list={r.attachments} skipped={r.media_skipped} parent={mine && r.status === 'valid' ? { type: 'patrol', id: r.id } : undefined} />
       <RecordComments kind="patrol" recordId={r.id} comments={r.comments ?? []} canWrite={r.status === 'valid'} />
     </Card>
   )

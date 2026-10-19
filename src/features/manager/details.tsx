@@ -122,10 +122,11 @@ function Original({ texts, field }: { texts: Record<string, string> | null; fiel
   return original ? <p className="mt-1 text-xs text-slate-600">{t('detail.original')}: {original}</p> : null
 }
 
-function Attachments({ list, parentId }: { list: AttachmentSummary[]; parentId: string }) {
+function Attachments({ list, parentId, skipped }: { list: AttachmentSummary[]; parentId: string; skipped?: boolean }) {
   const { t } = useTranslation('manager')
   return (
     <Row label={t('detail.attachments')}>
+      {skipped && <span className="mb-1 block font-bold text-amber-800">📵 {t('common:attach.skipped')}</span>}
       <AttachmentList list={list} parentId={parentId} />
     </Row>
   )
@@ -251,7 +252,7 @@ export function PatrolDetail({ patrol: p, patrollerName, onClose }: { patrol: Ad
             <Original texts={p.original_texts} field="remarks" />
           </Row>
         )}
-        <Attachments list={p.attachments} parentId={p.id} />
+        <Attachments list={p.attachments} parentId={p.id} skipped={p.media_skipped} />
         <RecordComments kind="patrol" recordId={p.id} comments={p.comments ?? []} canWrite={p.status === 'valid'} />
       </Card>
       <PatrolEditHistory patrol={p} />
@@ -347,7 +348,7 @@ export function ChoreiDetail({ record: r, leaderName, onClose }: { record: Admin
         <Row label={t('detail.skipped')}>{skipped.length ? `${skipped.map((s) => t(`chorei:steps.${s}`)).join('、')}（${r.skip_reason ?? ''}）` : '—'}</Row>
         {r.manager_note && <Row label={t('chorei:backfill.note')}>{r.manager_note}</Row>}
         {r.notes.length > 0 && <NoteRows notes={r.notes} />}
-        <Attachments list={r.attachments} parentId={r.id} />
+        <Attachments list={r.attachments} parentId={r.id} skipped={r.media_skipped} />
         <RecordComments kind="chorei" recordId={r.id} comments={r.comments ?? []} canWrite={r.status === 'valid'} />
       </Card>
       <ChoreiEditHistory record={r} />

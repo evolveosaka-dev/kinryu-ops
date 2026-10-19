@@ -206,7 +206,12 @@
     "takePhoto": "Take photo",
     "choosePhoto": "Choose photo",
     "missing": "{{n}} photo(s)/video(s) did not arrive",
-    "addAgain": "Add photos/videos"
+    "addAgain": "Add photos/videos",
+    "skip": "I was serving customers, so I did not take photos or videos",
+    "skipNote": "Ticked, you can send without photos or videos. Use it only when serving customers keeps you from filming. When you can take photos or videos, always do.",
+    "photoOrSkip": "Add at least one photo of the store. If serving customers keeps you from taking one, tick “I was serving customers, so I did not take photos or videos”.",
+    "mediaOrSkip": "Add at least one photo or video. If serving customers keeps you from taking one, tick “I was serving customers, so I did not take photos or videos”.",
+    "skipped": "No photos: serving customers"
   },
   "upload": {
     "uploading": "Uploading {{n}} file(s) ({{pct}}%)",

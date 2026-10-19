@@ -28,6 +28,8 @@ export interface PatrolFormState {
   issueTags?: IssueTag[]
   issueNone?: boolean
   issueAi?: boolean
+  /** 接客中のため、写真・動画の撮影を控えました → no photo needed */
+  mediaSkipped?: boolean
 }
 
 const KEY = 'kinryu.patrolForm'

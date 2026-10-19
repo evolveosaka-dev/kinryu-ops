@@ -67,6 +67,8 @@ export function ChoreiFormPage() {
   const [skipReason, setSkipReason] = useState('')
   const [note, setNote] = useState('')
   const [media, setMedia] = useState<PreparedMedia[]>([])
+  const [mediaSkipped, setMediaSkipped] = useState(false)
+  const [mediaMissing, setMediaMissing] = useState(false)
   const uploads = useUploadQueue()
   const translation = useTranslationGate()
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -86,7 +88,13 @@ export function ChoreiFormPage() {
   // 参加者 vs the shift table: asked to confirm before saving when they differ
   const schedule = useSlotSchedule(effectiveStore, businessDate, shift)
   const scheduleCheck = checkParticipants(shift, participantNames, [me.roster_name, me.display_name], schedule.data ?? [])
-  const send = () => (scheduleCheck ? setChecking(true) : submit.mutate())
+  // a photo or video is required unless 「接客中のため…控えました」 is ticked (owner, 2026-10-19); not for a manager's backfill
+  const mediaOk = backfill || mediaSkipped || media.length > 0
+  const send = () => {
+    if (!mediaOk) return setMediaMissing(true)
+    if (scheduleCheck) setChecking(true)
+    else submit.mutate()
+  }
 
   const targetEvents = useTargetEvents()
   const found =
@@ -131,6 +139,7 @@ export function ChoreiFormPage() {
         original_texts: tr.originals,
         source_lang: tr.sourceLang,
         leader_id: me.id,
+        media_skipped: mediaSkipped && media.length === 0,
         ...(backfill
           ? { submitted_at: meetingAt(businessDate, shift), entered_by_manager: true, manager_note: tr.values.manager_note ?? null }
           : {}),
@@ -339,7 +348,7 @@ export function ChoreiFormPage() {
             </details>
           </Card>
 
-          <AttachmentPicker value={media} onChange={setMedia} />
+          <AttachmentPicker value={media} onChange={setMedia} requireAny={!backfill} skip={mediaSkipped} onSkip={backfill ? undefined : setMediaSkipped} missing={mediaMissing} />
 
           <Card className="flex flex-col gap-1">
             <h2 className="text-sm font-bold text-slate-700">{t('steps.label')}</h2>
@@ -371,6 +380,7 @@ export function ChoreiFormPage() {
           )}
 
           <StickyActions>
+            {mediaMissing && !mediaOk && <ErrorBox message={t('common:attach.mediaOrSkip')} />}
             {submitError && <ErrorBox message={submitError} />}
             {Object.keys(errors).length > 0 && <ErrorBox message={t('common:error.required')} />}
             <Button className="mt-2 w-full" onClick={send} disabled={submit.isPending || !effectiveStore}>

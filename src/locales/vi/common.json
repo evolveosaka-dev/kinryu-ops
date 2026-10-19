@@ -206,7 +206,12 @@
     "takePhoto": "Chụp ảnh",
     "choosePhoto": "Chọn ảnh",
     "missing": "{{n}} ảnh/video chưa đến nơi",
-    "addAgain": "Thêm ảnh/video"
+    "addAgain": "Thêm ảnh/video",
+    "skip": "Đang tiếp khách nên hạn chế chụp ảnh, quay video",
+    "skipNote": "Khi tick, có thể gửi mà không cần ảnh/video. Chỉ dùng khi đang tiếp khách nên không chụp được. Khi có thể chụp ảnh, quay video thì nhất định phải làm.",
+    "photoOrSkip": "Hãy thêm ít nhất 1 ảnh cửa hàng. Nếu đang tiếp khách nên không chụp được, hãy tick “Đang tiếp khách nên hạn chế chụp ảnh, quay video”.",
+    "mediaOrSkip": "Hãy thêm ít nhất 1 ảnh hoặc video. Nếu đang tiếp khách nên không chụp được, hãy tick “Đang tiếp khách nên hạn chế chụp ảnh, quay video”.",
+    "skipped": "Không chụp: đang tiếp khách"
   },
   "upload": {
     "uploading": "Đang tải lên {{n}} file ({{pct}}%)",
