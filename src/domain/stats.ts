@@ -1,6 +1,6 @@
 // Pure aggregation for the manager screens (unit-tested). Business dates are Tokyo dates.
 import { isBeforeOperation } from './operation'
-import { normalizedTo25, PATROL_WARN_MINUTES } from './patrol'
+import { normalizedTo25, PATROL_REVIEW_MINUTES } from './patrol'
 import { addDays, MEETING_TIME, tokyoParts, weekdayOf } from './time'
 import { CHOREI_STEPS, MISS_REASONS, SHIFTS, type ChoreiStep, type MissReason, type PatrolType, type Shift } from './types'
 
@@ -243,7 +243,7 @@ export function patrolHours(ps: StatPatrol[]) {
     count: xs.length,
     minutes: xs.reduce((s, p) => s + (p.duration_min ?? 0), 0),
     byType: Object.fromEntries(['before_shift', 'in_shift', 'after_shift', 'random'].map((t) => [t, xs.filter((p) => p.patrol_type === t).length])),
-    over: xs.filter((p) => (p.duration_min ?? 0) > PATROL_WARN_MINUTES).length,
+    over: xs.filter((p) => (p.duration_min ?? 0) > PATROL_REVIEW_MINUTES).length,
     review: xs.filter((p) => p.needs_time_review).length,
   }))
 }

@@ -211,10 +211,10 @@
     "title": "Thời gian tuần tra",
     "minutes": "Tổng (phút)",
     "hours": "Giờ",
-    "over": "Trên 15 phút",
+    "over": "Quá 60 phút",
     "note": "Số phút thực tế từ “Bắt đầu” đến “Kết thúc” của các lần tuần tra hợp lệ (không làm tròn lên).",
     "reviewFirst": "Có lần tuần tra cần kiểm tra thời gian. Hãy xác nhận trước khi tổng hợp.",
-    "flagged": "Trên 15 phút・cần kiểm tra thời gian"
+    "flagged": "Quá 60 phút — cần xác nhận thời gian"
   },
   "settings": {
     "usersSub": "Duyệt・quyền・thành viên tuần tra・họ tên",

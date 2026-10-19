@@ -13,16 +13,14 @@
     "start": "Start",
     "started": "Start {{time}}",
     "elapsed": "{{min}} min",
-    "over": "Over 15 minutes",
     "needStart": "Tap \"Start\" when you arrive at the store.",
     "resumed": "Your unfinished patrol was restored.",
     "end": "End",
     "ended": "End {{time}}",
     "needEnd": "Tap \"End\" when you finish watching.",
     "endFirst": "Please tap \"End\" first. Then you can send.",
-    "limit": "limit 15 min",
-    "overBanner": "{{min}} min passed — over 15 minutes. Tap \"End\".",
-    "overReview": "Over 15 minutes: a manager will check the time."
+    "overBanner": "{{min}} minutes have passed. Did you forget to press “End” for the patrol? When you have finished, press “End”.",
+    "overReview": "Over 60 minutes, so a manager will check the time."
   },
   "items": {
     "smile": {

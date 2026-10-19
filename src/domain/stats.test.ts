@@ -118,8 +118,8 @@ describe('patrol aggregation', () => {
     expect(a.timeReview).toHaveLength(1)
   })
   it('patrol hours per patroller', () => {
-    const h = patrolHours([patrol({ duration_min: 12 }), patrol({ duration_min: 18, patrol_type: 'random', needs_time_review: true }), patrol({ patroller_id: 'u2' })])
-    expect(h.find((x) => x.patrollerId === 'u1')).toMatchObject({ count: 2, minutes: 30, over: 1, review: 1, byType: { in_shift: 1, random: 1 } })
+    const h = patrolHours([patrol({ duration_min: 45 }), patrol({ duration_min: 75, patrol_type: 'random', needs_time_review: true }), patrol({ patroller_id: 'u2' })])
+    expect(h.find((x) => x.patrollerId === 'u1')).toMatchObject({ count: 2, minutes: 120, over: 1, review: 1, byType: { in_shift: 1, random: 1 } })
   })
   it('weekly trend', () => {
     const w = weeklyTrend([patrol({}), patrol({ business_date: '2026-10-19', total: 15 })], [], '2026-10-12', '2026-10-25', ['M'], jst('2026-10-26T12:00:00'))

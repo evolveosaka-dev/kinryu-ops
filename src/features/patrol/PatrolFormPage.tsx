@@ -11,6 +11,7 @@ import {
   durationMinutes,
   judgePatrol,
   PATROL_ITEMS,
+  PATROL_REVIEW_MINUTES,
   PATROL_WARN_MINUTES,
   suggestPatrol,
 } from '../../domain/patrol'
@@ -280,9 +281,9 @@ function PatrolForm({ stores }: { stores: Store[] }) {
             </Button>
           </div>
           {started && (
-            <p className={minutes > PATROL_WARN_MINUTES ? 'font-bold text-red-700' : 'text-slate-700'}>
-              {t('time.elapsed', { min: minutes })} / {t('time.limit')}
-              {ended && minutes > PATROL_WARN_MINUTES && ` — ${t('time.overReview')}`}
+            <p className={minutes > PATROL_REVIEW_MINUTES ? 'font-bold text-red-700' : minutes >= PATROL_WARN_MINUTES ? 'font-bold text-amber-800' : 'text-slate-700'}>
+              {t('time.elapsed', { min: minutes })}
+              {ended && minutes > PATROL_REVIEW_MINUTES && ` — ${t('time.overReview')}`}
             </p>
           )}
           {!started && <p className="text-sm text-slate-600">{t('time.needStart')}</p>}

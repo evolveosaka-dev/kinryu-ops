@@ -211,10 +211,10 @@
     "title": "Patrol time",
     "minutes": "Total (min)",
     "hours": "Hours",
-    "over": "Over 15 min",
+    "over": "Over 60 min",
     "note": "Actual minutes from Start to End of valid patrols (not rounded up).",
     "reviewFirst": "Some patrols need a time review. Confirm them before totalling.",
-    "flagged": "Over 15 min / time review"
+    "flagged": "Over 60 min — time check needed"
   },
   "settings": {
     "usersSub": "Approval, roles, patrol members, full names",

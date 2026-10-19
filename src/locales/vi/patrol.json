@@ -13,16 +13,14 @@
     "start": "Bắt đầu",
     "started": "Bắt đầu {{time}}",
     "elapsed": "{{min}} phút",
-    "over": "Đã quá 15 phút",
     "needStart": "Đến cửa hàng thì bấm \"Bắt đầu\".",
     "resumed": "Đã khôi phục lượt tuần tra chưa xong.",
     "end": "Kết thúc",
     "ended": "Kết thúc {{time}}",
     "needEnd": "Xem xong thì bấm \"Kết thúc\".",
     "endFirst": "Hãy bấm \"Kết thúc\" trước. Sau đó mới gửi được.",
-    "limit": "tối đa 15 phút",
-    "overBanner": "Đã {{min}} phút — quá 15 phút. Hãy bấm \"Kết thúc\".",
-    "overReview": "Quá 15 phút: quản lý sẽ kiểm tra lại thời gian."
+    "overBanner": "Đã {{min}} phút. Bạn có quên bấm “Kết thúc” tuần tra không? Xem xong thì hãy bấm “Kết thúc”.",
+    "overReview": "Quá 60 phút nên quản lý sẽ kiểm tra thời gian."
   },
   "items": {
     "smile": {

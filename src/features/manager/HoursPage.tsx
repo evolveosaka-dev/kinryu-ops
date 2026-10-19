@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { Button, Card } from '../../components/ui'
-import { formatHoursMinutes, PATROL_WARN_MINUTES } from '../../domain/patrol'
+import { formatHoursMinutes, PATROL_REVIEW_MINUTES } from '../../domain/patrol'
 import { patrolHours } from '../../domain/stats'
 import { formatShortDate } from '../../domain/time'
 import { PATROL_TYPES } from '../../domain/types'
@@ -23,7 +23,7 @@ export function HoursSummary({ patrols: ps, label, onOpen }: { patrols: AdminPat
   const [who, setWho] = useState<string | null>(null)
 
   const rows = patrolHours(ps).sort((a, b) => people.name(a.patrollerId).localeCompare(people.name(b.patrollerId), 'ja'))
-  const flagged = ps.filter((p) => p.status !== 'void' && (p.needs_time_review || (p.duration_min ?? 0) > PATROL_WARN_MINUTES))
+  const flagged = ps.filter((p) => p.status !== 'void' && (p.needs_time_review || (p.duration_min ?? 0) > PATROL_REVIEW_MINUTES))
   const typeJa = (x: string) => t(`patrol:type.${x}`, { lng: 'ja' })
   const summaryRows = [
     ['巡回者', '回数', '合計（分）', '合計（時間）', ...PATROL_TYPES.map(typeJa), '15分超', '時間確認'],

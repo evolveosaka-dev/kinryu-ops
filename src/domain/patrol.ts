@@ -18,8 +18,10 @@ export interface PatrolScores {
 export type Judgement = 'good' | 'improve' | 'coaching'
 
 export const PATROL_TARGET_25 = 20
-export const PATROL_WARN_MINUTES = 15
-export const PATROL_REVIEW_MINUTES = 15 // keep in sync with guard_patrol()
+/** the patrol form reminds the patroller (「終了」を押し忘れていませんか？) */
+export const PATROL_WARN_MINUTES = 30
+/** longer → 時間確認が必要 (owner, 2026-10-19; was 15) — keep in sync with guard_patrol() / flag_open_patrols() */
+export const PATROL_REVIEW_MINUTES = 60
 
 export function patrolTotal(s: PatrolScores): number {
   return s.smile + s.voice + s.grooming + s.clean + (s.quality ?? 0)
