@@ -40,7 +40,12 @@ function corsHeaders(req: Request): Record<string, string> {
 }
 
 export function serve(handler: (req: Request) => Promise<unknown>) {
-  Deno.serve(async (req) => {
+  Deno.serve(jsonHandler(handler))
+}
+
+/** A JSON request handler with CORS and HttpError → status (serve() uses it; a function with other routes too can call it). */
+export function jsonHandler(handler: (req: Request) => Promise<unknown>) {
+  return async (req: Request): Promise<Response> => {
     if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
     try {
       const body = await handler(req)
@@ -51,7 +56,7 @@ export function serve(handler: (req: Request) => Promise<unknown>) {
       if (status >= 500) console.error(err)
       return Response.json({ error: message }, { status, headers: corsHeaders(req) })
     }
-  })
+  }
 }
 
 /** Service-role client: bypasses RLS, only for server-side checks and writes. */

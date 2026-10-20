@@ -15,6 +15,7 @@ import type { AttachmentSummary, ChoreiRecord, PatrolCheck } from '../../lib/typ
 import { RecordComments, useMarkCommentsRead, type RecordComment } from '../comments/Comments'
 import { useSentNotice } from '../../components/SentNotice'
 import { canAdd, MAX_IMAGES, MAX_VIDEOS, MediaError, prepareMedia, type PreparedMedia } from '../../lib/media'
+import { ViewMediaButton } from '../attachments/MediaViewer'
 import { useUploadQueue } from '../attachments/uploadQueue'
 import { CustomerResult } from '../patrol/CustomerItem'
 import { IssueTagsView } from '../patrol/IssueTags'
@@ -132,7 +133,7 @@ function AddMissing({ parent, list, missing }: { parent: { type: 'chorei' | 'pat
   )
 }
 
-function Attachments({ list, parent, skipped }: { list?: AttachmentSummary[]; parent?: { type: 'chorei' | 'patrol'; id: string }; skipped?: boolean }) {
+function Attachments({ list, parent, skipped, viewTitle }: { list?: AttachmentSummary[]; parent?: { type: 'chorei' | 'patrol'; id: string }; skipped?: boolean; viewTitle?: string }) {
   const { t } = useTranslation()
   const { isManager } = useAuth()
   const uploaded = (list ?? []).filter((a) => a.status === 'uploaded')
@@ -155,6 +156,11 @@ function Attachments({ list, parent, skipped }: { list?: AttachmentSummary[]; pa
           ) : null,
         )}
       </span>
+      {viewTitle && uploaded.length > 0 && (
+        <span className="mt-1 block">
+          <ViewMediaButton list={uploaded} title={viewTitle} />
+        </span>
+      )}
       {canAddAgain && <AddMissing parent={parent!} list={list!} missing={missing} />}
     </Line>
   )
@@ -218,7 +224,7 @@ function ChoreiCard({ r, store, mine = false }: { r: ChoreiView; store?: string;
           ))}
         </Line>
       )}
-      <Attachments list={r.attachments} skipped={r.media_skipped} parent={mine && r.status !== 'void' ? { type: 'chorei', id: r.id } : undefined} />
+      <Attachments list={r.attachments} skipped={r.media_skipped} viewTitle={t('common:attach.viewTitle')} parent={mine && r.status !== 'void' ? { type: 'chorei', id: r.id } : undefined} />
       <RecordComments kind="chorei" recordId={r.id} comments={r.comments ?? []} canWrite={r.status !== 'void'} />
     </Card>
   )

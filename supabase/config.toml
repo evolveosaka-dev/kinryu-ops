@@ -8,6 +8,9 @@ additional_redirect_urls = ["http://localhost:5173/"]
 [functions.drive-upload]
 verify_jwt = false
 
+[functions.drive-view]
+verify_jwt = false
+
 [functions.sync-sheets]
 verify_jwt = false
 

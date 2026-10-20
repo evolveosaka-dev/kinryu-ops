@@ -14,6 +14,7 @@ import type { AttachmentSummary } from '../../lib/types'
 import { RecordComments } from '../comments/Comments'
 import { issueTagsToSave, STAFF_ISSUES_ENABLED } from '../../domain/issues'
 import { CustomerResult } from '../patrol/CustomerItem'
+import { ViewMediaButton } from '../attachments/MediaViewer'
 import { AttachmentList } from './AttachmentList'
 import { ChoreiEdit, ChoreiEditHistory } from './ChoreiEdit'
 import { PatrolEdit, PatrolEditHistory } from './PatrolEdit'
@@ -128,6 +129,9 @@ function Attachments({ list, parentId, skipped }: { list: AttachmentSummary[]; p
     <Row label={t('detail.attachments')}>
       {skipped && <span className="mb-1 block font-bold text-amber-800">📵 {t('common:attach.skipped')}</span>}
       <AttachmentList list={list} parentId={parentId} />
+      <span className="mt-1 block">
+        <ViewMediaButton list={list} title={t('common:attach.title')} />
+      </span>
     </Row>
   )
 }

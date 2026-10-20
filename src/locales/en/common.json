@@ -211,7 +211,14 @@
     "skipNote": "Ticked, you can send without photos or videos. Use it only when serving customers keeps you from filming. When you can take photos or videos, always do.",
     "photoOrSkip": "Add at least one photo of the store. If serving customers keeps you from taking one, tick “I was serving customers, so I did not take photos or videos”.",
     "mediaOrSkip": "Add at least one photo or video. If serving customers keeps you from taking one, tick “I was serving customers, so I did not take photos or videos”.",
-    "skipped": "No photos: serving customers"
+    "skipped": "No photos: serving customers",
+    "view": "View photos & videos",
+    "viewTitle": "Shift meeting photos & videos",
+    "viewLoading": "Loading…",
+    "viewError": "Could not open the photos / videos. Please try again later.",
+    "viewNote": "You can also watch other stores’ and shifts’ meetings as examples. If a customer’s face is visible, tell a manager.",
+    "photo": "Photo",
+    "video": "Video"
   },
   "upload": {
     "uploading": "Uploading {{n}} file(s) ({{pct}}%)",

@@ -211,7 +211,14 @@
     "skipNote": "Khi tick, có thể gửi mà không cần ảnh/video. Chỉ dùng khi đang tiếp khách nên không chụp được. Khi có thể chụp ảnh, quay video thì nhất định phải làm.",
     "photoOrSkip": "Hãy thêm ít nhất 1 ảnh cửa hàng. Nếu đang tiếp khách nên không chụp được, hãy tick “Đang tiếp khách nên hạn chế chụp ảnh, quay video”.",
     "mediaOrSkip": "Hãy thêm ít nhất 1 ảnh hoặc video. Nếu đang tiếp khách nên không chụp được, hãy tick “Đang tiếp khách nên hạn chế chụp ảnh, quay video”.",
-    "skipped": "Không chụp: đang tiếp khách"
+    "skipped": "Không chụp: đang tiếp khách",
+    "view": "Xem ảnh・video",
+    "viewTitle": "Ảnh・video buổi 朝礼",
+    "viewLoading": "Đang tải…",
+    "viewError": "Không mở được ảnh/video. Hãy thử lại sau.",
+    "viewNote": "Có thể xem 朝礼 của cửa hàng, ca khác để học hỏi. Nếu thấy mặt khách hàng, hãy báo cho quản lý.",
+    "photo": "Ảnh",
+    "video": "Video"
   },
   "upload": {
     "uploading": "Đang tải lên {{n}} file ({{pct}}%)",
