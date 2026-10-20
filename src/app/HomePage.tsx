@@ -122,7 +122,7 @@ export function HomePage() {
             <MenuItem to="/absence" icon="🙋" tint="bg-rose-100" title={t('home.absence')} sub={t('home.absenceSub')} />
             <MenuItem to="/incident" icon="⚠️" tint="bg-red-100" title={t('home.incident')} sub={t('home.incidentSub')} />
             <MenuItem to="/lost-items" icon="👜" tint="bg-amber-100" title={t('home.lost')} sub={t('home.lostSub')} />
-            {isManager && <MenuItem to="/all-shifts" icon="🗓️" tint="bg-teal-100" title={t('home.allShifts')} sub={t('home.allShiftsSub')} />}
+            <MenuItem to="/all-shifts" icon="🗓️" tint="bg-teal-100" title={t('home.allShifts')} sub={t('home.allShiftsSub')} />
             <MenuItem to="/shift-request" icon="📝" tint="bg-violet-100" title={t('home.shiftRequest')} sub={t('home.shiftRequestSub')} />
           </ul>
         </Card>

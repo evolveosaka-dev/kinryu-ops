@@ -113,7 +113,7 @@
     "schedule": "Lịch làm việc",
     "scheduleSub": "Ngày, giờ và cửa hàng mình làm",
     "allShifts": "Ca của tất cả cửa hàng",
-    "allShiftsSub": "Ai làm ca nào, theo từng cửa hàng (quản lý)",
+    "allShiftsSub": "Ai làm ca nào, theo từng cửa hàng",
     "testAccount": "Đây là tài khoản thử nghiệm. Màn hình quản lý chỉ để xem, không thay đổi được gì. Dữ liệu thử bị xóa lúc 4:00 mỗi ngày (giờ Nhật), ảnh và video không được tải lên.",
     "testManager": "Bạn là quản lý thử nghiệm (Test manager). Bạn dùng được mọi màn hình và chức năng như quản lý, nhưng những gì bạn ghi chỉ tài khoản thử nghiệm mới thấy (nhân viên và quản lý khác không thấy). Dữ liệu của bạn được giữ lại, không bị xóa. Dữ liệu thật chỉ để xem, không thay đổi được. Ảnh và video không được tải lên.",
     "learn": "Học tập",

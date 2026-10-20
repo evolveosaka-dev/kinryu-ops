@@ -57,36 +57,14 @@ export function useCoworkers(a: Pick<Assignment, 'business_date' | 'shift'>) {
   })
 }
 
-/** 全店舗シフト (managers; RLS gives them every row): one store's assignments in a month. */
+/** 全店舗シフト (every active user since 2026-10-20, RPC store_shift_month; test accounts' copies hidden): one store's month. */
 export function useStoreMonth(storeMark: string | null, month: string) {
   return useQuery({
     queryKey: ['shift_assignments', 'store', storeMark, month],
     enabled: Boolean(storeMark),
     staleTime: 5 * 60 * 1000,
     queryFn: async () =>
-      unwrap<AssignmentRow[]>(
-        await supabase
-          .from('shift_assignments')
-          .select('id, roster_name, business_date, shift, store_mark, start_min, end_min, original_end_min')
-          .eq('month', month)
-          .eq('store_mark', storeMark!)
-          .order('business_date')
-          .order('start_min')
-          .order('roster_name'),
-      ),
-  })
-}
-
-/** Shift-table names of test accounts (copies of real shifts), hidden from real managers. */
-export function useTestRosterNames(enabled: boolean) {
-  return useQuery({
-    queryKey: ['profiles', 'test_roster_names'],
-    enabled,
-    staleTime: 30 * 60 * 1000,
-    queryFn: async () =>
-      unwrap<{ roster_name: string }[]>(
-        await supabase.from('profiles').select('roster_name').eq('is_test_account', true).not('roster_name', 'is', null),
-      ).map((r) => r.roster_name),
+      unwrap<AssignmentRow[]>(await supabase.rpc('store_shift_month', { p_store_mark: storeMark!, p_month: month })),
   })
 }
 

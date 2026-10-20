@@ -105,7 +105,7 @@ function Gate() {
         <Route path="schedule" element={<SchedulePage />} />
         <Route path="stock" element={<StockPage />} />
         <Route path="sales" element={<SalesPage />} />
-        {isManager && <Route path="all-shifts" element={<AllShiftsPage />} />}
+        <Route path="all-shifts" element={<AllShiftsPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="learn/manual" element={<ManualListPage />} />
         <Route path="learn/videos" element={<VideoListPage />} />

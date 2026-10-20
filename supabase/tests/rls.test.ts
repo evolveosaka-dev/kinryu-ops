@@ -397,6 +397,13 @@ describe('shift schedule', () => {
     expect(co.map((c) => c.roster_name)).toEqual(['キタ']) // same store ⑤ only
     expect(await t.as(staffS, `select * from public.shift_coworkers('2026-10-12', 'middle')`)).toHaveLength(0)
   })
+  it('全店舗シフト: every active user reads one store month through store_shift_month', async () => {
+    const month = (who: string, mark: string) => t.as<{ roster_name: string }>(who, `select roster_name from public.store_shift_month('${mark}', '2026-10-01')`)
+    expect((await month(staffS, '⑤')).map((r) => r.roster_name)).toEqual(['ミナミ', 'キタ'])
+    expect((await month(staffM, '①')).map((r) => r.roster_name)).toEqual(['ヒガシ', 'ミナミ'])
+    // an account waiting for approval (earlier tests approve `pending`) sees nothing
+    expect(await month(await t.createUser('wait-shift@example.com'), '⑤')).toEqual([])
+  })
   it('朝礼 参加者: the scheduled names of a slot — managers any day, staff only around today', async () => {
     const slot = (store: string, date: string) => `select roster_name from public.slot_staff('${store}', ${date}, 'middle')`
     expect(await t.as(manager, slot(sennichimae, `'2026-10-12'`))).toEqual([{ roster_name: 'ミナミ' }, { roster_name: 'キタ' }])

@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useMe } from '../../app/auth'
 import { Card, ErrorBox, PageTitle, Spinner } from '../../components/ui'
 import { STORE_BY_MARK, weekDates } from '../../domain/schedule'
 import { addDays, tokyoParts } from '../../domain/time'
 import { SHIFTS, type Shift } from '../../domain/types'
 import { cx } from '../../lib/cx'
 import { errorMessage } from '../../lib/format'
-import { useMonthImported, useStoreMonth, useTestRosterNames, type AssignmentRow } from './data'
+import { useMonthImported, useStoreMonth, type AssignmentRow } from './data'
 import { ExtensionNote, ShiftChip, TimeRange } from './parts'
 import { SHIFT_STYLE, STORE_DOT, useDayLabel } from './style'
 
@@ -26,7 +25,7 @@ const toggleClass = (on: boolean) =>
     on ? 'border-brand bg-brand text-white' : 'border-line bg-white text-ink hover:bg-surface',
   )
 
-/** メニュー → 全店舗シフト (managers): one store's month as a calendar with a dot per shift; a day → who works when. */
+/** メニュー → 全店舗シフト (everyone): one store's month as a calendar with a dot per shift; a day → who works when. */
 export function AllShiftsPage() {
   const { t } = useTranslation('shift')
   const { t: tc } = useTranslation()
@@ -39,9 +38,6 @@ export function AllShiftsPage() {
   const prev = useMonthImported(shiftMonth(month, -1))
   const next = useMonthImported(shiftMonth(month, 1))
   const data = useStoreMonth(store, month)
-  // a test account sees its own copied shifts; real managers never do
-  const me = useMe()
-  const testNames = useTestRosterNames(!me.is_test_account)
 
   const goMonth = (n: number) => {
     const m = shiftMonth(month, n)
@@ -55,8 +51,7 @@ export function AllShiftsPage() {
       cur.length === SHIFTS.length ? [s] : cur.includes(s) ? (cur.length > 1 ? cur.filter((x) => x !== s) : cur) : SHIFTS.filter((x) => x === s || cur.includes(x)),
     )
 
-  const hidden = new Set(testNames.data ?? [])
-  const rows = (data.data ?? []).filter((a) => !hidden.has(a.roster_name))
+  const rows = data.data ?? []
   const on = (d: string, s: Shift) => rows.filter((a) => a.business_date === d && a.shift === s)
 
   const monthEnd = addDays(shiftMonth(month, 1), -1)
