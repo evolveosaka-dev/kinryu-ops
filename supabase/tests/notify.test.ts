@@ -61,9 +61,10 @@ describe('notification events', () => {
     expect(e).toMatchObject({ kind: 'edit', ref_table: 'patrol_checks', data: { action: 'void' } })
     await clear()
   })
+  // two months ahead: its deadline (the 20th of next month) is always in the future, whatever day the tests run
   it('シフト希望: the staff member’s submission is deduplicated by key; a manager’s change is an edit', async () => {
     const [r] = await t.as<{ id: string }>(staff, `insert into public.shift_requests (month, shifts)
-      values (date_trunc('month', ${TODAY} + 40)::date, '{early}') returning id`)
+      values (date_trunc('month', ${TODAY} + 70)::date, '{early}') returning id`)
     await t.as(staff, `update public.shift_requests set shifts = '{early,middle}' where id = $1`, [r!.id])
     await t.as(manager, `update public.shift_requests set shifts = '{middle}' where id = $1`, [r!.id])
     const list = await events()

@@ -8,6 +8,7 @@ import {
   dayView,
   eventEffects,
   indexSales,
+  lastYear,
   monthDays,
   monthlyTrend,
   monthSummary,
@@ -34,6 +35,8 @@ import { useAnalysisPatrols, useDailySales, useMonthReports, type ReportFigures 
 import { ChartDetail, TapChart, type ChartInfo, type ChartKind } from './ChartDetail'
 import { Formula, InfoSheet, Sources, type InfoProps } from './explain'
 import { SummaryDetail, type SummaryKind } from './SummaryDetail'
+import { YoyDays } from './YoyDays'
+import { yoyPct } from '../../../domain/salesCompare'
 
 /** 朝礼・巡回 started on this day (改善の効果 compares before / after). */
 const START = '2026-10-12'
@@ -155,6 +158,13 @@ export function AnalysisPage() {
       const weeks = weekly(ctx, '2026-08-03', today(), patrols.data ?? [])
       await exportXlsx(`分析_${month.slice(0, 7)}.xlsx`, [
         { name: '日別', rows: [['日付', '日の種類', '実績（杯）', '目標', '達成率%', '前年同曜日', 'イベント'], ...days.map((d) => [d.date, t(`chorei:target.${d.dayType}`, { lng: 'ja' }), d.actual, d.target ?? d.targetAll, rateOf(d.actual, d.target), d.lastYear, d.events.join('・')])] },
+        {
+          name: '日別前年比',
+          rows: [
+            ['日付', '前年の日（364日前）', '実績（杯）', '前年（杯）', '前年比%', ...ctx.storeIds.flatMap((st) => ctx.shifts.flatMap((sh) => [`${storeLabel(st)} ${t(`common:shift.${sh}`, { lng: 'ja' })} 実績`, `${storeLabel(st)} ${t(`common:shift.${sh}`, { lng: 'ja' })} 前年`]))],
+            ...days.map((d) => [d.date, lastYear(d.date), d.actual, d.lastYear, yoyPct(d.actual, d.lastYear), ...d.slots.flatMap((sl) => [sl.actual, sl.lastYear])]),
+          ],
+        },
         { name: 'シフト×日の種類', rows: [['日の種類', '日数', ...SHIFTS.flatMap((s) => [`${s} 実績`, `${s} 目標`, `${s} 達成率%`])], ...typeTable(ctx, month).map((r) => [t(`chorei:target.${r.dayType}`, { lng: 'ja' }), r.days, ...SHIFTS.flatMap((s) => [r.cells[s].actual, r.cells[s].target, r.cells[s].rate])])] },
         { name: '月別推移', rows: [['月', '1日平均（杯）', '日数'], ...trend.map((m) => [m.month.slice(0, 7), m.avg, m.days])] },
         { name: '週別推移', rows: [['年', '週', '週（月曜）', '1日平均（杯）', '日数'], ...weeklyTrend(ctx, DATA_FROM, today()).map((w) => [w.year, w.week, w.monday, w.avg, w.days])] },
@@ -401,8 +411,13 @@ export function AnalysisPage() {
         </TapChart>
       </Section>
 
-      {/* ④ shift × day type */}
-      <Section title={`④ ${t('analysis.types')}`} help={t('analysis.typesHelp')}>
+      {/* ④ every day vs the same weekday a year before */}
+      <Section title={`④ ${t('analysis.yoyDay.title')}`} help={t('analysis.yoyDay.help')}>
+        <YoyDays days={days} storeLabel={storeLabel} holidays={ctx.holidays} />
+      </Section>
+
+      {/* ⑤ shift × day type */}
+      <Section title={`⑤ ${t('analysis.types')}`} help={t('analysis.typesHelp')}>
         <div className="-mx-2 overflow-x-auto px-2">
           <table className="w-full min-w-[20rem] text-center text-xs">
             <thead className="text-slate-600">
@@ -437,7 +452,7 @@ export function AnalysisPage() {
       </Section>
 
       {/* ⑤ monthly trend */}
-      <Section title={`⑤ ${t('analysis.trend')}`} help={t('analysis.trendHelp')}>
+      <Section title={`⑥ ${t('analysis.trend')}`} help={t('analysis.trendHelp')}>
         <TapChart label={t('analysis.how.open')} onOpen={() => setOpenChart('monthly')}>
           <LineChart
             unit="杯"
@@ -456,7 +471,7 @@ export function AnalysisPage() {
       </Section>
 
       {/* ⑥ weekly trend */}
-      <Section title={`⑥ ${t('analysis.weekTrend')}`} help={t('analysis.weekTrendHelp')}>
+      <Section title={`⑦ ${t('analysis.weekTrend')}`} help={t('analysis.weekTrendHelp')}>
         <TapChart label={t('analysis.how.open')} onOpen={() => setOpenChart('weekly')}>
           <LineChart
             unit="杯"
@@ -475,7 +490,7 @@ export function AnalysisPage() {
       </Section>
 
       {/* ⑦ day types vs the same month of the years before */}
-      <Section title={`⑦ ${t('analysis.typeYears', { month: Number(month.slice(5, 7)) })}`} help={t('analysis.typeYearsHelp')}>
+      <Section title={`⑧ ${t('analysis.typeYears', { month: Number(month.slice(5, 7)) })}`} help={t('analysis.typeYearsHelp')}>
         {ty.years.length === 0 ? (
           <p className="text-sm text-muted">{t('stats.noData')}</p>
         ) : (
@@ -517,7 +532,7 @@ export function AnalysisPage() {
       </Section>
 
       {/* ⑧ improvement */}
-      <Section title={`⑧ ${t('analysis.improvement')}`} help={t('analysis.improvementHelp')}>
+      <Section title={`⑨ ${t('analysis.improvement')}`} help={t('analysis.improvementHelp')}>
         <TapChart label={t('analysis.how.open')} onOpen={() => setOpenChart('yoyWeekly')}>
           <LineChart
             labels={weeks.map((w) => `${Number(w.monday.slice(5, 7))}/${Number(w.monday.slice(8))}`)}
@@ -550,7 +565,7 @@ export function AnalysisPage() {
       </Section>
 
       {/* ⑨ events */}
-      <Section title={`⑨ ${t('analysis.events')}`} help={t('analysis.eventsHelp')}>
+      <Section title={`⑩ ${t('analysis.events')}`} help={t('analysis.eventsHelp')}>
         {effects.length === 0 ? (
           <p className="text-sm text-muted">{t('analysis.noEvents')}</p>
         ) : (

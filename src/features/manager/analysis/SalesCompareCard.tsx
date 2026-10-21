@@ -5,7 +5,7 @@ import { Link } from 'react-router'
 import { Sheet } from '../../../components/Sheet'
 import { Card, Spinner } from '../../../components/ui'
 import { dayTypeCache } from '../../../domain/forecast'
-import { compareDay, latestActual, type CompareRow } from '../../../domain/salesCompare'
+import { compareDay, latestActual, yoyPct, type CompareRow } from '../../../domain/salesCompare'
 import { dayView, DATA_FROM, indexSales, type Ctx } from '../../../domain/salesAnalysis'
 import { addDays, formatShortDate, weekdayOf } from '../../../domain/time'
 import { SHIFTS, type Shift } from '../../../domain/types'
@@ -94,6 +94,7 @@ export function SalesCompareCard() {
 
   const cells = (vals: { actual: number | null; forecast: number | null; lastYear: number | null }, open: (c: Col) => void, bold?: boolean) => {
     const rr = rate(vals.actual, vals.forecast)
+    const yy = yoyPct(vals.actual, vals.lastYear)
     return (
       <>
         <td className="text-right tabular-nums">
@@ -110,6 +111,7 @@ export function SalesCompareCard() {
         <td className="pr-1 text-right tabular-nums">
           <TapNum onOpen={() => open('lastYear')} className={cx(bold && 'font-bold')}>
             {num(vals.lastYear)}
+            {yy !== null && <span className={cx('block text-[11px] font-bold', yy < -5 ? 'text-red-700' : yy >= 0 ? 'text-green-700' : 'text-amber-700')}>{signed(yy)}%</span>}
           </TapNum>
         </td>
       </>
@@ -252,6 +254,9 @@ function CompareInfo({
         ) : (
           <Formula text={info.col === 'actual' ? t('compare.x.actualFormula', { n: v.toLocaleString() }) : t('compare.x.lyFormula', { ly: lyLabel, n: v.toLocaleString() })} />
         )}
+        {info.col === 'lastYear' && r.actual !== null && r.lastYear ? (
+          <Formula text={t('compare.x.yoyFormula', { a: r.actual.toLocaleString(), ly: r.lastYear.toLocaleString(), p: signed(yoyPct(r.actual, r.lastYear)) })} />
+        ) : null}
         {info.col === 'lastYear' && <p className="text-sm">{t('compare.x.lyNote')}</p>}
         {src && <p className="rounded-lg bg-surface p-2 text-sm">{t(src === 'report' ? 'compare.x.fromReport' : 'compare.x.fromExcel')}</p>}
         {src === 'report' && (
@@ -285,6 +290,9 @@ function CompareInfo({
           </li>
         ))}
       </ul>
+      {info.col === 'lastYear' && day.sums[info.store ?? 'all']!.actual !== null && sum ? (
+        <Formula text={t('compare.x.yoyFormula', { a: day.sums[info.store ?? 'all']!.actual!.toLocaleString(), ly: sum.toLocaleString(), p: signed(yoyPct(day.sums[info.store ?? 'all']!.actual, sum)) })} />
+      ) : null}
       {info.col === 'lastYear' && <p className="text-sm">{t('compare.x.lyNote')}</p>}
       {info.col === 'forecast' && <p className="text-sm">{t('compare.x.forecastNote', { date: dayLabel(day.date) })}</p>}
       <Sources keys={info.col === 'actual' ? ['sales'] : info.col === 'forecast' ? ['sales', 'events', 'weather'] : ['sales', 'lastYear']} />

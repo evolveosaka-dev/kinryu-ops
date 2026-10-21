@@ -687,7 +687,22 @@
       "dataFrom": "Không dùng số liệu năm 2024 (từ tháng 1/2025).",
       "weather": "Thời tiết: nhiệt độ・lượng mưa theo giờ của Open-Meteo (Namba). Lưu vào cơ sở dữ liệu lúc 4:45 mỗi ngày. Đến hôm qua là giá trị thực tế, từ hôm nay là dự báo (đến 16 ngày sau)."
     },
-    "score": "Điểm"
+    "score": "Điểm",
+    "yoyDay": {
+      "title": "So sánh từng ngày với năm trước",
+      "help": "Số bát mỗi ngày trong tháng so với ngày cùng thứ năm trước (364 ngày trước). Bấm vào ngày để xem từng cửa hàng・ca.",
+      "day": "Ngày",
+      "lyDay": "Ngày năm trước",
+      "rate": "So năm trước",
+      "diff": "Chênh lệch",
+      "days": "{{n}} ngày",
+      "note": "So năm trước = thực tế ÷ năm trước − 1. Tổng chỉ tính các ngày có đủ cả hai số. Ngày màu đỏ là ngày lễ.",
+      "none": "Tháng này chưa có số liệu.",
+      "sheetTitle": "{{date}} so với năm trước {{ly}}",
+      "formula": "So năm trước = thực tế ÷ năm trước − 1\n= {{a}} bát ÷ {{ly}} bát − 1\n= {{p}}",
+      "missing": "Ngày này thiếu số thực tế hoặc số năm trước nên không tính so sánh.",
+      "sheetNote": "Năm trước = ngày cùng thứ 364 ngày (52 tuần) trước. Số bát = ラーメン + チャーシューメン (không tính coupon)."
+    }
   },
   "patrolEdit": {
     "title": "Sửa nội dung tuần tra",
@@ -1417,7 +1432,7 @@
     "all": "Tổng 2 cửa hàng",
     "noActual": "Chưa có số thực tế của ngày này (file số bát bán được đọc lúc 6:00 mỗi ngày).",
     "syncFail": "Đọc số bát bán thất bại: {{error}}",
-    "legend": "% dưới số thực tế = thực tế ÷ dự báo. Dự báo chỉ dùng số liệu đến trước ngày đó.",
+    "legend": "% dưới số thực tế = thực tế ÷ dự báo. Dự báo chỉ dùng số liệu đến trước ngày đó. % dưới số năm trước = so với năm trước (thực tế ÷ năm trước − 1).",
     "tapHint": "Chạm vào số để xem nguồn dữ liệu và cách tính.",
     "x": {
       "actualTitle": "Thực tế {{date}} {{where}}",
@@ -1432,7 +1447,8 @@
       "sumTitle": "{{col}} của {{date}} {{where}}",
       "sumFormula": "{{col}} = {{parts}}\n= {{n}} bát",
       "sumMissing": "Có ca chưa có số nên không tính được tổng.",
-      "forecastNote": "Dự báo chỉ tính từ số liệu đến ngày trước {{date}} (cùng cách tính với dự báo đưa ra hôm trước). Thời tiết dùng thời tiết thực tế của ngày đó."
+      "forecastNote": "Dự báo chỉ tính từ số liệu đến ngày trước {{date}} (cùng cách tính với dự báo đưa ra hôm trước). Thời tiết dùng thời tiết thực tế của ngày đó.",
+      "yoyFormula": "So năm trước = thực tế ÷ năm trước − 1\n= {{a}} bát ÷ {{ly}} bát − 1\n= {{p}}%"
     },
     "check": "Dự báo 4 tuần gần nhất: sai số ±{{err}}%, thiên lệch {{bias}}% (− là dự báo quá thấp)"
   },

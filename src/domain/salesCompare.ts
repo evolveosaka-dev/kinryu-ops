@@ -59,3 +59,6 @@ export function latestActual(ctx: Ctx, upTo: string): string | null {
   for (let d = upTo, i = 0; i < 60; d = addDays(d, -1), i++) if (ctx.storeIds.some((s) => ctx.shifts.some((sh) => ctx.sales.has(slotKey(d, s, sh))))) return d
   return null
 }
+
+/** 前年比: 実績 ÷ 前年（364日前・同じ曜日） − 1, in % with one decimal; null when either is missing. */
+export const yoyPct = (actual: number | null, lastYear: number | null) => (actual === null || !lastYear ? null : Math.round((actual / lastYear - 1) * 1000) / 10)

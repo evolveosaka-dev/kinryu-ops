@@ -687,7 +687,22 @@
       "dataFrom": "2024 figures are not used (from January 2025).",
       "weather": "Weather: Open-Meteo hourly temperature and rain (Namba), saved to the database every day at 4:45. Actual values until yesterday, forecast from today (16 days ahead)."
     },
-    "score": "Score"
+    "score": "Score",
+    "yoyDay": {
+      "title": "Each day vs last year",
+      "help": "Bowls of each day of the month vs the same weekday a year before (364 days back). Tap a date for each store and shift.",
+      "day": "Date",
+      "lyDay": "Last year",
+      "rate": "vs LY",
+      "diff": "Diff.",
+      "days": "{{n}} days",
+      "note": "vs LY = actual ÷ last year − 1. The total uses only days with both figures. Red dates are public holidays.",
+      "none": "No figures for this month yet.",
+      "sheetTitle": "{{date}} vs last year {{ly}}",
+      "formula": "vs LY = actual ÷ last year − 1\n= {{a}} ÷ {{ly}} − 1\n= {{p}}",
+      "missing": "Actual or last year’s figures are missing for this day.",
+      "sheetNote": "Last year = the same weekday 364 days (52 weeks) before. Bowls = ramen + chashu-men (coupons not included)."
+    }
   },
   "patrolEdit": {
     "title": "Edit the patrol check",
@@ -1417,7 +1432,7 @@
     "all": "Both stores",
     "noActual": "No actual figures for this day yet (the bowl-count file is read every day at 6:00).",
     "syncFail": "Bowl-count import failed: {{error}}",
-    "legend": "% under the actual = actual ÷ forecast. The forecast uses only figures from before the day.",
+    "legend": "% under the actual = actual ÷ forecast. The forecast uses only figures from before the day. % under last year = vs last year (actual ÷ last year − 1).",
     "tapHint": "Tap a number to see its source and calculation.",
     "x": {
       "actualTitle": "{{date}} {{where}}: actual",
@@ -1432,7 +1447,8 @@
       "sumTitle": "{{date}} {{where}}: {{col}}",
       "sumFormula": "{{col}} = {{parts}}\n= {{n}} bowls",
       "sumMissing": "Some shifts have no figure yet, so there is no total.",
-      "forecastNote": "The forecast is calculated only from figures before {{date}} (the same calculation as the forecast made the day before). The weather is the day's actual weather."
+      "forecastNote": "The forecast is calculated only from figures before {{date}} (the same calculation as the forecast made the day before). The weather is the day's actual weather.",
+      "yoyFormula": "vs LY = actual ÷ last year − 1\n= {{a}} ÷ {{ly}} − 1\n= {{p}}%"
     },
     "check": "Forecast over the last 4 weeks: error ±{{err}}%, bias {{bias}}% (− = too low)"
   },
