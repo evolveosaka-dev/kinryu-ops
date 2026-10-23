@@ -21,6 +21,16 @@ export interface ShiftImportLog {
   n_changes: number
   changes: ShiftChange[]
 }
+export interface SyncMonth {
+  month: string
+  ok: boolean
+  /** false = no 「金龍YYYY年M月シフト」 file in the folder yet */
+  found: boolean
+  file?: string
+  rows?: number
+  changes?: number
+  error?: string
+}
 export interface SyncStatus {
   at: string
   ok: boolean
@@ -28,6 +38,8 @@ export interface SyncStatus {
   rows?: number
   changes?: number
   error?: string
+  /** a folder link: this month and next month (since 2026-10-23) */
+  months?: SyncMonth[]
 }
 
 /** Imports with changes; `days` = only the last N days. */

@@ -183,12 +183,27 @@ export function ShiftSyncCard() {
           </button>
         </p>
       )}
-      {s && (
-        <p className={cx('rounded-lg p-2 text-sm font-bold', s.ok ? 'bg-green-50 text-green-900' : 'bg-red-50 text-red-900')}>
-          {s.ok
-            ? `✓ ${t('shiftSync.lastOk', { at: jstDateTime(s.at).slice(5), m: Number(s.month?.slice(5, 7)), rows: s.rows, n: s.changes })}`
-            : `✗ ${t('shiftSync.lastFail', { at: jstDateTime(s.at).slice(5), error: s.error })}`}
-        </p>
+      {s && s.months && s.months.length > 1 ? (
+        <div className={cx('flex flex-col gap-0.5 rounded-lg p-2 text-sm font-bold', s.ok ? 'bg-green-50 text-green-900' : 'bg-red-50 text-red-900')}>
+          <span>{t('shiftSync.lastRun', { at: jstDateTime(s.at).slice(5) })}</span>
+          {s.months.map((m) => (
+            <span key={m.month} className={cx(!m.ok && 'text-red-800', m.ok && !m.found && 'font-normal text-slate-600')}>
+              {!m.found
+                ? `・${t('shiftSync.monthNone', { m: Number(m.month.slice(5, 7)) })}`
+                : m.ok
+                  ? `✓ ${t('shiftSync.monthOk', { m: Number(m.month.slice(5, 7)), rows: m.rows, n: m.changes })}`
+                  : `✗ ${t('shiftSync.monthFail', { m: Number(m.month.slice(5, 7)), error: m.error })}`}
+            </span>
+          ))}
+        </div>
+      ) : (
+        s && (
+          <p className={cx('rounded-lg p-2 text-sm font-bold', s.ok ? 'bg-green-50 text-green-900' : 'bg-red-50 text-red-900')}>
+            {s.ok
+              ? `✓ ${t('shiftSync.lastOk', { at: jstDateTime(s.at).slice(5), m: Number(s.month?.slice(5, 7)), rows: s.rows, n: s.changes })}`
+              : `✗ ${t('shiftSync.lastFail', { at: jstDateTime(s.at).slice(5), error: s.error })}`}
+          </p>
+        )
       )}
       {run.error && <ErrorBox message={errorMessage(run.error)} />}
       {sync.data?.url && (

@@ -1205,7 +1205,7 @@
   },
   "shiftSync": {
     "title": "Tự động đọc từ Office 365",
-    "note": "Bảng ca ở link chia sẻ được đọc lúc 6:00 mỗi ngày, những chỗ thay đổi hiện trên Tổng quan (duyệt nghỉ・người thay, kéo dài ca cho họp ca・tuần tra vẫn được giữ).",
+    "note": "Đọc bảng ca được chia sẻ lúc 6:00 mỗi ngày và hiện thay đổi trên ダッシュボード (nghỉ・người thay đã duyệt và giờ làm thêm cho 朝礼・巡回 vẫn giữ). Nếu dùng link thư mục, app đọc 「金龍YYYY年M月シフト」 của tháng này và tháng sau, không cần đổi link mỗi tháng.",
     "link": "Link chia sẻ",
     "saveLink": "Lưu link",
     "cancel": "Huỷ",
@@ -1239,7 +1239,11 @@
       "changed": "Đổi"
     },
     "weekdays": "CN,T2,T3,T4,T5,T6,T7",
-    "homeCard": "Bảng ca đã được cập nhật・{{n}} thay đổi"
+    "homeCard": "Bảng ca đã được cập nhật・{{n}} thay đổi",
+    "lastRun": "Lần đọc gần nhất: {{at}}",
+    "monthOk": "Tháng {{m}}: {{rows}} ca・thay đổi {{n}}",
+    "monthNone": "Tháng {{m}}: chưa có file",
+    "monthFail": "Tháng {{m}}: lỗi ({{error}})"
   },
   "dutyAlert": {
     "card": "Hãy phân công: {{date}} {{shift}} ({{name}})",

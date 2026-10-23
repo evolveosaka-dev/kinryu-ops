@@ -1205,7 +1205,7 @@
   },
   "shiftSync": {
     "title": "Automatic import from Office 365",
-    "note": "The shared shift workbook is read every day at 6:00 and the changes are shown on the dashboard (approved absences / covers and 朝礼・巡回 extensions are kept).",
+    "note": "Reads the shared shift workbook every day at 6:00 and shows what changed on the dashboard (approved absences / covers and 朝礼・巡回 extensions stay). With a folder link, this month’s and next month’s 「金龍YYYY年M月シフト」 are both read, so the link need not change every month.",
     "link": "Share link",
     "saveLink": "Save link",
     "cancel": "Cancel",
@@ -1239,7 +1239,11 @@
       "changed": "Changed"
     },
     "weekdays": "Sun,Mon,Tue,Wed,Thu,Fri,Sat",
-    "homeCard": "The shift table was updated: {{n}} changes"
+    "homeCard": "The shift table was updated: {{n}} changes",
+    "lastRun": "Last run: {{at}}",
+    "monthOk": "{{m}}: {{rows}} shifts, {{n}} changes",
+    "monthNone": "{{m}}: no file yet",
+    "monthFail": "{{m}}: failed ({{error}})"
   },
   "dutyAlert": {
     "card": "Assign the duties: {{date}} {{shift}} ({{name}})",
